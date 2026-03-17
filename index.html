@@ -1,0 +1,2382 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>L.S.P.D. — Detective Bureau Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=IBM+Plex+Mono:wght@300;400;500;600&family=Barlow+Condensed:wght@300;400;600;700;900&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --ink:#0f0e0c;--paper:#f2ead8;--paper-dark:#e8ddc4;--paper-mid:#ede3cc;
+  --amber:#b5821a;--amber-light:#d4a832;--amber-dim:#7a5610;
+  --red-stamp:#8b1a1a;--green-stamp:#1a4a1a;--blue-ink:#1a2a4a;
+  --gray-ink:#4a4540;--gray-light:#8a837a;--divider:rgba(90,75,50,0.25);
+  /* Couleurs événements calendrier */
+  --ev-interro:#1e40af; --ev-perqui:#166534; --ev-psy:#6b21a8; --ev-ag:#991b1b; --ev-autre:#57534e;
+}
+html{scroll-behavior:smooth;}
+body{background:#0a0908;color:var(--ink);font-family:'Barlow',sans-serif;font-size:16px;line-height:1.65;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:0.5;}
+.page{display:none;min-height:100vh;}.page.active{display:block;}
+
+/* ═══ LOGIN ═══ */
+#login-page{background:#0a0908;min-height:100vh;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+#login-page::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,rgba(181,130,26,0.08) 0%,transparent 70%);pointer-events:none;}
+.login-bg-lines{position:absolute;inset:0;overflow:hidden;pointer-events:none;opacity:0.04;}
+.login-bg-lines::before{content:'';position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(181,130,26,0.6) 39px,rgba(181,130,26,0.6) 40px),repeating-linear-gradient(90deg,transparent,transparent 39px,rgba(181,130,26,0.6) 39px,rgba(181,130,26,0.6) 40px);}
+.login-card{position:relative;z-index:1;background:var(--paper);width:100%;max-width:480px;margin:2rem;border:2px solid var(--ink);box-shadow:8px 8px 0 rgba(0,0,0,0.4),0 0 60px rgba(181,130,26,0.1);animation:fadeUp 0.6s cubic-bezier(0.16,1,0.3,1) forwards;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px) scale(0.98);}to{opacity:1;transform:translateY(0) scale(1);}}
+.login-header{background:var(--ink);padding:2rem 2.5rem;display:flex;align-items:center;gap:1.5rem;border-bottom:3px solid var(--amber);}
+.login-hd{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.25em;text-transform:uppercase;color:var(--amber-dim);margin-bottom:4px;}
+.login-ht{font-family:'Special Elite',cursive;font-size:22px;color:var(--paper);line-height:1.1;}
+.login-hs{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--gray-light);letter-spacing:0.12em;text-transform:uppercase;margin-top:3px;}
+.login-body{padding:2.5rem;}
+.login-warn{display:flex;align-items:center;gap:10px;margin-bottom:2rem;padding:8px 14px;background:rgba(139,26,26,0.06);border:1px solid rgba(139,26,26,0.2);border-left:3px solid var(--red-stamp);}
+.login-warn span{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--red-stamp);}
+.lfield{margin-bottom:1.2rem;}
+.llabel{display:block;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--amber-dim);margin-bottom:6px;}
+.linput{width:100%;background:var(--paper-mid);border:1px solid var(--divider);border-bottom:2px solid var(--amber-dim);padding:10px 14px;font-family:'IBM Plex Mono',monospace;font-size:14px;color:var(--ink);outline:none;transition:all 0.2s;}
+.linput:focus{border-color:var(--amber);background:var(--paper);border-bottom-color:var(--amber);}
+.linput::placeholder{color:var(--gray-light);}
+.login-btn{width:100%;background:var(--ink);color:var(--amber-light);border:2px solid var(--ink);padding:13px;font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.2em;text-transform:uppercase;cursor:pointer;margin-top:0.5rem;transition:all 0.2s;}
+.login-btn:hover{background:var(--amber);color:var(--ink);border-color:var(--amber);}
+.login-err{background:rgba(139,26,26,0.08);border:1px solid rgba(139,26,26,0.25);border-left:3px solid var(--red-stamp);padding:10px 14px;margin-top:1rem;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--red-stamp);display:none;}
+.login-err.show{display:block;}
+.login-foot{padding:1rem 2.5rem 1.5rem;border-top:1px solid var(--divider);font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--gray-light);letter-spacing:0.08em;text-align:center;}
+
+/* ═══ NAV ═══ */
+#portal-page{background:#1a1610;}
+.pwrap{background:var(--paper);min-height:100vh;}
+nav{background:var(--ink);padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:58px;position:sticky;top:0;z-index:200;border-bottom:3px solid var(--amber);}
+.nav-brand{display:flex;align-items:center;gap:12px;}
+.nav-logo{width:32px;height:32px;}
+.nav-title{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;letter-spacing:0.08em;color:var(--paper);text-transform:uppercase;}
+.nav-title span{color:var(--amber-light);}
+.nav-right{display:flex;align-items:center;gap:0.5rem;flex-wrap:nowrap;}
+.nav-user{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--gray-light);white-space:nowrap;}
+.nav-user strong{color:var(--amber-light);}
+.nav-role-badge{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:2px 7px;border-radius:2px;white-space:nowrap;}
+.role-direction{background:rgba(181,130,26,0.2);color:var(--amber-light);border:1px solid rgba(181,130,26,0.4);}
+.role-responsable{background:rgba(26,74,26,0.2);color:#6ab36a;border:1px solid rgba(26,100,26,0.4);}
+.role-agent{background:rgba(100,100,100,0.2);color:var(--gray-light);border:1px solid rgba(100,100,100,0.3);}
+.stimer{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.06em;color:rgba(181,130,26,0.65);display:none;white-space:nowrap;}
+.nbtn{background:none;border:1px solid rgba(255,255,255,0.15);color:rgba(242,234,216,0.6);font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:5px 9px;cursor:pointer;transition:all 0.2s;white-space:nowrap;}
+.nbtn:hover{background:rgba(255,255,255,0.08);color:var(--amber-light);}
+.nbtn.adm{border-color:rgba(181,130,26,0.4);color:var(--amber-dim);}
+.nbtn.adm:hover{background:rgba(181,130,26,0.15);color:var(--amber-light);}
+.nbtn.out{border-color:rgba(139,26,26,0.4);color:rgba(139,26,26,0.8);}
+.nbtn.out:hover{background:var(--red-stamp);color:var(--paper);border-color:var(--red-stamp);}
+.nav-badge{background:var(--green-stamp);color:#f2ead8;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:4px 10px;border-radius:2px;white-space:nowrap;}
+.top-banner{background:var(--amber);padding:6px 2rem;display:flex;align-items:center;justify-content:center;gap:1.5rem;flex-wrap:wrap;}
+.top-banner span{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;letter-spacing:0.16em;text-transform:uppercase;color:var(--ink);}
+.bsep{opacity:0.35;}
+
+/* ═══ HERO ═══ */
+.portal-hero{padding:4rem 3rem 3rem;display:grid;grid-template-columns:auto 1fr;gap:4rem;align-items:start;max-width:1200px;margin:0 auto;border-bottom:2px solid var(--divider);}
+.hero-emb{display:flex;flex-direction:column;align-items:center;gap:1rem;padding-top:0.5rem;}
+.emb-svg{width:130px;height:130px;filter:drop-shadow(2px 3px 0 rgba(0,0,0,0.12));}
+.emb-sub{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.15em;color:var(--gray-ink);text-transform:uppercase;text-align:center;line-height:1.5;}
+.hero-eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.25em;text-transform:uppercase;color:var(--amber-dim);margin-bottom:0.8rem;display:flex;align-items:center;gap:10px;}
+.hero-eyebrow::before{content:'';display:block;width:30px;height:1px;background:var(--amber);}
+.portal-hero h1{font-family:'Special Elite',cursive;font-size:clamp(40px,5vw,70px);line-height:0.9;color:var(--ink);margin-bottom:0.5rem;}
+.hero-sub{font-family:'Barlow Condensed',sans-serif;font-size:clamp(16px,2.5vw,26px);font-weight:300;letter-spacing:0.08em;text-transform:uppercase;color:var(--amber-dim);margin-bottom:1.5rem;}
+.hero-bar{width:60px;height:3px;background:var(--ink);margin-bottom:1.5rem;}
+.hero-desc{font-size:15px;color:var(--gray-ink);max-width:620px;line-height:1.75;border-left:3px solid var(--amber);padding-left:1.2rem;font-style:italic;}
+.hero-welcome{margin-top:1.5rem;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--amber-dim);letter-spacing:0.08em;}
+.hero-welcome strong{color:var(--ink);}
+.stamps-row{display:flex;gap:1rem;flex-wrap:wrap;margin-top:1.5rem;}
+.stamp{border:2px solid currentColor;border-radius:3px;padding:4px 12px;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;letter-spacing:0.15em;text-transform:uppercase;display:inline-block;}
+.stamp-red{color:var(--red-stamp);border-color:var(--red-stamp);transform:rotate(-1.5deg);}
+.stamp-green{color:var(--green-stamp);border-color:var(--green-stamp);transform:rotate(1deg);}
+
+/* ═══ SECTIONS ═══ */
+.section-bg{background:var(--paper-mid);border-top:1px solid var(--divider);border-bottom:1px solid var(--divider);padding:4rem 0;}
+.section-bg>section{padding-top:0;padding-bottom:0;}
+section{padding:4rem 3rem;max-width:1200px;margin:0 auto;}
+.sec-head{display:flex;align-items:baseline;gap:1.5rem;margin-bottom:2.5rem;border-bottom:1px solid var(--divider);padding-bottom:1rem;}
+.sec-num{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--amber-dim);letter-spacing:0.15em;flex-shrink:0;}
+.sec-title{font-family:'Special Elite',cursive;font-size:clamp(20px,3vw,32px);color:var(--ink);line-height:1;}
+.dark-wrap .sec-title{color:var(--paper);}
+.dark-wrap .sec-num{color:var(--amber-dim);}
+.sec-rule{flex:1;height:1px;background:var(--divider);}
+.dark-wrap .sec-rule{background:rgba(255,255,255,0.1);}
+.info-box{border-left:3px solid var(--amber);padding:1rem 1.5rem;background:rgba(181,130,26,0.06);margin:1.5rem 0;}
+.info-box p{font-size:14px;color:var(--gray-ink);line-height:1.7;}
+.sub-label{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--amber-dim);padding:0.5rem 0;border-bottom:2px solid var(--amber-dim);margin-bottom:1rem;}
+
+/* ═══ GATEWAY ═══ */
+.gway-section{padding:3rem 3rem 4rem;max-width:1200px;margin:0 auto;}
+.gway-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.gcard{background:var(--paper-mid);border:1px solid var(--divider);border-top:4px solid var(--amber-dim);padding:1.8rem 1.6rem 1.6rem;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:0.7rem;transition:all 0.2s;cursor:pointer;position:relative;overflow:hidden;}
+.gcard::after{content:'→';position:absolute;bottom:1.2rem;right:1.4rem;font-family:'IBM Plex Mono',monospace;font-size:15px;color:var(--amber-dim);transition:all 0.2s;}
+.gcard:hover{border-top-color:var(--amber);background:var(--paper-dark);transform:translateY(-2px);box-shadow:0 4px 20px rgba(0,0,0,0.1);}
+.gcard:hover::after{right:1rem;color:var(--amber);}
+.gi{font-size:26px;line-height:1;margin-bottom:0.2rem;}
+.gc{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--amber-dim);}
+.gt{font-family:'Barlow Condensed',sans-serif;font-size:19px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:var(--ink);line-height:1.1;}
+.gd{font-size:12px;color:var(--gray-ink);line-height:1.55;padding-right:1.4rem;}
+.gbadge{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.08em;padding:2px 7px;border-radius:2px;margin-top:auto;align-self:flex-start;}
+.bg-class{background:rgba(139,26,26,0.08);color:var(--red-stamp);border:1px solid rgba(139,26,26,0.2);}
+.bg-int{background:rgba(181,130,26,0.1);color:var(--amber-dim);border:1px solid rgba(181,130,26,0.25);}
+.bg-ext{background:rgba(26,42,74,0.1);color:var(--blue-ink);border:1px solid rgba(26,42,74,0.25);}
+
+/* ═══ MANUELS ═══ */
+#manuels-panel{display:none;margin-top:1.5rem;}
+.manuels-wrap{border:1px solid var(--divider);border-top:3px solid var(--amber);}
+.manuels-head{background:var(--paper-mid);padding:0.9rem 1.4rem;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--divider);}
+.manuels-head span{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:var(--amber-dim);}
+.manuels-grid{padding:1.2rem;display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+.ml{display:flex;align-items:center;gap:12px;padding:12px;background:var(--paper);border:1px solid var(--divider);border-left:3px solid var(--amber-dim);text-decoration:none;color:inherit;transition:all 0.2s;}
+.ml:hover{border-left-color:var(--amber);background:var(--paper-dark);}
+.ml.classified{border-left-color:var(--red-stamp);}
+.ml-title{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;text-transform:uppercase;color:var(--ink);}
+.ml-sub{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--amber-dim);letter-spacing:0.06em;}
+.ml.classified .ml-sub{color:var(--red-stamp);}
+
+/* ═══ MISSIONS ═══ */
+.mission-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--divider);border:1px solid var(--divider);}
+.mission-card{background:var(--paper);padding:1.6rem;}
+.mission-num{font-family:'IBM Plex Mono',monospace;font-size:30px;font-weight:300;color:var(--amber);line-height:1;margin-bottom:0.6rem;}
+.mission-title{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink);margin-bottom:0.4rem;}
+.mission-desc{font-size:13px;color:var(--gray-ink);line-height:1.55;}
+
+/* ═══ EFFECTIF ═══ */
+.effectif-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+.agent-card{background:var(--paper-mid);border:1px solid var(--divider);border-left:4px solid var(--amber-dim);padding:1rem 1.3rem;display:grid;grid-template-columns:auto 1fr auto;gap:1rem;align-items:center;transition:all 0.2s;position:relative;}
+.agent-card:hover{border-left-color:var(--amber);background:var(--paper-dark);}
+.agent-card.chef{border-left-color:var(--amber);background:rgba(181,130,26,0.06);}
+.agent-card.vacant{border-left-color:var(--red-stamp)!important;background:rgba(139,26,26,0.05)!important;}
+.agent-mat{font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:300;color:var(--amber-dim);width:38px;text-align:center;line-height:1;}
+.agent-card.vacant .agent-mat{color:var(--red-stamp);}
+.agent-name{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:var(--ink);margin-bottom:2px;}
+.agent-gbi{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.1em;color:var(--amber-dim);text-transform:uppercase;}
+.agent-glspd{font-size:11px;color:var(--gray-light);margin-top:1px;}
+.agent-meta{text-align:right;}
+.agent-id{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--gray-light);letter-spacing:0.08em;display:block;margin-bottom:3px;}
+.agent-unit{font-size:10px;color:var(--amber-dim);background:rgba(181,130,26,0.1);border:1px solid rgba(181,130,26,0.25);padding:2px 7px;border-radius:2px;font-family:'IBM Plex Mono',monospace;white-space:nowrap;}
+.agent-card.vacant .agent-unit{color:var(--red-stamp);border-color:rgba(139,26,26,0.3);background:rgba(139,26,26,0.06);}
+.admin-edit-btn{position:absolute;top:6px;right:6px;background:none;border:1px solid var(--divider);color:var(--gray-light);font-family:'IBM Plex Mono',monospace;font-size:9px;padding:2px 6px;cursor:pointer;display:none;transition:all 0.2s;border-radius:2px;}
+.admin-edit-btn:hover{background:var(--amber);color:var(--ink);border-color:var(--amber);}
+.admin-mode .admin-edit-btn{display:inline-block;}
+
+/* ═══ PENAL ═══ */
+.dark-wrap{background:var(--ink);}
+.dark-inner{max-width:1200px;margin:0 auto;padding:4rem 3rem;}
+.penal-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:0;border:1px solid rgba(255,255,255,0.08);}
+.pchap{padding:1.3rem 1.5rem;border-bottom:1px solid rgba(255,255,255,0.08);background:rgba(242,234,216,0.03);}
+.pchap:nth-child(odd){border-right:1px solid rgba(255,255,255,0.08);}
+.pchap-title{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:500;letter-spacing:0.15em;text-transform:uppercase;color:var(--amber-dim);margin-bottom:0.6rem;padding-bottom:4px;border-bottom:1px solid rgba(255,255,255,0.08);}
+.prow{display:flex;justify-content:space-between;align-items:center;padding:3px 0;gap:0.8rem;border-bottom:1px dotted rgba(255,255,255,0.05);font-size:11px;}
+.prow:last-child{border-bottom:none;}
+.part{color:rgba(242,234,216,0.7);flex:1;}
+.risk{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.06em;padding:2px 6px;border-radius:2px;white-space:nowrap;flex-shrink:0;}
+.r0{background:rgba(100,100,100,0.15);color:rgba(242,234,216,0.4);}
+.r1{background:rgba(26,74,26,0.25);color:#6ab36a;}
+.r2{background:rgba(181,130,26,0.25);color:var(--amber-light);}
+.r3{background:rgba(139,26,26,0.25);color:#d4706a;}
+.r4{background:var(--red-stamp);color:#f2ead8;}
+
+/* ═══ CHARTE ═══ */
+.charte-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.charte-card{background:rgba(242,234,216,0.04);border:1px solid rgba(255,255,255,0.08);padding:1.3rem 1.5rem;}
+.charte-icon{font-size:20px;margin-bottom:0.5rem;line-height:1;}
+.charte-title{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--paper);margin-bottom:0.3rem;}
+.charte-text{font-size:12px;color:rgba(242,234,216,0.55);line-height:1.55;}
+
+/* ═══ FOOTER ═══ */
+footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px solid rgba(255,255,255,0.06);}
+.footer-in{max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;}
+.fcopy{font-family:'IBM Plex Mono',monospace;font-size:10px;color:rgba(242,234,216,0.3);letter-spacing:0.08em;}
+.scroll-top{position:fixed;bottom:2rem;right:2rem;background:var(--ink);border:2px solid var(--amber);color:var(--amber-light);font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:7px 12px;z-index:50;opacity:0;transition:opacity 0.3s;cursor:pointer;}
+.scroll-top.show{opacity:1;}
+
+/* ═══ OVERLAY/MODAL ═══ */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.78);z-index:300;display:none;align-items:flex-start;justify-content:center;padding:1.5rem 1rem;overflow-y:auto;}
+.overlay.open{display:flex;}
+.modal{background:var(--paper);border:2px solid var(--ink);box-shadow:8px 8px 0 rgba(0,0,0,0.4);width:100%;max-width:1000px;animation:fadeUp 0.3s cubic-bezier(0.16,1,0.3,1) forwards;margin:auto;}
+.mh{background:var(--ink);padding:1.1rem 1.8rem;display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid var(--amber);position:sticky;top:0;z-index:10;}
+.mh-title{font-family:'Special Elite',cursive;font-size:19px;color:var(--paper);}
+.mh-close{background:none;border:1px solid rgba(255,255,255,0.2);color:rgba(242,234,216,0.6);font-family:'IBM Plex Mono',monospace;font-size:10px;padding:5px 10px;cursor:pointer;transition:all 0.2s;}
+.mh-close:hover{background:var(--red-stamp);color:var(--paper);border-color:var(--red-stamp);}
+.mb{padding:1.8rem;}
+.msec{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--amber-dim);padding-bottom:5px;border-bottom:2px solid var(--amber-dim);margin-bottom:0.9rem;margin-top:1.3rem;}
+.msec:first-child{margin-top:0;}
+
+/* ═══ FORMS ═══ */
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;}
+.ff{display:flex;flex-direction:column;gap:4px;}
+.fl{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--amber-dim);}
+.fi,.fs{background:var(--paper-mid);border:1px solid var(--divider);border-bottom:2px solid var(--amber-dim);padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink);outline:none;transition:all 0.2s;width:100%;}
+.fi:focus,.fs:focus{border-bottom-color:var(--amber);background:var(--paper);}
+.fs{appearance:none;cursor:pointer;}
+.btn{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;padding:8px 16px;cursor:pointer;border:2px solid;transition:all 0.2s;}
+.btn-p{background:var(--ink);color:var(--amber-light);border-color:var(--ink);}
+.btn-p:hover{background:var(--amber);color:var(--ink);border-color:var(--amber);}
+.btn-d{background:none;color:var(--red-stamp);border-color:var(--red-stamp);}
+.btn-d:hover{background:var(--red-stamp);color:var(--paper);}
+.btn-s{background:none;color:var(--green-stamp);border-color:var(--green-stamp);}
+.btn-s:hover{background:var(--green-stamp);color:var(--paper);}
+.btn-sm{padding:4px 9px;font-size:9px;}
+.alert{padding:9px 12px;font-family:'IBM Plex Mono',monospace;font-size:11px;margin:0.4rem 0;border-radius:2px;}
+.alert-ok{background:rgba(26,74,26,0.1);border:1px solid rgba(26,74,26,0.3);border-left:3px solid var(--green-stamp);color:var(--green-stamp);}
+.alert-err{background:rgba(139,26,26,0.08);border:1px solid rgba(139,26,26,0.25);border-left:3px solid var(--red-stamp);color:var(--red-stamp);}
+
+/* ═══ LIGHT TABLE (warrants & bracelets) ═══ */
+.lt-wrap{background:#fff;border:1px solid #dde0e8;border-radius:6px;overflow-x:auto;box-shadow:0 2px 16px rgba(0,0,0,0.07);}
+.lt{width:100%;border-collapse:collapse;font-size:11px;}
+.lt thead tr{background:#2c2100;}
+.lt th{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:#f0d080;padding:10px 9px;text-align:center;border-bottom:3px solid #b5821a;white-space:nowrap;}
+.lt th.tal{text-align:left;}
+.lt tbody tr{border-bottom:1px solid #eee8dc;transition:background 0.15s;}
+.lt tbody tr:nth-child(even){background:#faf7f1;}
+.lt tbody tr:hover{background:#fff8e0;}
+.lt td{padding:8px 9px;color:#2d1800;vertical-align:middle;text-align:center;}
+.lt td.tal{text-align:left;}
+.lt-id{font-family:'IBM Plex Mono',monospace;font-weight:600;color:#7a5610;font-size:11px;}
+.lt-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.05em;color:#0f0e0c;text-transform:uppercase;}
+.lt-prenom{font-family:'Barlow Condensed',sans-serif;font-size:12px;color:#3a2800;text-transform:capitalize;}
+
+/* Warrants modal header — gold/dark brown */
+.wm-header{background:#2c2100;border-bottom-color:#b5821a;}
+.wm-header .mh-title{color:#f0d080;}
+.wm-count{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#d4a832;}
+.wm-body{background:#f5f2ea;}
+.wm-warn{background:#fff8e0;border:1px solid #e0c060;border-left:3px solid #b5821a;padding:6px 12px;font-family:'IBM Plex Mono',monospace;font-size:9px;color:#7a4a00;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:1rem;border-radius:3px;}
+.wm-add{background:#faf7f0;border:1px solid #ddd8cc;border-top:3px solid #b5821a;padding:1.3rem;margin-top:1rem;border-radius:0 0 6px 6px;}
+.wm-add-title{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:#7a5610;margin-bottom:0.8rem;}
+.wm-form-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:0.8rem;}
+.wm-form-grid .fi,.wm-form-grid .fs{background:#fff;border-color:#e0d8c0;border-bottom-color:#b5821a;color:#1a1200;border-radius:3px;}
+.wm-form-grid .fi::placeholder{color:#c8b880;}
+.wm-form-grid .fl{color:#7a5610;}
+
+/* Bracelets modal header — deep purple */
+.bm-header{background:#1a0a2a;border-bottom-color:#6a3a9a;}
+.bm-header .mh-title{color:#c0a0f0;}
+.bm-count{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#a080d0;}
+.bm-warn{background:#f5f0ff;border:1px solid #c080e8;border-left:3px solid #6a3a9a;padding:6px 12px;font-family:'IBM Plex Mono',monospace;font-size:9px;color:#5a1a8a;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.8rem;border-radius:3px;}
+.bm-body{background:#f7f3ff;}
+.bm-add{background:#f5f0ff;border:1px solid #d0b8f0;border-top:3px solid #6a3a9a;padding:1.3rem;margin-top:1rem;border-radius:0 0 6px 6px;}
+.bm-add-title{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:#5a1a8a;margin-bottom:0.8rem;}
+.bm-form-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:0.8rem;}
+.bm-form-grid .fi,.bm-form-grid .fs{background:#fff;border-color:#d0b8f0;border-bottom-color:#6a3a9a;color:#1a0a2a;border-radius:3px;}
+.bm-form-grid .fi::placeholder{color:#c0a0e0;}
+.bm-form-grid .fl{color:#5a1a8a;}
+.bm-lt thead tr{background:#1a0a2a;}
+.bm-lt .lt th{border-bottom-color:#6a3a9a;color:#c0a0f0;}
+.bm-lt .lt tbody tr:hover{background:#f0e8ff;}
+.bm-lt .lt tbody tr:nth-child(even){background:#f8f4ff;}
+
+/* Risk badges */
+.wbadge{display:inline-flex;align-items:center;gap:5px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.04em;padding:3px 8px;border-radius:4px;white-space:nowrap;justify-content:center;}
+.wbadge::before{content:'';width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.wb-vhigh{background:#fde8e8;color:#b00010;border:1px solid #f5a0a0;}.wb-vhigh::before{background:#dd0010;}
+.wb-high{background:#fef0dc;color:#9a3800;border:1px solid #f5c080;}.wb-high::before{background:#d86000;}
+.wb-mid{background:#fffadc;color:#7a5800;border:1px solid #e8d060;}.wb-mid::before{background:#c8a000;}
+.wb-low{background:#e8f8e8;color:#1a5a1a;border:1px solid #80cc80;}.wb-low::before{background:#2a8a2a;}
+.tbadge{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.08em;padding:2px 8px;border-radius:3px;white-space:nowrap;font-weight:600;}
+.tb-prot{background:#e8f0fe;color:#1a4a9a;border:1px solid #93c5fd;}
+.tb-surv{background:#fdf4e0;color:#7a4800;border:1px solid #f5c87a;}
+.sp-badge{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.06em;padding:2px 7px;border-radius:3px;white-space:nowrap;}
+.sp-retard{background:#fde8e8;color:#b00010;border:1px solid #f5a0a0;}
+.sp-cours{background:#e8f8e8;color:#1a5a1a;border:1px solid #80cc80;}
+.st-badge{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.06em;padding:2px 7px;border-radius:3px;white-space:nowrap;}
+.st-conv{background:#fdf4e0;color:#7a4800;border:1px solid #f5c87a;}
+.st-point{background:#e8f0fe;color:#1a4a9a;border:1px solid #93c5fd;}
+.st-ret{background:#f5e8f8;color:#5a1a6a;border:1px solid #c8a0d0;}
+.st-brise{background:#fde8e8;color:#b00010;border:1px solid #f5a0a0;}
+
+/* Toggle MAJ */
+.w-toggle{position:relative;display:inline-flex;align-items:center;gap:4px;cursor:pointer;user-select:none;}
+.w-toggle input{display:none;}
+.wt-track{width:30px;height:17px;border-radius:9px;background:#ddd;border:1px solid #bbb;transition:all 0.25s;flex-shrink:0;}
+.w-toggle input:checked+.wt-track{background:rgba(30,160,30,0.3);border-color:#2a9a2a;}
+.wt-thumb{position:absolute;left:2px;top:50%;transform:translateY(-50%);width:13px;height:13px;border-radius:50%;background:#aaa;transition:all 0.25s;pointer-events:none;}
+.w-toggle input:checked~.wt-thumb{left:15px;background:#2a9a2a;}
+.wt-lbl{font-family:'IBM Plex Mono',monospace;font-size:9px;color:#999;min-width:12px;transition:color 0.2s;}
+.w-toggle input:checked~.wt-lbl{color:#1a7a1a;}
+.w-link{display:inline-block;color:#2563eb;font-size:10px;font-family:'IBM Plex Mono',monospace;text-decoration:none;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle;}
+.w-link:hover{color:#1d4ed8;text-decoration:underline;}
+.w-na{color:#bbb;font-family:'IBM Plex Mono',monospace;font-size:10px;}
+.ta-btn{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.06em;padding:4px 9px;cursor:pointer;transition:all 0.2s;border-radius:4px;white-space:nowrap;}
+.ta-close{background:#edf7ed;border:1px solid #60b060;color:#1a6a1a;}
+.ta-close:hover{background:#c8eac8;border-color:#2a8a2a;}
+.ta-edit{background:#eff6ff;border:1px solid #93c5fd;color:#1d4ed8;}
+.ta-edit:hover{background:#dbeafe;border-color:#3b82f6;}
+.ta-actions{display:flex;gap:4px;align-items:center;justify-content:center;flex-wrap:wrap;}
+.lt-nodata{font-family:'IBM Plex Mono',monospace;font-size:12px;color:#aaa;text-align:center;padding:2.5rem;letter-spacing:0.06em;}
+.lt-readonly{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#666;text-align:center;padding:0.8rem;background:#f8f8f8;border:1px dashed #ccc;border-radius:4px;margin-top:0.8rem;}
+
+/* ═══ PRISE D'INFO ═══ */
+.pi-modal .modal{max-width:1000px;}
+.pi-header{background:linear-gradient(135deg,#1a2a4a 0%,#2d4a7a 100%);border-bottom:3px solid #4a90d4;padding:1.4rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+.pi-header-left{display:flex;align-items:center;gap:1rem;}
+.pi-title-main{font-family:'Special Elite',cursive;font-size:22px;color:#ecfdf5;line-height:1.1;}
+.pi-title-sub{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:#6ee7b7;margin-top:2px;}
+.pi-close-btn{background:none;border:1px solid rgba(255,255,255,0.25);color:rgba(200,255,220,0.7);font-family:'IBM Plex Mono',monospace;font-size:10px;padding:5px 10px;cursor:pointer;transition:all 0.2s;border-radius:3px;}
+.pi-close-btn:hover{background:rgba(255,255,255,0.15);color:#fff;}
+.pi-body{background:#f0fdf4;padding:1.6rem 1.8rem;display:grid;grid-template-columns:1fr 1fr;gap:1.8rem;}
+.pi-sec{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:#065f46;padding-bottom:5px;border-bottom:2px solid #a7f3d0;margin-bottom:1rem;}
+.pi-field{margin-bottom:0.7rem;}
+.pi-label{display:block;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:#065f46;margin-bottom:3px;}
+.pi-input,.pi-textarea{width:100%;background:#fff;border:1px solid #a7f3d0;border-bottom:2px solid #10b981;padding:8px 10px;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;font-size:13px;color:#064e3b;outline:none;transition:all 0.2s;border-radius:7px;}
+.pi-input:focus,.pi-textarea:focus{border-color:#10b981;background:#f9fffd;box-shadow:0 0 0 3px rgba(16,185,129,0.1);}
+.pi-input::placeholder,.pi-textarea::placeholder{color:#6ee7b7;}
+.pi-textarea{resize:vertical;min-height:65px;}
+.pi-raw{width:100%;background:#fff;border:1px solid #a7f3d0;padding:9px 10px;font-family:'Segoe UI',monospace;font-size:12px;color:#064e3b;outline:none;resize:vertical;min-height:80px;border-radius:7px;transition:all 0.2s;}
+.pi-raw:focus{border-color:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,0.1);}
+.pi-raw::placeholder{color:#6ee7b7;}
+.pi-bloc-box{background:#ecfdf5;border:1px solid #a7f3d0;border-left:3px solid #10b981;padding:0.8rem;margin-bottom:1rem;border-radius:5px;}
+.pi-output{background:#ecfdf5;border:1px solid #a7f3d0;padding:1.2rem;min-height:200px;font-family:'Courier New',Courier,monospace;font-size:13px;color:#064e3b;line-height:1.8;white-space:pre-wrap;border-radius:9px;box-shadow:inset 0 1px 4px rgba(16,185,129,0.08);}
+.pi-ph{color:#6ee7b7;font-style:italic;}
+.pi-btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:0.8rem;}
+.pi-btn{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:9px 16px;cursor:pointer;border:none;transition:all 0.2s;border-radius:11px;font-weight:700;}
+.pb-submit{background:#065f46;color:#ecfdf5;}.pb-submit:hover{background:#047857;transform:translateY(-1px);box-shadow:0 3px 10px rgba(6,95,70,0.3);}
+.pb-clear{background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0;}.pb-clear:hover{background:#d1fae5;}
+.pb-analyze{background:#064e3b;color:#6ee7b7;border:1px solid #047857;}.pb-analyze:hover{background:#065f46;}
+.pb-copy{background:#d1fae5;color:#065f46;border:1px solid #6ee7b7;}.pb-copy:hover{background:#a7f3d0;}
+
+/* ═══ CALENDRIER ═══ */
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:0.8rem;}
+.cal-nav{display:flex;align-items:center;gap:0.8rem;}
+.cal-month{font-family:'Special Elite',cursive;font-size:22px;color:var(--ink);}
+.cal-nav-btn{background:var(--ink);color:var(--amber-light);border:none;width:30px;height:30px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:background 0.2s;}
+.cal-nav-btn:hover{background:var(--amber);}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
+.cal-dow{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--amber-dim);text-align:center;padding:6px 0;}
+.cal-day{background:var(--paper-mid);border:1px solid var(--divider);min-height:90px;padding:5px;cursor:pointer;transition:background 0.15s;position:relative;}
+.cal-day:hover{background:var(--paper-dark);}
+.cal-day.other-month{background:rgba(242,234,216,0.3);opacity:0.5;}
+.cal-day.today{border:2px solid var(--amber);}
+.cal-day.past-day{background:rgba(242,234,216,0.5);}
+.cal-day.past-day:hover{background:rgba(232,224,204,0.7);}
+.cal-day-num{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--gray-ink);margin-bottom:3px;}
+.cal-day.today .cal-day-num{color:var(--amber);font-weight:600;}
+.cal-event{font-family:'Barlow',sans-serif;font-size:10px;padding:2px 5px;border-radius:2px;margin-bottom:2px;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#fff;font-weight:500;}
+/* Couleurs événements */
+.ev-interrogatoire{background:#1e40af;}
+.ev-perquisition{background:#166534;}
+.ev-psychologue{background:#6b21a8;}
+.ev-ag{background:#991b1b;}
+.ev-autre{background:#57534e;}
+/* Légende couleurs */
+.cal-legend{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1rem;}
+.leg-item{display:flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.06em;text-transform:uppercase;color:var(--gray-ink);}
+.leg-dot{width:10px;height:10px;border-radius:2px;}
+/* Vue tableau calendrier */
+.cal-agenda{margin-top:1.5rem;}
+.cal-agenda-title{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--amber-dim);padding-bottom:5px;border-bottom:2px solid var(--amber-dim);margin-bottom:1rem;}
+.cal-agenda-table{width:100%;border-collapse:collapse;font-size:12px;}
+.cal-agenda-table th{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--amber-dim);padding:7px 10px;text-align:left;border-bottom:2px solid var(--amber-dim);background:var(--paper-mid);white-space:nowrap;}
+.cal-agenda-table td{padding:7px 10px;border-bottom:1px dotted var(--divider);color:var(--gray-ink);vertical-align:middle;font-size:11px;}
+.cal-ev-dot{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:middle;flex-shrink:0;}
+.cal-event-badge{display:inline-flex;align-items:center;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;color:#fff;padding:2px 8px;border-radius:3px;}
+
+/* ═══ ADMIN ═══ */
+.admin-tabs{display:flex;border-bottom:2px solid var(--divider);margin-bottom:1.5rem;flex-wrap:wrap;}
+.atab{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:9px 16px;cursor:pointer;background:none;border:none;color:var(--gray-light);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.2s;white-space:nowrap;}
+.atab.active{color:var(--amber);border-bottom-color:var(--amber);}
+.atab:hover:not(.active){color:var(--amber-dim);}
+.atab-content{display:none;}
+.atab-content.active{display:block;}
+.a-table{width:100%;border-collapse:collapse;font-size:12px;}
+.a-table th{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--amber-dim);padding:7px 10px;text-align:left;border-bottom:2px solid var(--amber-dim);background:var(--paper-mid);}
+.a-table td{padding:7px 10px;border-bottom:1px dotted var(--divider);color:var(--gray-ink);vertical-align:middle;font-size:11px;}
+.odot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;}
+.odot-on{background:#4caf50;box-shadow:0 0 5px rgba(76,175,80,0.6);}
+.badge-on{display:inline-flex;align-items:center;font-family:'IBM Plex Mono',monospace;font-size:9px;padding:2px 7px;border-radius:2px;background:rgba(76,175,80,0.15);color:#4caf50;border:1px solid rgba(76,175,80,0.3);}
+
+/* ═══ TEMPS DE SERVICE ═══ */
+.service-search-row{display:flex;gap:8px;margin-bottom:1.2rem;align-items:flex-end;flex-wrap:wrap;}
+.svc-search-input{background:var(--paper-mid);border:1px solid var(--divider);border-bottom:2px solid var(--amber-dim);padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink);outline:none;flex:1;min-width:160px;transition:all 0.2s;}
+.svc-search-input:focus{border-bottom-color:var(--amber);}
+.svc-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.2rem;}
+.stat-card{background:var(--paper-mid);border:1px solid var(--divider);border-top:3px solid var(--amber);padding:0.9rem 1.1rem;}
+.stat-val{font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:300;color:var(--amber);line-height:1;}
+.stat-lbl{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gray-light);margin-top:3px;}
+.chart-controls{display:flex;gap:6px;margin-bottom:0.8rem;}
+.chart-btn{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:5px 12px;border:1px solid var(--divider);background:none;color:var(--gray-light);cursor:pointer;transition:all 0.2s;}
+.chart-btn.active{background:var(--ink);color:var(--amber-light);border-color:var(--ink);}
+.chart-wrap{background:var(--paper);border:1px solid var(--divider);padding:1.2rem;border-radius:3px;}
+.svc-history{margin-top:1rem;}
+.svc-history-title{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--amber-dim);padding-bottom:4px;border-bottom:1px solid var(--divider);margin-bottom:0.7rem;}
+
+/* ═══ UPCOMING EVENTS ═══ */
+.upcoming-empty{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--gray-light);text-align:center;padding:2rem;letter-spacing:0.06em;background:var(--paper-mid);border:1px dashed var(--divider);border-radius:4px;}
+.upcoming-list{display:flex;flex-direction:column;gap:8px;}
+.upcoming-item{display:flex;align-items:stretch;gap:0;border:1px solid var(--divider);border-radius:6px;overflow:hidden;background:var(--paper);transition:all 0.2s;cursor:pointer;}
+.upcoming-item:hover{box-shadow:0 3px 12px rgba(0,0,0,0.1);transform:translateY(-1px);}
+.upcoming-stripe{width:5px;flex-shrink:0;}
+.upcoming-body{padding:0.8rem 1.1rem;flex:1;display:grid;grid-template-columns:auto 1fr auto;gap:0.8rem;align-items:center;}
+.upcoming-date-box{display:flex;flex-direction:column;align-items:center;min-width:42px;background:var(--paper-mid);border-radius:4px;padding:6px 8px;}
+.upcoming-date-day{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;color:var(--ink);line-height:1;}
+.upcoming-date-month{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--amber-dim);}
+.upcoming-info{min-width:0;}
+.upcoming-title{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;text-transform:uppercase;color:var(--ink);letter-spacing:0.04em;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.upcoming-meta{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--gray-light);display:flex;gap:10px;flex-wrap:wrap;}
+.upcoming-right{text-align:right;flex-shrink:0;}
+.upcoming-type-badge{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.06em;padding:2px 8px;border-radius:12px;color:#fff;white-space:nowrap;margin-bottom:4px;}
+.upcoming-author{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--gray-light);}
+.upcoming-show-more{text-align:center;margin-top:0.8rem;}
+
+/* ═══ NOTES ═══ */
+.notes-header-bar{background:linear-gradient(135deg,#0c1445 0%,#1a237e 100%);border-bottom:3px solid #5c6bc0;padding:1.2rem 1.8rem;display:flex;align-items:center;justify-content:space-between;}
+.notes-title-main{font-family:'Special Elite',cursive;font-size:20px;color:#e8eaff;}
+.notes-title-sub{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:#9fa8da;margin-top:2px;}
+.notes-modal-body{background:#f0f2ff;padding:0;}
+.notes-layout{display:grid;grid-template-columns:220px 1fr;min-height:600px;}
+.notes-sidebar{background:#1a237e;padding:1rem;display:flex;flex-direction:column;gap:0.5rem;}
+.notes-sidebar-title{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:#9fa8da;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.1);margin-bottom:0.3rem;}
+.notes-my-note-btn{background:rgba(92,107,192,0.3);border:1px solid rgba(92,107,192,0.5);color:#c5cae9;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:10px 12px;cursor:pointer;transition:all 0.2s;text-align:left;border-radius:4px;}
+.notes-my-note-btn.active,.notes-my-note-btn:hover{background:rgba(92,107,192,0.6);color:#fff;border-color:#7986cb;}
+.notes-agent-btn{background:none;border:none;border-left:3px solid transparent;color:#9fa8da;font-family:'Barlow',sans-serif;font-size:13px;padding:8px 10px;cursor:pointer;transition:all 0.2s;text-align:left;width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.notes-agent-btn.active{border-left-color:#7986cb;color:#fff;background:rgba(255,255,255,0.08);}
+.notes-agent-btn:hover:not(.active){color:#c5cae9;border-left-color:rgba(121,134,203,0.5);}
+.notes-content{padding:1.5rem;display:flex;flex-direction:column;}
+.notes-editor-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:0.5rem;}
+.notes-editor-title{font-family:'Special Elite',cursive;font-size:18px;color:#1a237e;}
+.notes-editor-meta{font-family:'IBM Plex Mono',monospace;font-size:9px;color:#9fa8da;letter-spacing:0.06em;}
+.notes-textarea{flex:1;width:100%;min-height:480px;background:#fff;border:2px solid #c5cae9;border-radius:8px;padding:1.2rem;font-family:'Barlow',sans-serif;font-size:14px;color:#1a237e;line-height:1.7;outline:none;resize:vertical;transition:all 0.2s;}
+.notes-textarea:focus{border-color:#5c6bc0;box-shadow:0 0 0 3px rgba(92,107,192,0.12);}
+.notes-textarea:disabled{background:#f8f9ff;color:#555;border-color:#e8eaff;cursor:not-allowed;}
+.notes-save-row{display:flex;align-items:center;gap:10px;margin-top:0.8rem;}
+.notes-save-btn{background:#1a237e;color:#e8eaff;border:none;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:9px 18px;cursor:pointer;transition:all 0.2s;border-radius:6px;}
+.notes-save-btn:hover{background:#283593;transform:translateY(-1px);}
+.notes-save-btn:disabled{opacity:0.5;cursor:not-allowed;}
+.notes-saved-badge{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#4caf50;letter-spacing:0.06em;display:none;}
+.notes-readonly-badge{font-family:'IBM Plex Mono',monospace;font-size:9px;color:#9fa8da;background:rgba(92,107,192,0.1);border:1px solid rgba(92,107,192,0.2);padding:3px 8px;border-radius:3px;letter-spacing:0.06em;}
+.arch-tabs{display:flex;gap:0;border-bottom:2px solid var(--divider);margin-bottom:1.5rem;}
+.arch-tab{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:9px 18px;cursor:pointer;background:none;border:none;color:var(--gray-light);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.2s;}
+.arch-tab.active{color:var(--amber);border-bottom-color:var(--amber);}
+.arch-tab-content{display:none;}
+.arch-tab-content.active{display:block;}
+.arch-del-btn{background:none;border:1px solid rgba(180,0,0,0.4);color:rgba(180,0,0,0.8);font-size:14px;width:24px;height:24px;border-radius:50%;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all 0.2s;font-weight:bold;padding:0;line-height:1;flex-shrink:0;}
+.arch-del-btn:hover{background:var(--red-stamp);color:#fff;border-color:var(--red-stamp);}
+
+@media(max-width:960px){
+  .portal-hero,.gway-grid,.mission-grid,.effectif-grid,.charte-grid,.pi-body,.svc-stats{grid-template-columns:1fr;gap:1.2rem;}
+  .penal-grid,.frow,.manuels-grid,.wm-form-grid,.bm-form-grid{grid-template-columns:1fr;}
+  .pchap:nth-child(odd){border-right:none;}
+  section,.dark-inner{padding:2.5rem 1.5rem;}
+  .portal-hero{padding:2.5rem 1.5rem;}
+  nav{padding:0 1rem;}
+  .top-banner{padding:6px 1rem;gap:0.6rem;}
+  .nav-user,.nav-role-badge{display:none;}
+  .cal-grid{grid-template-columns:repeat(7,1fr);}
+  .cal-day{min-height:60px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════ LOGIN ═══════════ -->
+<div id="login-page" class="page active">
+  <div class="login-bg-lines"></div>
+  <div class="login-card">
+    <div class="login-header">
+      <img src="db_logo.png" alt="DB Logo" style="width:56px;height:56px;object-fit:contain;filter:drop-shadow(0 2px 8px rgba(181,130,26,0.4));" onerror="this.style.display='none'">
+      <div>
+        <div class="login-hd">Los Santos Police Department</div>
+        <div class="login-ht">Detective<br>Bureau</div>
+        <div class="login-hs">Portail Interne — Bureau des Inspecteurs</div>
+      </div>
+    </div>
+    <div class="login-body">
+      <div class="login-warn"><span>⚠ Accès restreint — Personnel autorisé uniquement</span></div>
+      <div class="lfield"><label class="llabel" for="email">Adresse e-mail institutionnelle</label><input class="linput" type="email" id="email" placeholder="prenom.nom@gmail.com" autocomplete="off"></div>
+      <div class="lfield"><label class="llabel" for="password">Code d'accès</label><input class="linput" type="password" id="password" placeholder="••••••••" autocomplete="off"></div>
+      <button class="login-btn" onclick="handleLogin()">Connexion — Système D.B.</button>
+      <div class="login-err" id="login-err">✕ &nbsp;Accès refusé — Identifiants non reconnus dans la base D.B.</div>
+    </div>
+    <div class="login-foot">© L.S.P.D. — Detective Bureau &nbsp;|&nbsp; Usage interne &nbsp;|&nbsp; San Andreas</div>
+  </div>
+</div>
+
+<!-- ═══════════ PORTAL ═══════════ -->
+<div id="portal-page" class="page">
+<div class="pwrap" id="portal-wrap">
+
+<nav>
+  <div class="nav-brand">
+    <img src="db_logo.png" alt="DB" class="nav-logo" style="width:34px;height:34px;object-fit:contain;" onerror="this.style.display='none'">
+    <span class="nav-title">L.S.P.D. — <span>Detective Bureau</span></span>
+  </div>
+  <div class="nav-right">
+    <span class="nav-user">Agent : <strong id="nav-username">—</strong></span>
+    <span class="nav-role-badge" id="nav-role-badge"></span>
+    <span class="stimer" id="session-timer">⏱ <span id="timer-val">15:00</span></span>
+    <button class="nbtn" onclick="openChangePw()">🔑 MDP</button>
+    <button class="nbtn adm" id="admin-nav-btn" onclick="openAdmin()" style="display:none;">⚙ Admin</button>
+    <button class="nbtn" id="service-nav-btn" onclick="openService()" style="display:none;">📊 Service</button>
+    <div class="nav-badge">En service</div>
+    <button class="nbtn out" onclick="handleLogout()">Déco.</button>
+  </div>
+</nav>
+
+<div class="top-banner">
+  <span>Los Santos Police Department</span><span class="bsep">///</span>
+  <span>Detective Bureau</span><span class="bsep">///</span>
+  <span>Detective Division & Street Crimes Unit — Portail Interne</span>
+</div>
+
+<!-- HERO -->
+<div class="portal-hero">
+  <div class="hero-emb">
+    <img src="db_logo.png" alt="DB Logo" class="emb-svg" style="width:150px;height:150px;object-fit:contain;filter:drop-shadow(3px 4px 12px rgba(0,0,0,0.18));" onerror="this.style.display='none'">
+    <div style="display:flex;align-items:center;gap:10px;margin-top:0.5rem;">
+      <img src="dd_logo.png" alt="DD Logo" style="width:38px;height:38px;border-radius:50%;border:2px solid var(--amber);object-fit:cover;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.15));" onerror="this.style.display='none'">
+      <div class="emb-sub" style="text-align:left;">D.B. — Insigne Officiel<br>Det. Bureau · Los Santos</div>
+    </div>
+  </div>
+  <div>
+    <div class="hero-eyebrow">Bureau spécialisé — L.S.P.D.</div>
+    <h1>Detective<br>Bureau</h1>
+    <div class="hero-sub">Detective Division & Street Crimes Unit</div>
+    <div class="hero-bar"></div>
+    <p class="hero-desc">Le Detective Bureau regroupe la Detective Division (D.D.) et la Street Crimes Unit (S.C.U.), les deux unités d'investigation du Los Santos Police Department. Discrétion, rigueur et méthode sont nos seules armes.</p>
+    <div class="hero-welcome">Accès authentifié — Agent : <strong id="hero-username">—</strong></div>
+    <div class="stamps-row"><span class="stamp stamp-red">Unité active</span><span class="stamp stamp-green">Portail Officiel</span></div>
+  </div>
+</div>
+
+<!-- GATEWAY -->
+<div class="gway-section">
+  <div class="sec-head"><span class="sec-num">§ 00</span><h2 class="sec-title">Accès Rapide — Outils D.B.</h2><div class="sec-rule"></div></div>
+  <div class="info-box"><p>Sélectionnez un module pour accéder aux outils opérationnels. Tout accès est journalisé. Ces ressources sont réservées au personnel habilité du Detective Bureau.</p></div>
+  <div class="gway-grid">
+    <div class="gcard" onclick="openWarrants()">
+      <div class="gi">🔍</div><div class="gc">Module A — D.D. Ops</div>
+      <div class="gt">Avis de Recherche</div>
+      <p class="gd">Consulter les avis de recherche actifs. Ajout réservé aux Responsables et à la Direction.</p>
+      <span class="gbadge bg-class">Confidentiel</span>
+    </div>
+    <div class="gcard" onclick="openPriseInfo()">
+      <div class="gi">📋</div><div class="gc">Module B — Renseignement</div>
+      <div class="gt">Prise d'Informations</div>
+      <p class="gd">Collecte et consignation des informations terrain. Formulaires standardisés D.D.</p>
+      <span class="gbadge bg-int">Interne D.B.</span>
+    </div>
+    <div class="gcard" onclick="openBracelets()">
+      <div class="gi">📡</div><div class="gc">Module C — Surveillance</div>
+      <div class="gt">Bracelets Électroniques</div>
+      <p class="gd">Registre de suivi des bracelets électroniques. Pointage, statut et commentaires.</p>
+      <span class="gbadge bg-class">D.O.J. Liaison</span>
+    </div>
+    <a href="https://docs.google.com/spreadsheets/d/16L5c3HTIBdT7Ovxfqy2_9bRnJeUfOMSmOBaqiFtguX8/edit?gid=0#gid=0" target="_blank" class="gcard">
+      <div class="gi">🗂️</div><div class="gc">Module D — D.D. Archive</div>
+      <div class="gt">Gestion de Dossiers</div>
+      <p class="gd">Accès au système de gestion et de suivi des affaires en cours. Detective Division.</p>
+      <span class="gbadge bg-int">Interne D.D.</span>
+    </a>
+    <div class="gcard" onclick="openCalendrier()">
+      <div class="gi">📅</div><div class="gc">Module E — Planning</div>
+      <div class="gt">Calendrier D.B.</div>
+      <p class="gd">Planifier et consulter les événements : interrogatoires, perquisitions, assemblées générales.</p>
+      <span class="gbadge bg-int">Interne D.B.</span>
+    </div>
+    <div class="gcard" onclick="openArchives()">
+      <div class="gi">🗃️</div><div class="gc">Module F — Archives</div>
+      <div class="gt">Archives</div>
+      <p class="gd">Consulter les avis de recherche et bracelets électroniques clôturés.</p>
+      <span class="gbadge bg-int">Archives D.B.</span>
+    </div>
+    <div class="gcard" onclick="showManuels()">
+      <div class="gi">📚</div><div class="gc">Module G — Formation</div>
+      <div class="gt">Manuels & Documents</div>
+      <p class="gd">Manuels opérationnels, présentations de formation et documents juridiques.</p>
+      <span class="gbadge bg-int">Formation</span>
+    </div>
+    <a href="https://empreintes.netlify.app/" target="_blank" class="gcard">
+      <div class="gi">🖐</div><div class="gc">Module H — Forensique</div>
+      <div class="gt">Empreintes Digitales</div>
+      <p class="gd">Relevé et vérification d'empreintes. Identification des suspects. D.D. × D.O.J.</p>
+      <span class="gbadge bg-ext">D.D. × D.O.J.</span>
+    </a>
+    <div class="gcard" onclick="openNotes()">
+      <div class="gi">📓</div><div class="gc">Module I — Personnel</div>
+      <div class="gt">Notes d'Agent</div>
+      <p class="gd">Carnet de notes personnel. Informations de terrain, mémos, observations. Chaque agent a accès à ses propres notes.</p>
+      <span class="gbadge bg-int">Personnel</span>
+    </div>
+  </div>
+  <div id="manuels-panel" style="display:none;margin-top:1.5rem;">
+    <div class="manuels-wrap">
+      <div class="manuels-head">
+        <span>Module G — Manuels & Documents</span>
+        <button onclick="hideManuels()" style="background:none;border:none;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--gray-light);cursor:pointer;">✕</button>
+      </div>
+      <div class="manuels-grid">
+        <a href="https://docs.google.com/presentation/d/1Gt8CqScOCVQUIwzG4_ew1ME1s3v8IKBCA0RkO2qbRrk/edit?usp=sharing" target="_blank" class="ml"><span style="font-size:20px;">🔒</span><div><div class="ml-title">Manuel Bracelets Électroniques</div><div class="ml-sub">Formation — D.D.</div></div></a>
+        <a href="https://docs.google.com/presentation/d/1rI8GxHcYUptwd1VyZ1o3oDR4U8Ah_LCzusujAQjbXB4/edit?slide=id.g2b540d2a35a_0_195" target="_blank" class="ml"><span style="font-size:20px;">📝</span><div><div class="ml-title">Manuel Traitement de Plainte</div><div class="ml-sub">Formation — S. Plaintes</div></div></a>
+        <a href="https://docs.google.com/presentation/d/1O7M6_VxHNDTHrby6lGjLqbWoxN7PtmgMVz1Ndd1V1ng/edit?slide=id.g2b226f655ca_0_0" target="_blank" class="ml"><span style="font-size:20px;">⚠️</span><div><div class="ml-title">Manuel Vice de Procédure</div><div class="ml-sub">Formation — Juridique</div></div></a>
+        <a href="https://docs.google.com/presentation/d/1SxqIE_CPIuGVjluevbBZSs063jNNjYWQGpVjiy1eevs/edit?slide=id.g2b226f655ca_0_0" target="_blank" class="ml"><span style="font-size:20px;">🔬</span><div><div class="ml-title">Manuel Collecte de Preuves</div><div class="ml-sub">Formation — Forensique</div></div></a>
+        <a href="https://docs.google.com/presentation/d/18Yj8AXoLeYXD7WzYQFTfJaHBkX5Kzvt7gpmNh2MasR8/edit?slide=id.g2b226f655ca_0_0" target="_blank" class="ml"><span style="font-size:20px;">🏢</span><div><div class="ml-title">Liste des Bureaux</div><div class="ml-sub">Detective Bureau</div></div></a>
+        <a href="https://docs.google.com/document/d/1OgG3DJCqZl4eKgihsbvGrgT-PgHvGBJyOWFcYOBpqTg/edit?tab=t.0" target="_blank" class="ml classified"><span style="font-size:20px;">📬</span><div><div class="ml-title">Modèle de Convocation</div><div class="ml-sub">Confidentiel — D.B.</div></div></a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- § 01 MISSIONS -->
+<div class="section-bg"><section id="missions">
+  <div class="sec-head"><span class="sec-num">§ 01</span><h2 class="sec-title">Missions & Compétences — D.B.</h2><div class="sec-rule"></div></div>
+  <div class="info-box"><p>Le Detective Bureau opère via deux unités : la Detective Division (D.D.) chargée des enquêtes criminelles, et la Street Crimes Unit (S.C.U.) dédiée aux délits de terrain. Les deux opèrent en civil sous couverture Echo.</p></div>
+  <div class="mission-grid">
+    <div class="mission-card"><div class="mission-num">01</div><div class="mission-title">Investigations criminelles</div><p class="mission-desc">D.D. — Conduite des enquêtes sur les homicides, assassinats et affaires de criminalité grave. Collecte de preuves et auditions.</p></div>
+    <div class="mission-card"><div class="mission-num">02</div><div class="mission-title">Surveillance & Filature</div><p class="mission-desc">D.D. — Opérations de surveillance discrète, filatures en véhicule banalisé, recueil de renseignements terrain.</p></div>
+    <div class="mission-card"><div class="mission-num">03</div><div class="mission-title">Criminalité organisée</div><p class="mission-desc">D.D. — Infiltration et démantèlement des organisations criminelles. Trafics et règlements de comptes.</p></div>
+    <div class="mission-card"><div class="mission-num">04</div><div class="mission-title">Empreintes & Expertises</div><p class="mission-desc">D.D. — Relevé d'empreintes sur scène de crime, vérification d'identité, consultation du casier judiciaire.</p></div>
+    <div class="mission-card"><div class="mission-num">05</div><div class="mission-title">Street Crimes Unit</div><p class="mission-desc">S.C.U. — Unité banalisée dédiée aux délits de rue : agressions, trafics à petite échelle, comportements suspects.</p></div>
+    <div class="mission-card"><div class="mission-num">06</div><div class="mission-title">Service des Plaintes</div><p class="mission-desc">D.D. — Réception et traitement des plaintes, rédaction des procès-verbaux d'audition et suivi des dossiers.</p></div>
+  </div>
+</section></div>
+
+<!-- § 02 EFFECTIF -->
+<section id="effectif">
+  <div class="sec-head"><span class="sec-num">§ 02</span><h2 class="sec-title">Registre du Personnel — D.B.</h2><div class="sec-rule"></div></div>
+  <div class="info-box"><p>Registre officiel des agents affectés au Detective Bureau. La hiérarchie au sein du D.B. est la suivante : <strong>Directeur → Directeur Adjoint → Responsable → Inspecteur / Officier Principal → Inspecteur / Agent de P.B. → Enquêteur / Recrue</strong>. À grade égal, l'ancienneté prime. Document interne — ne pas divulguer.</p></div>
+  <div id="effectif-container"></div>
+</section>
+
+<!-- § 03 CALENDRIER (aperçu — prochains événements) -->
+<div class="section-bg"><section id="calendrier-section">
+  <div class="sec-head"><span class="sec-num">§ 03</span><h2 class="sec-title">Calendrier Opérationnel</h2><div class="sec-rule"></div></div>
+  <div class="info-box"><p>Planifiez vos interventions, interrogatoires et réunions. Chaque agent peut gérer ses propres événements. Les Responsables et la Direction ont tous les droits.</p></div>
+  <div class="cal-legend">
+    <div class="leg-item"><div class="leg-dot" style="background:#1e40af;"></div>Interrogatoire</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#166534;"></div>Perquisition</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#6b21a8;"></div>Rendez-vous psychologue</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#991b1b;"></div>Assemblée générale</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#57534e;"></div>Autre</div>
+  </div>
+  <div id="upcoming-events-container"></div>
+  <div style="margin-top:1.5rem;text-align:center;">
+    <button class="btn btn-p" onclick="openCalendrier()">📅 Ouvrir le calendrier complet</button>
+  </div>
+</section></div>
+
+<!-- § 04 CODE PÉNAL -->
+<div class="dark-wrap"><div class="dark-inner" id="penal">
+  <div class="sec-head"><span class="sec-num">§ 04</span><h2 class="sec-title">[D.D. × D.O.J.] Code Pénal — Niveaux de Risque</h2><div class="sec-rule"></div></div>
+  <p style="font-size:12px;color:rgba(242,234,216,0.5);margin-bottom:1rem;line-height:1.6;">Source : <a href="https://docs.google.com/spreadsheets/d/1jU0FH00c-5lCGhBOcRV0Sqa2BLYmlgJ35AaHYfL_s4c/edit?gid=0#gid=0" target="_blank" style="color:var(--amber-dim);text-decoration:underline;">Spreadsheet D.D. × D.O.J.</a> — Classement opérationnel interne D.B.</p>
+  <div style="display:flex;gap:0.6rem;flex-wrap:wrap;margin-bottom:1.5rem;">
+    <span class="risk r0" style="font-size:10px;padding:3px 10px;">Aucun risque</span>
+    <span class="risk r1" style="font-size:10px;padding:3px 10px;">Risque faible</span>
+    <span class="risk r2" style="font-size:10px;padding:3px 10px;">Risque moyen</span>
+    <span class="risk r3" style="font-size:10px;padding:3px 10px;">Risque élevé</span>
+    <span class="risk r4" style="font-size:10px;padding:3px 10px;">Risque très élevé</span>
+  </div>
+  <div class="penal-grid">
+    <!-- TITRE I -->
+    <div class="pchap"><div class="pchap-title">Titre I — Ch. I — Complicité</div>
+      <div class="prow"><span class="part">Art. 111-1 — Complicité</span><span class="risk r0">Aucun</span></div>
+    </div>
+    <div class="pchap"><div class="pchap-title">Titre I — Ch. II — Légitime défense</div>
+      <div class="prow"><span class="part">Art. 112-1 — Droit à la légitime défense</span><span class="risk r0">Aucun</span></div>
+      <div class="prow"><span class="part">Art. 112-2 — Usage de la force mortelle</span><span class="risk r0">Aucun</span></div>
+      <div class="prow"><span class="part">Art. 112-3 — Protection domicile & véhicule</span><span class="risk r0">Aucun</span></div>
+      <div class="prow"><span class="part">Art. 112-4 — Absence de devoir de retraite</span><span class="risk r0">Aucun</span></div>
+      <div class="prow"><span class="part">Art. 112-5 — Exclusions et limites</span><span class="risk r0">Aucun</span></div>
+      <div class="prow"><span class="part">Art. 112-6 — Sanctions légitime défense abusive</span><span class="risk r0">Aucun</span></div>
+    </div>
+    <div class="pchap"><div class="pchap-title">Titre I — Ch. III — Traître du gouvernement</div>
+      <div class="prow"><span class="part">Art. 113-1 — Retrait illégal bracelet électronique</span><span class="risk r3">Élevé</span></div>
+      <div class="prow"><span class="part">Art. 113-2 — Rupture contrat de justice / police</span><span class="risk r3">Élevé</span></div>
+    </div>
+    <!-- LIVRE II — ATTEINTES À LA PERSONNE -->
+    <div class="pchap"><div class="pchap-title">Livre II — Ch. I — Atteintes à la vie</div>
+      <div class="prow"><span class="part">Art. 211-1 — Meurtre</span><span class="risk r1">Faible</span></div>
+      <div class="prow"><span class="part">Art. 211-1-1 — Tentative de meurtre / assassinat</span><span class="risk r1">Faible</span></div>
+      <div class="prow"><span class="part">Art. 211-2 — Assassinat</span><span class="risk r2">Moyen</span></div>
+      <div class="prow"><span class="part">Art. 211-3 — Trafic d'organes humains</span><span class="risk r3">Élevé</span></div>
+      <div class="prow"><span class="part">Art. 211-4 — Homicide involontaire</span><span class="risk r1">Faible</span></div>
+    </div>
+    <div class="pchap"><div class="pchap-title">Livre II — Ch. II — Mise en danger de la vie</div>
+      <div class="prow"><span class="part">Art. 212-1 — Mise en danger de la vie d'autrui</span><span class="risk r0">Aucun</span></div>
+      <div class="prow"><span class="part">Art. 212-2 — Non-assistance à personne en danger</span><span class="risk r0">Aucun</span></div>
+      <div class="prow"><span class="part">Art. 212-3 — Incitation au suicide</span><span class="risk r1">Faible</span></div>
+    </div>
+    <div class="pchap"><div class="pchap-title">Livre II — Ch. III S.1 — Intégrité physique</div>
+      <div class="prow"><span class="part">Art. 213-1 — Agression simple</span><span class="risk r1">Faible</span></div>
+      <div class="prow"><span class="part">Art. 213-2 — Agression avec préméditation</span><span class="risk r1">Faible</span></div>
+      <div class="prow"><span class="part">Art. 213-3 — Torture</span><span class="risk r4">Très élevé</span></div>
+      <div class="prow"><span class="part">Art. 213-4 — Menace criminelle</span><span class="risk r2">Moyen</span></div>
+    </div>
+    <div class="pchap"><div class="pchap-title">Livre II — Ch. III S.2 — Agressions sexuelles</div>
+      <div class="prow"><span class="part">Art. 213-5 — Viol ou tentative de viol</span><span class="risk r3">Élevé</span></div>
+      <div class="prow"><span class="part">Art. 213-6 — Viol en réunion</span><span class="risk r4">Très élevé</span></div>
+      <div class="prow"><span class="part">Art. 213-7 — Agressions sexuelles</span><span class="risk r3">Élevé</span></div>
+      <div class="prow"><span class="part">Art. 213-8 — Tentative d'agression sexuelle</span><span class="risk r2">Moyen</span></div>
+      <div class="prow"><span class="part">Art. 213-9 — Exhibition sexuelle</span><span class="risk r0">Aucun</span></div>
+    </div>
+    <div class="pchap"><div class="pchap-title">Livre II — Ch. III S.3 — Autres atteintes à la personne</div>
+      <div class="prow"><span class="part">Art. 213-10 — Harcèlement moral</span><span class="risk r2">Moyen</span></div>
+      <div class="prow"><span class="part">Art. 213-11 — Non-respect du secret professionnel</span><span class="risk r2">Moyen</span></div>
+      <div class="prow"><span class="part">Art. 213-12 — Diffamation publique</span><span class="risk r1">Faible</span></div>
+      <div class="prow"><span class="part">Art. 213-13 — Injure publique</span><span class="risk r0">Aucun</span></div>
+      <div class="prow"><span class="part">Art. 213-14 — Tapage de jour ou de nuit</span><span class="risk r0">Aucun</span></div>
+    </div>
+    <div class="pchap"><div class="pchap-title">Livre II — Ch. IV — Atteintes aux libertés</div>
+      <div class="prow"><span class="part">Art. 214-1 — Enlèvement et/ou séquestration</span><span class="risk r2">Moyen</span></div>
+      <div class="prow"><span class="part">Art. 214-2 — Prise d'otage</span><span class="risk r2">Moyen</span></div>
+      <div class="prow"><span class="part">Art. 214-3 — Prise de pouvoir sur un agent</span><span class="risk r2">Moyen</span></div>
+    </div>
+    <div class="pchap"><div class="pchap-title">Livre II — Ch. V — Atteintes à la propriété privée</div>
+      <div class="prow"><span class="part">Art. 215-1 — Violation de propriété privée</span><span class="risk r0">Aucun</span></div>
+    </div>
+    <!-- LIVRE III — ORDRE PUBLIC -->
+    <div class="pchap"><div class="pchap-title">Livre III — Ch. I — Administration publique</div>
+      <div class="prow"><span class="part">Art. 311-1 — Outrage envers un organisme public</span><span class="risk r1">Faible</span></div>
+      <div class="prow"><span class="part">Art. 311-2 — Outrage envers un agent assermenté</span><span class="risk r1">Faible</span></div>
+      <div class="prow"><span class="part">Art. 311-3 — Outrage en fait d'arrestation</span><span class="risk r1">Faible</span></div>
+      <div class="prow"><span class="part">Art. 311-4 — Détournement de fonds ou biens publics</span><span class="risk r2">Moyen</span></div>
+      <div class="prow"><span class="part">Art. 311-5 — Usurpation d'identité</span><span class="risk r1">Faible</span></div>
+      <div class="prow"><span class="part">Art. 311-6 — Usurpation de fonction</span><span class="risk r2">Moyen</span></div>
+    </div>
+    <div class="pchap"><div class="pchap-title">Livre III — Ch. II — Action de la justice</div>
+      <div class="prow"><span class="part">Art. 312-1 — Outrage à magistrat</span><span class="risk r1">Faible</span></div>
+      <div class="prow"><span class="part">Art. 312-2 — Délit de fuite</span><span class="risk r1">Faible</span></div>
+      <div class="prow"><span class="part">Art. 312-3 — Refus d'obtempérer</span><span class="risk r1">Faible</span></div>
+      <div class="prow"><span class="part">Art. 312-4 — Entrave à la justice simple</span><span class="risk r1">Faible</span></div>
+      <div class="prow"><span class="part">Art. 312-5 — Entrave par dépositaire de l'ordre public</span><span class="risk r2">Moyen</span></div>
+      <div class="prow"><span class="part">Art. 312-6 — Mensonge sous serment / faux témoignage</span><span class="risk r2">Moyen</span></div>
+      <div class="prow"><span class="part">Art. 312-7 — Divulgation d'informations classifiées</span><span class="risk r3">Élevé</span></div>
+      <div class="prow"><span class="part">Art. 312-8 — Dissimulation ou substitution de preuve</span><span class="risk r3">Élevé</span></div>
+      <div class="prow"><span class="part">Art. 312-9 — Appel 911 abusif</span><span class="risk r1">Faible</span></div>
+      <div class="prow"><span class="part">Art. 312-10 — Non-présentation d'une pièce d'identité</span><span class="risk r1">Faible</span></div>
+      <div class="prow"><span class="part">Art. 312-11 — Évasion</span><span class="risk r4">Très élevé</span></div>
+    </div>
+    <div class="pchap"><div class="pchap-title">Livre III — Ch. III — Paix publique</div>
+      <div class="prow"><span class="part">Art. 313-1 — Manifestations et rassemblements illégaux</span><span class="risk r1">Faible</span></div>
+      <div class="prow"><span class="part">Art. 313-2 — Trouble à l'ordre public simple</span><span class="risk r1">Faible</span></div>
+      <div class="prow"><span class="part">Art. 313-3 — Trouble à l'ordre public aggravé</span><span class="risk r2">Moyen</span></div>
+      <div class="prow"><span class="part">Art. 313-4 — Création d'hostilité envers l'autorité</span><span class="risk r1">Faible</span></div>
+      <div class="prow"><span class="part">Art. 313-5 — Membre d'une organisation criminelle</span><span class="risk r3">Élevé</span></div>
+    </div>
+    <!-- TITRE II — CORRUPTION & FAUX -->
+    <div class="pchap"><div class="pchap-title">Titre II — Ch. I — Corruption</div>
+      <div class="prow"><span class="part">Art. 321-1 — Corruption active ou passive</span><span class="risk r2">Moyen</span></div>
+      <div class="prow"><span class="part">Art. 321-2 — Tentative de corruption</span><span class="risk r2">Moyen</span></div>
+    </div>
+    <div class="pchap"><div class="pchap-title">Titre II — Ch. II — Faux & usage de faux</div>
+      <div class="prow"><span class="part">Art. 322-1 — Faux et usage de faux en écriture</span><span class="risk r1">Faible</span></div>
+    </div>
+    <!-- TITRE III — TERRORISME -->
+    <div class="pchap"><div class="pchap-title">Titre III — Ch. I — Terrorisme</div>
+      <div class="prow"><span class="part">Art. 331-1 — Acte terroriste</span><span class="risk r4">Très élevé</span></div>
+      <div class="prow"><span class="part">Art. 331-2 — Attaques chimiques / biologiques</span><span class="risk r4">Très élevé</span></div>
+    </div>
+    <!-- TITRE IV — DROGUES & ARMES -->
+    <div class="pchap"><div class="pchap-title">Titre IV — Ch. I — Drogues</div>
+      <div class="prow"><span class="part">Art. 411-1 — Consommation de substances illicites</span><span class="risk r1">Faible</span></div>
+      <div class="prow"><span class="part">Art. 411-2 — Possession de substances illicites</span><span class="risk r1">Faible</span></div>
+      <div class="prow"><span class="part">Art. 411-3 — Possession aggravée (grande quantité)</span><span class="risk r2">Moyen</span></div>
+      <div class="prow"><span class="part">Art. 411-4 — Distribution / Deal de drogues</span><span class="risk r2">Moyen</span></div>
+      <div class="prow"><span class="part">Art. 411-5 — Production / Fabrication de drogues</span><span class="risk r3">Élevé</span></div>
+      <div class="prow"><span class="part">Art. 411-6 — Trafic international de stupéfiants</span><span class="risk r3">Élevé</span></div>
+    </div>
+    <div class="pchap"><div class="pchap-title">Titre IV — Ch. II — Armes & Explosifs</div>
+      <div class="prow"><span class="part">Art. 421-1 — Port d'arme sans autorisation</span><span class="risk r1">Faible</span></div>
+      <div class="prow"><span class="part">Art. 421-2 — Port d'arme de guerre</span><span class="risk r2">Moyen</span></div>
+      <div class="prow"><span class="part">Art. 421-3 — Trafic d'armes à feu</span><span class="risk r3">Élevé</span></div>
+      <div class="prow"><span class="part">Art. 421-4 — Possession d'explosifs illégaux</span><span class="risk r3">Élevé</span></div>
+      <div class="prow"><span class="part">Art. 421-5 — Trafic d'explosifs</span><span class="risk r4">Très élevé</span></div>
+    </div>
+    <!-- TITRE V — INFRACTIONS ROUTIÈRES -->
+    <div class="pchap"><div class="pchap-title">Titre V — Infractions routières</div>
+      <div class="prow"><span class="part">Art. 511-1 — Conduite sans permis</span><span class="risk r0">Aucun</span></div>
+      <div class="prow"><span class="part">Art. 511-2 — Conduite en état d'ivresse / stupéfiants</span><span class="risk r1">Faible</span></div>
+      <div class="prow"><span class="part">Art. 511-3 — Excès de vitesse grave</span><span class="risk r0">Aucun</span></div>
+      <div class="prow"><span class="part">Art. 511-4 — Course de rue illégale</span><span class="risk r1">Faible</span></div>
+      <div class="prow"><span class="part">Art. 511-5 — Conduite dangereuse / imprudente</span><span class="risk r1">Faible</span></div>
+      <div class="prow"><span class="part">Art. 511-6 — Destruction de bien public (véhicule)</span><span class="risk r1">Faible</span></div>
+    </div>
+    <!-- TITRE VI — CRIMES ÉCONOMIQUES -->
+    <div class="pchap"><div class="pchap-title">Titre VI — Crimes économiques</div>
+      <div class="prow"><span class="part">Art. 611-1 — Vol simple</span><span class="risk r1">Faible</span></div>
+      <div class="prow"><span class="part">Art. 611-2 — Vol avec violence</span><span class="risk r2">Moyen</span></div>
+      <div class="prow"><span class="part">Art. 611-3 — Braquage / Robbery</span><span class="risk r2">Moyen</span></div>
+      <div class="prow"><span class="part">Art. 611-4 — Braquage de banque ou armurerie</span><span class="risk r3">Élevé</span></div>
+      <div class="prow"><span class="part">Art. 611-5 — Extorsion de fonds</span><span class="risk r2">Moyen</span></div>
+      <div class="prow"><span class="part">Art. 611-6 — Blanchiment d'argent</span><span class="risk r3">Élevé</span></div>
+      <div class="prow"><span class="part">Art. 611-7 — Fraude / Escroquerie</span><span class="risk r1">Faible</span></div>
+      <div class="prow"><span class="part">Art. 611-8 — Recel de bien volé</span><span class="risk r1">Faible</span></div>
+    </div>
+  </div>
+</div></div>
+
+<!-- § 05 CHARTE -->
+<div class="dark-wrap" style="border-top:1px solid rgba(255,255,255,0.06);">
+<div class="dark-inner" id="charte">
+  <div class="sec-head"><span class="sec-num">§ 05</span><h2 class="sec-title">Charte du Detective Bureau</h2><div class="sec-rule"></div></div>
+  <div class="charte-grid">
+    <div class="charte-card"><div class="charte-icon">⚖</div><div class="charte-title">Intégrité & Impartialité</div><p class="charte-text">Chaque agent conduit ses enquêtes sans préjugé. Toute compromission doit être signalée immédiatement.</p></div>
+    <div class="charte-card"><div class="charte-icon">🔒</div><div class="charte-title">Confidentialité absolue</div><p class="charte-text">Les informations relatives aux dossiers et opérations de surveillance sont strictement confidentielles.</p></div>
+    <div class="charte-card"><div class="charte-icon">📋</div><div class="charte-title">Rigueur procédurale</div><p class="charte-text">Chaque acte d'enquête doit être documenté avec précision. Un dossier mal instruit est un dossier perdu.</p></div>
+    <div class="charte-card"><div class="charte-icon">🤝</div><div class="charte-title">Coordination inter-services</div><p class="charte-text">Le D.B. opère en liaison permanente avec les patrouilles générales, le S.W.A.T. et le D.O.J.</p></div>
+    <div class="charte-card"><div class="charte-icon">⚡</div><div class="charte-title">Discrétion opérationnelle</div><p class="charte-text">La couverture Echo implique l'absence de tout marquage susceptible de trahir l'identité des agents.</p></div>
+    <div class="charte-card"><div class="charte-icon">🎯</div><div class="charte-title">Proportionnalité de la force</div><p class="charte-text">L'usage de la force est soumis au principe de stricte proportionnalité. Rapport écrit sous 24h.</p></div>
+  </div>
+</div></div>
+
+<footer><div class="footer-in">
+  <span class="fcopy">© L.S.P.D. — Detective Bureau (D.D. & S.C.U.) — Document interne — Los Santos, San Andreas</span>
+  <span class="fcopy" style="font-style:italic;opacity:0.5;">D.B. — Bureau des Inspecteurs</span>
+</div></footer>
+</div>
+</div>
+<div class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑ Haut</div>
+
+<!-- ══════ MODAL: AVIS DE RECHERCHE ══════ -->
+<div class="overlay" id="warrants-overlay">
+  <div class="modal" style="max-width:1480px;">
+    <div class="mh wm-header">
+      <span class="mh-title" style="color:#f0d080;">🔍 Avis de Recherche Actifs — D.D. Ops</span>
+      <div style="display:flex;align-items:center;gap:1rem;">
+        <span id="warrants-count" class="wm-count"></span>
+        <button class="mh-close" onclick="closeWarrants()">✕ Fermer</button>
+      </div>
+    </div>
+    <div class="mb wm-body" style="padding:1.2rem;">
+      <div class="wm-warn">⚠ Document confidentiel — Usage interne D.B. exclusif — Ajout réservé aux Responsables et à la Direction</div>
+      <div class="lt-wrap">
+        <table class="lt">
+          <thead><tr>
+            <th class="tal" style="width:55px;">ID</th>
+            <th class="tal" style="width:120px;">Nom</th>
+            <th class="tal" style="width:100px;">Prénom</th>
+            <th style="width:130px;">Niveau</th>
+            <th style="width:150px;">Casier Judiciaire</th>
+            <th style="width:150px;">Wanted Discord</th>
+            <th style="width:85px;">MAJ Trello</th>
+            <th style="width:100px;">MAJ Téléphone</th>
+            <th style="width:120px;">Actions</th>
+          </tr></thead>
+          <tbody id="warrants-tbody"></tbody>
+        </table>
+        <div id="warrants-nodata" class="lt-nodata" style="display:none;">— Aucun avis de recherche actif —</div>
+      </div>
+      <div class="wm-add" id="w-add-form">
+        <div class="wm-add-title">+ Émettre un nouvel avis de recherche</div>
+        <div class="wm-form-grid">
+          <div class="ff"><label class="fl" style="color:#7a5610;">ID suspect</label><input class="fi" id="w-id" placeholder="Ex: 35929" style="background:#fff;border-color:#e0d8c0;border-bottom-color:#7a5610;color:#1a1200;"></div>
+          <div class="ff"><label class="fl" style="color:#7a5610;">NOM</label><input class="fi" id="w-nom" placeholder="Ex: MARESHAL" style="background:#fff;border-color:#e0d8c0;border-bottom-color:#7a5610;color:#1a1200;text-transform:uppercase;"></div>
+          <div class="ff"><label class="fl" style="color:#7a5610;">Prénom</label><input class="fi" id="w-prenom" placeholder="Ex: Korim" style="background:#fff;border-color:#e0d8c0;border-bottom-color:#7a5610;color:#1a1200;"></div>
+          <div class="ff"><label class="fl" style="color:#7a5610;">Niveau de danger</label>
+            <select class="fs" id="w-danger" style="background:#fff;border-color:#e0d8c0;border-bottom-color:#7a5610;color:#1a1200;">
+              <option value="Risque Faible">Risque Faible</option><option value="Risque Moyen">Risque Moyen</option>
+              <option value="Risque élevé" selected>Risque élevé</option><option value="Risque très élevé">Risque très élevé</option>
+            </select>
+          </div>
+        </div>
+        <div class="wm-form-grid">
+          <div class="ff" style="grid-column:span 2;"><label class="fl" style="color:#7a5610;">Lien Casier Judiciaire (Trello)</label><input class="fi" id="w-trello" placeholder="https://trello.com/c/..." style="background:#fff;border-color:#e0d8c0;border-bottom-color:#7a5610;color:#1a1200;"></div>
+          <div class="ff" style="grid-column:span 2;"><label class="fl" style="color:#7a5610;">Lien Wanted Discord</label><input class="fi" id="w-discord" placeholder="https://discord.com/channels/..." style="background:#fff;border-color:#e0d8c0;border-bottom-color:#7a5610;color:#1a1200;"></div>
+        </div>
+        <button class="btn" onclick="addWarrant()" style="background:#2c2100;color:#f0d080;border-color:#7a5610;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:8px 16px;cursor:pointer;">✓ Valider — Émettre l'avis</button>
+      </div>
+      <div id="w-readonly" class="lt-readonly" style="display:none;">🔒 Consultation uniquement — Seuls les Responsables et la Direction peuvent ajouter des avis de recherche.</div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: MODIFIER AVIS -->
+<div class="overlay" id="edit-warrant-overlay">
+  <div class="modal" style="max-width:660px;">
+    <div class="mh wm-header"><span class="mh-title" style="color:#f0d080;">✏️ Modifier l'avis de recherche</span><button class="mh-close" onclick="closeEditWarrant()">✕</button></div>
+    <div class="mb" style="background:#f5f2ea;">
+      <input type="hidden" id="ew-idx">
+      <div class="frow"><div class="ff"><label class="fl">ID suspect</label><input class="fi" id="ew-id"></div><div class="ff"><label class="fl">NOM</label><input class="fi" id="ew-nom" style="text-transform:uppercase;"></div></div>
+      <div class="frow"><div class="ff"><label class="fl">Prénom</label><input class="fi" id="ew-prenom"></div><div class="ff"><label class="fl">Niveau de danger</label><select class="fs" id="ew-danger"><option value="Risque Faible">Risque Faible</option><option value="Risque Moyen">Risque Moyen</option><option value="Risque élevé">Risque élevé</option><option value="Risque très élevé">Risque très élevé</option></select></div></div>
+      <div class="frow"><div class="ff"><label class="fl">Lien Casier (Trello)</label><input class="fi" id="ew-trello"></div><div class="ff"><label class="fl">Lien Discord</label><input class="fi" id="ew-discord"></div></div>
+      <div style="display:flex;gap:8px;margin-top:1rem;"><button class="btn btn-p" onclick="saveEditWarrant()" style="flex:1;">💾 Sauvegarder</button><button class="btn btn-d" onclick="closeEditWarrant()" style="flex:1;">Annuler</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ MODAL: BRACELETS ELECTRONIQUES ══════ -->
+<div class="overlay" id="bracelets-overlay">
+  <div class="modal" style="max-width:1500px;">
+    <div class="mh bm-header">
+      <span class="mh-title" style="color:#90e0b0;">📡 Registre des Bracelets Électroniques</span>
+      <div style="display:flex;align-items:center;gap:1rem;">
+        <span id="brac-count" class="bm-count"></span>
+        <button class="mh-close" onclick="closeBracelets()">✕ Fermer</button>
+      </div>
+    </div>
+    <div class="mb bm-body" style="padding:1.2rem;">
+      <div class="bm-warn">⚠ Un bracelet ne peut être posé qu'avec l'autorisation d'un Inspecteur ou plus — Un bracelet de surveillance doit être pointé toutes les 2 semaines et au minimum 2 mois après la pose — Un bracelet de protection n'a pas besoin d'être pointé</div>
+      <div class="lt-wrap bm-lt">
+        <table class="lt">
+          <thead><tr>
+            <th class="tal" style="width:55px;">ID</th><th class="tal" style="width:110px;">Nom</th><th class="tal" style="width:90px;">Prénom</th>
+            <th style="width:100px;">Type</th><th style="width:110px;">Agent référent</th><th style="width:85px;">Posé le</th>
+            <th style="width:95px;">Dernier pointage</th><th style="width:95px;">Pointé par</th>
+            <th style="width:160px;">Statut du pointage</th><th style="width:90px;">Statut</th>
+            <th style="width:140px;">Commentaire</th><th style="width:130px;">Actions</th>
+          </tr></thead>
+          <tbody id="brac-tbody"></tbody>
+        </table>
+        <div id="brac-nodata" class="lt-nodata" style="display:none;">— Aucun bracelet électronique actif —</div>
+      </div>
+      <div class="bm-add" id="brac-add-form">
+        <div class="bm-add-title">+ Enregistrer un nouveau bracelet</div>
+        <div class="bm-form-grid">
+          <div class="ff"><label class="fl" style="color:#1a6a3a;">ID suspect</label><input class="fi" id="b-id" placeholder="Ex: 53212" style="background:#fff;border-color:#b0d8c0;border-bottom-color:#1a8a5a;color:#0a1a10;"></div>
+          <div class="ff"><label class="fl" style="color:#1a6a3a;">NOM</label><input class="fi" id="b-nom" placeholder="Ex: DIAMONDS" style="background:#fff;border-color:#b0d8c0;border-bottom-color:#1a8a5a;color:#0a1a10;text-transform:uppercase;"></div>
+          <div class="ff"><label class="fl" style="color:#1a6a3a;">Prénom</label><input class="fi" id="b-prenom" placeholder="Ex: Anastasia" style="background:#fff;border-color:#b0d8c0;border-bottom-color:#1a8a5a;color:#0a1a10;"></div>
+          <div class="ff"><label class="fl" style="color:#1a6a3a;">Type</label>
+            <select class="fs" id="b-type" style="background:#fff;border-color:#b0d8c0;border-bottom-color:#1a8a5a;color:#0a1a10;">
+              <option value="Protection">Protection</option><option value="Surveillance">Surveillance</option>
+            </select>
+          </div>
+        </div>
+        <div class="bm-form-grid">
+          <div class="ff"><label class="fl" style="color:#1a6a3a;">Agent référent</label><input class="fi" id="b-referent" placeholder="Ex: M. FISHER" style="background:#fff;border-color:#b0d8c0;border-bottom-color:#1a8a5a;color:#0a1a10;"></div>
+          <div class="ff"><label class="fl" style="color:#1a6a3a;">Date de pose</label><input class="fi" id="b-date-pose" placeholder="Ex: 23/09/2024" style="background:#fff;border-color:#b0d8c0;border-bottom-color:#1a8a5a;color:#0a1a10;"></div>
+          <div class="ff"><label class="fl" style="color:#1a6a3a;">Statut initial</label>
+            <select class="fs" id="b-statut" style="background:#fff;border-color:#b0d8c0;border-bottom-color:#1a8a5a;color:#0a1a10;">
+              <option value="À convoquer">À convoquer</option><option value="À retirer">À retirer</option>
+              <option value="À pointer">À pointer</option><option value="Brisé">Brisé</option>
+            </select>
+          </div>
+          <div class="ff"><label class="fl" style="color:#1a6a3a;">Commentaire</label><input class="fi" id="b-comment" placeholder="Remarques..." style="background:#fff;border-color:#b0d8c0;border-bottom-color:#1a8a5a;color:#0a1a10;"></div>
+        </div>
+        <button class="btn" onclick="addBracelet()" style="background:#0a2a1a;color:#90e0b0;border-color:#1a8a5a;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:8px 16px;cursor:pointer;">✓ Enregistrer le bracelet</button>
+      </div>
+      <div id="brac-readonly" class="lt-readonly" style="display:none;">🔒 Consultation uniquement — Seuls les Responsables et la Direction peuvent ajouter des bracelets.</div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: MODIFIER BRACELET -->
+<div class="overlay" id="edit-brac-overlay">
+  <div class="modal" style="max-width:700px;">
+    <div class="mh bm-header"><span class="mh-title" style="color:#90e0b0;">✏️ Modifier / Pointer le bracelet</span><button class="mh-close" onclick="closeEditBrac()">✕</button></div>
+    <div class="mb" style="background:#f0faf4;">
+      <input type="hidden" id="eb-idx">
+      <div class="frow"><div class="ff"><label class="fl">ID suspect</label><input class="fi" id="eb-id"></div><div class="ff"><label class="fl">NOM</label><input class="fi" id="eb-nom" style="text-transform:uppercase;"></div></div>
+      <div class="frow"><div class="ff"><label class="fl">Prénom</label><input class="fi" id="eb-prenom"></div><div class="ff"><label class="fl">Type</label><select class="fs" id="eb-type"><option value="Protection">Protection</option><option value="Surveillance">Surveillance</option></select></div></div>
+      <div class="frow"><div class="ff"><label class="fl">Agent référent</label><input class="fi" id="eb-referent"></div><div class="ff"><label class="fl">Date de pose</label><input class="fi" id="eb-date-pose"></div></div>
+      <div class="frow"><div class="ff"><label class="fl">Dernier pointage (date)</label><input class="fi" id="eb-last-pointer"></div><div class="ff"><label class="fl">Pointé par</label><input class="fi" id="eb-pointed-by"></div></div>
+      <div class="frow"><div class="ff"><label class="fl">Statut du pointage</label><input class="fi" id="eb-statut-pointage" placeholder="Ex: EN RETARD — Échéance le 10/07/2025"></div><div class="ff"><label class="fl">Statut principal</label><select class="fs" id="eb-statut"><option value="À convoquer">À convoquer</option><option value="À retirer">À retirer</option><option value="À pointer">À pointer</option><option value="Brisé">Brisé</option></select></div></div>
+      <div class="ff" style="margin-bottom:1rem;"><label class="fl">Commentaire</label><input class="fi" id="eb-comment"></div>
+      <div style="display:flex;gap:8px;margin-top:1rem;">
+        <button class="btn btn-p" onclick="saveEditBrac()" style="flex:1;">💾 Sauvegarder</button>
+        <button class="btn btn-s" onclick="pointerBracelet()" style="flex:1;">📍 Pointer maintenant</button>
+        <button class="btn btn-d" onclick="closeEditBrac()" style="flex:1;">Annuler</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ MODAL: PRISE D'INFO ══════ -->
+<div class="overlay pi-modal" id="priseinfo-overlay">
+  <div class="modal" style="max-width:1000px;">
+    <div class="pi-header" style="background:linear-gradient(135deg,#064e3b 0%,#065f46 100%);border-bottom:3px solid #10b981;">
+      <div class="pi-header-left">
+        <img src="dd_logo.png" alt="Logo DB" style="width:44px;height:44px;border-radius:50%;border:2px solid #4a90d4;object-fit:cover;" onerror="this.style.display='none'">
+        <div>
+          <div class="pi-title-main">Prise d'Information — D.D.</div>
+          <div class="pi-title-sub">Bureau des Inspecteurs × Detective Division</div>
+        </div>
+      </div>
+      <button class="pi-close-btn" onclick="closePriseInfo()">✕ Fermer</button>
+    </div>
+    <div class="pi-body">
+      <div>
+        <div class="pi-sec">Informations à remplir</div>
+        <div class="pi-bloc-box">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:#065f46;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px;">Importer un bloc brut</div>
+          <textarea class="pi-raw" id="pi-raw" placeholder="Colle ton bloc ici..."></textarea>
+          <div class="pi-btn-row" style="margin-top:6px;"><button class="pi-btn pb-analyze" onclick="analyzeRaw()" style="width:100%;">🔎 Analyser et remplir</button></div>
+        </div>
+        <hr style="border:none;border-top:1px solid #c0d4f0;margin:0.8rem 0;">
+        <div class="pi-field"><label class="pi-label">Date / Heure</label><input class="pi-input" type="text" id="pi-date" placeholder="ex : 14/03/2026 — 21h30"></div>
+        <div class="pi-field"><label class="pi-label">Plaque</label><input class="pi-input" type="text" id="pi-plaque" oninput="this.value=this.value.toUpperCase()"></div>
+        <div class="pi-field"><label class="pi-label">Modèle</label><input class="pi-input" type="text" id="pi-modele" oninput="this.value=this.value.toUpperCase()"></div>
+        <div class="pi-field"><label class="pi-label">N° d'identité</label><input class="pi-input" type="text" id="pi-nid"></div>
+        <div class="pi-field"><label class="pi-label">NOM, Prénom</label><input class="pi-input" type="text" id="pi-nomprenom"></div>
+        <div class="pi-field"><label class="pi-label">N° Tel</label><input class="pi-input" type="text" id="pi-tel"></div>
+        <div class="pi-field"><label class="pi-label">Motifs</label><textarea class="pi-textarea" id="pi-motifs" placeholder="Écris un motif par ligne"></textarea></div>
+        <div class="pi-btn-row"><button class="pi-btn pb-submit" onclick="generatePI()">Soumettre</button><button class="pi-btn pb-clear" onclick="clearPI()">✕ Effacer</button></div>
+      </div>
+      <div>
+        <div class="pi-sec">Rapport généré</div>
+        <div class="pi-output" id="pi-output"><span class="pi-ph">👉 Le texte généré apparaîtra ici.</span></div>
+        <div class="pi-btn-row"><button class="pi-btn pb-copy" onclick="copyPI()" id="pi-copy-btn" style="display:none;">📋 Copier le texte</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ MODAL: CALENDRIER ══════ -->
+<div class="overlay" id="calendrier-overlay">
+  <div class="modal" style="max-width:1100px;">
+    <div class="mh"><span class="mh-title">📅 Calendrier Opérationnel — D.B.</span><button class="mh-close" onclick="closeCalendrier()">✕ Fermer</button></div>
+    <div class="mb">
+      <div id="cal-modal-inner"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: AJOUTER/MODIFIER EVENEMENT -->
+<div class="overlay" id="event-overlay">
+  <div class="modal" style="max-width:540px;">
+    <div class="mh"><span class="mh-title" id="event-modal-title">📅 Ajouter un événement</span><button class="mh-close" onclick="closeEventModal()">✕</button></div>
+    <div class="mb">
+      <input type="hidden" id="ev-idx">
+      <div class="frow">
+        <div class="ff"><label class="fl">Date</label><input class="fi" id="ev-date" type="date"></div>
+        <div class="ff"><label class="fl">Type d'événement</label>
+          <select class="fs" id="ev-type">
+            <option value="interrogatoire">Interrogatoire</option>
+            <option value="perquisition">Perquisition</option>
+            <option value="psychologue">Rendez-vous psychologue</option>
+            <option value="ag">Assemblée générale</option>
+            <option value="autre">Autre</option>
+          </select>
+        </div>
+      </div>
+      <div class="frow">
+        <div class="ff"><label class="fl">Heure de début</label><input class="fi" id="ev-heure-debut" type="time"></div>
+        <div class="ff"><label class="fl">Heure de fin</label><input class="fi" id="ev-heure-fin" type="time"></div>
+      </div>
+      <div class="ff" style="margin-bottom:1rem;"><label class="fl">Titre</label><input class="fi" id="ev-titre" placeholder="Ex: Interrogatoire DUPONT"></div>
+      <div class="ff" style="margin-bottom:1rem;"><label class="fl">Lieu (optionnel)</label><input class="fi" id="ev-lieu" placeholder="Ex: Salle 3 — Commissariat central"></div>
+      <div class="ff" style="margin-bottom:1.2rem;"><label class="fl">Description (optionnel)</label><textarea class="fi" id="ev-desc" placeholder="Détails supplémentaires..." style="resize:vertical;min-height:60px;font-family:'Barlow',sans-serif;font-size:13px;"></textarea></div>
+      <div style="background:var(--paper-mid);border:1px solid var(--divider);border-left:3px solid var(--amber);padding:7px 12px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--gray-ink);margin-bottom:1rem;">
+        Créé par : <strong id="ev-creator-display">—</strong>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-p" onclick="saveEvent()" style="flex:1;">💾 Enregistrer</button>
+        <button class="btn btn-d" id="ev-delete-btn" onclick="deleteEvent()" style="flex:1;display:none;">🗑 Supprimer</button>
+        <button class="btn btn-d" onclick="closeEventModal()" style="flex:1;">Annuler</button>
+      </div>
+      <div id="ev-msg" style="margin-top:0.5rem;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ MODAL: ARCHIVES ══════ -->
+<div class="overlay" id="archives-overlay">
+  <div class="modal" style="max-width:1400px;">
+    <div class="mh"><span class="mh-title">🗃️ Archives — Avis de Recherche & Bracelets Clôturés</span><button class="mh-close" onclick="closeArchives()">✕ Fermer</button></div>
+    <div class="mb" style="background:#f5f2ea;">
+      <div class="arch-tabs">
+        <button class="arch-tab active" onclick="switchArchTab('arch-warrants',this)">🔍 Avis de recherche clôturés</button>
+        <button class="arch-tab" onclick="switchArchTab('arch-bracelets',this)">📡 Bracelets clôturés</button>
+      </div>
+      <div class="arch-tab-content active" id="arch-warrants">
+        <div class="lt-wrap"><table class="lt">
+          <thead><tr>
+            <th class="tal">ID</th><th class="tal">Nom</th><th class="tal">Prénom</th><th>Niveau</th>
+            <th>Casier Judiciaire</th><th>Wanted Discord</th><th>Clôturé par</th><th>Date clôture</th><th>Supprimer</th>
+          </tr></thead>
+          <tbody id="arch-warrants-tbody"></tbody>
+        </table>
+        <div id="arch-warrants-nodata" class="lt-nodata" style="display:none;">— Aucun avis clôturé en archive —</div></div>
+      </div>
+      <div class="arch-tab-content" id="arch-bracelets">
+        <div class="lt-wrap"><table class="lt">
+          <thead><tr>
+            <th class="tal">ID</th><th class="tal">Nom</th><th class="tal">Prénom</th><th>Type</th>
+            <th>Agent référent</th><th>Posé le</th><th>Statut final</th><th>Commentaire</th>
+            <th>Clôturé par</th><th>Date clôture</th><th>Supprimer</th>
+          </tr></thead>
+          <tbody id="arch-bracelets-tbody"></tbody>
+        </table>
+        <div id="arch-bracelets-nodata" class="lt-nodata" style="display:none;">— Aucun bracelet clôturé en archive —</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ MODAL: TEMPS DE SERVICE ══════ -->
+<div class="overlay" id="service-overlay">
+  <div class="modal" style="max-width:900px;">
+    <div class="mh"><span class="mh-title">📊 Temps de Service — D.B.</span><button class="mh-close" onclick="closeService()">✕ Fermer</button></div>
+    <div class="mb">
+      <div class="admin-tabs">
+        <button class="atab active" onclick="switchSvcTab('tab-svc-add',this)">Enregistrer</button>
+        <button class="atab" onclick="switchSvcTab('tab-svc-search',this)">Rechercher / Graphique</button>
+      </div>
+      <div class="atab-content active" id="tab-svc-add">
+        <div class="msec">Enregistrer un temps de service</div>
+        <div class="frow">
+          <div class="ff"><label class="fl">Agent (sélectionner)</label><select class="fs" id="svc-agent"></select></div>
+          <div class="ff"><label class="fl">Date</label><input class="fi" id="svc-date" type="date"></div>
+        </div>
+        <div class="frow">
+          <div class="ff"><label class="fl">Durée (format : 2h31, 1h05…)</label><input class="fi" id="svc-duree" placeholder="Ex: 2h31" pattern="^\d+h[0-5]\d$" autocomplete="off"></div>
+          <div class="ff"><label class="fl">Note (optionnel)</label><input class="fi" id="svc-note" placeholder="Ex: Patrouille zone sud"></div>
+        </div>
+        <button class="btn btn-p" onclick="addService()">+ Enregistrer</button>
+        <div id="svc-msg" style="margin-top:0.5rem;"></div>
+        <div class="msec" style="margin-top:1.5rem;">Historique complet <span id="svc-history-count" style="font-weight:300;color:var(--gray-light);"></span></div>
+        <div id="svc-recent-list"></div>
+      </div>
+      <div class="atab-content" id="tab-svc-search">
+        <div class="service-search-row">
+          <input type="text" class="svc-search-input" id="svc-search" placeholder="Rechercher un agent (nom ou matricule)..." oninput="searchService()">
+          <button class="btn btn-p" onclick="searchService()">🔍 Rechercher</button>
+        </div>
+        <div id="svc-result-name" style="font-family:'Special Elite',cursive;font-size:20px;color:var(--ink);margin-bottom:1rem;display:none;"></div>
+        <div class="svc-stats" id="svc-stats" style="display:none;">
+          <div class="stat-card"><div class="stat-val" id="svc-total-h">0</div><div class="stat-lbl" id="svc-total-lbl">Total heures</div></div>
+          <div class="stat-card"><div class="stat-val" id="svc-sessions">0</div><div class="stat-lbl">Sessions (période)</div></div>
+          <div class="stat-card"><div class="stat-val" id="svc-avg">0</div><div class="stat-lbl">Moy. h/session</div></div>
+        </div>
+        <div class="chart-controls" id="chart-controls" style="display:none;">
+          <button class="chart-btn active" id="chart-btn-week" onclick="switchChart('week',this)">Semaine</button>
+          <button class="chart-btn" id="chart-btn-month" onclick="switchChart('month',this)">Mois</button>
+          <button class="chart-btn" id="chart-btn-year" onclick="switchChart('year',this)">Année</button>
+        </div>
+        <div class="chart-wrap" id="chart-wrap" style="display:none;"><canvas id="svc-chart"></canvas></div>
+        <div id="svc-nodata" style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--gray-light);text-align:center;padding:2rem;display:none;">— Aucune donnée pour cet agent —</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: MODIFIER ENTRÉE SERVICE -->
+<div class="overlay" id="edit-svc-overlay">
+  <div class="modal" style="max-width:480px;">
+    <div class="mh"><span class="mh-title">✏️ Modifier une entrée de service</span><button class="mh-close" onclick="closeEditSvc()">✕</button></div>
+    <div class="mb">
+      <input type="hidden" id="esvc-idx">
+      <div class="frow">
+        <div class="ff"><label class="fl">Agent</label><input class="fi" id="esvc-agent" disabled style="opacity:0.6;"></div>
+        <div class="ff"><label class="fl">Date</label><input class="fi" id="esvc-date" type="date"></div>
+      </div>
+      <div class="frow">
+        <div class="ff"><label class="fl">Durée (format : 2h31)</label><input class="fi" id="esvc-duree" placeholder="Ex: 2h31"></div>
+        <div class="ff"><label class="fl">Note</label><input class="fi" id="esvc-note" placeholder="Remarques..."></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:1rem;">
+        <button class="btn btn-p" onclick="saveEditSvc()" style="flex:1;">💾 Sauvegarder</button>
+        <button class="btn btn-d" onclick="closeEditSvc()" style="flex:1;">Annuler</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ MODAL: ADMIN ══════ -->
+<div class="overlay" id="admin-overlay">
+  <div class="modal" style="max-width:960px;">
+    <div class="mh" style="border-bottom-color:var(--amber-light);"><span class="mh-title">⚙ Panneau Direction — D.B.</span><button class="mh-close" onclick="closeAdmin()">✕ Fermer</button></div>
+    <div class="mb">
+      <div class="admin-tabs">
+        <button class="atab active" onclick="switchAdminTab('t-online',this)">Connexions</button>
+        <button class="atab" onclick="switchAdminTab('t-accounts',this)">Comptes</button>
+        <button class="atab" onclick="switchAdminTab('t-effectif',this)">Registre</button>
+      </div>
+      <div class="atab-content active" id="t-online">
+        <div class="msec">Agents connectés</div>
+        <div id="online-list"></div>
+        <div style="margin-top:0.8rem;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--gray-light);">MAJ : <span id="online-time">—</span> <button onclick="refreshOnline()" style="margin-left:6px;background:none;border:1px solid var(--divider);color:var(--gray-ink);font-family:'IBM Plex Mono',monospace;font-size:9px;padding:2px 7px;cursor:pointer;">↻</button></div>
+      </div>
+      <div class="atab-content" id="t-accounts">
+        <div class="msec">Liste des comptes</div>
+        <div id="accounts-list"></div>
+        <div class="msec">Ajouter un compte</div>
+        <div class="frow"><div class="ff"><label class="fl">Nom</label><input class="fi" id="nu-name" placeholder="Prénom Nom"></div><div class="ff"><label class="fl">E-mail</label><input class="fi" id="nu-email" type="email" placeholder="prenom.nom@gmail.com"></div></div>
+        <div class="frow">
+          <div class="ff"><label class="fl">Mot de passe</label><input class="fi" id="nu-pw" value="lspd-dd-2026"></div>
+          <div class="ff"><label class="fl">Rôle</label>
+            <select class="fs" id="nu-role">
+              <option value="agent">Agent</option>
+              <option value="responsable">Responsable</option>
+              <option value="direction">Direction</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-p" onclick="addAccount()">+ Ajouter</button>
+        <div id="acc-msg" style="margin-top:0.5rem;"></div>
+      </div>
+      <div class="atab-content" id="t-effectif">
+        <div class="msec">Ajouter un membre</div>
+        <div class="frow"><div class="ff"><label class="fl">Matricule</label><input class="fi" id="ef-mat"></div><div class="ff"><label class="fl">Nom complet</label><input class="fi" id="ef-nom"></div></div>
+        <div class="frow"><div class="ff"><label class="fl">Grade L.S.P.D.</label><input class="fi" id="ef-glspd"></div><div class="ff"><label class="fl">Grade B.I.</label><input class="fi" id="ef-gbi"></div></div>
+        <div class="frow">
+          <div class="ff"><label class="fl">Unité</label>
+            <select class="fs" id="ef-unit">
+              <option value="Direction">Direction</option>
+              <option value="Det. Division">Det. Division (D.D.)</option>
+              <option value="S.C.U.">Street Crimes Unit (S.C.U.)</option>
+              <option value="S. Plaintes">Service des Plaintes</option>
+            </select>
+          </div>
+          <div class="ff"><label class="fl">ID</label><input class="fi" id="ef-id"></div>
+        </div>
+        <div class="frow">
+          <div class="ff"><label class="fl">Date de promotion (YYYY-MM-DD)</label><input class="fi" id="ef-date-promo" type="date" placeholder="Pour tri par ancienneté"></div>
+          <div class="ff"><label class="fl">Grade hiérarchique</label>
+            <select class="fs" id="ef-grade-hier">
+              <option value="100">Direction</option>
+              <option value="90">Responsable</option>
+              <option value="80">Inspecteur Principal (D.D.)</option>
+              <option value="70">Inspecteur (D.D.)</option>
+              <option value="60">Enquêteur (D.D.)</option>
+              <option value="80">Officier Principal (S.C.U.)</option>
+              <option value="70">Agent de P.B. (S.C.U.)</option>
+              <option value="60">Recrue (S.C.U.)</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-p" onclick="addMember()">+ Ajouter</button>
+        <div id="ef-msg" style="margin-top:0.5rem;"></div>
+        <div class="msec" style="margin-top:1.5rem;">Membres actuels</div>
+        <div id="admin-ef-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: MODIFIER MEMBRE -->
+<div class="overlay" id="edit-member-overlay">
+  <div class="modal" style="max-width:580px;">
+    <div class="mh"><span class="mh-title">✏️ Modifier un membre</span><button class="mh-close" onclick="closeEditMember()">✕</button></div>
+    <div class="mb">
+      <input type="hidden" id="em-idx">
+      <div class="frow"><div class="ff"><label class="fl">Matricule</label><input class="fi" id="em-mat"></div><div class="ff"><label class="fl">Nom</label><input class="fi" id="em-nom"></div></div>
+      <div class="frow"><div class="ff"><label class="fl">Grade L.S.P.D.</label><input class="fi" id="em-glspd"></div><div class="ff"><label class="fl">Grade B.I.</label><input class="fi" id="em-gbi"></div></div>
+      <div class="frow">
+        <div class="ff"><label class="fl">Unité</label>
+          <select class="fs" id="em-unit">
+            <option value="Direction">Direction</option>
+            <option value="Det. Division">Det. Division (D.D.)</option>
+            <option value="S.C.U.">Street Crimes Unit (S.C.U.)</option>
+            <option value="S. Plaintes">Service des Plaintes</option>
+          </select>
+        </div>
+        <div class="ff"><label class="fl">ID</label><input class="fi" id="em-id"></div>
+      </div>
+      <div class="frow">
+        <div class="ff"><label class="fl">Date de promotion (YYYY-MM-DD)</label><input class="fi" id="em-date-promo" type="date"></div>
+        <div class="ff"><label class="fl">Grade hiérarchique (nombre)</label><input class="fi" id="em-grade-hier" type="number" placeholder="100=Direction, 90=Resp, 80=Insp.P, 70=Insp, 60=Enq..."></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:1rem;">
+        <button class="btn btn-p" onclick="saveMember()" style="flex:1;">💾 Sauvegarder</button>
+        <button class="btn btn-d" onclick="deleteMember()" style="flex:1;">🗑 Supprimer</button>
+      </div>
+      <div id="em-msg" style="margin-top:0.5rem;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: CHANGER MDP -->
+<div class="overlay" id="changepw-overlay">
+  <div class="modal" style="max-width:400px;">
+    <div class="mh"><span class="mh-title">🔑 Changer mon mot de passe</span><button class="mh-close" onclick="closeChangePw()">✕</button></div>
+    <div class="mb">
+      <div class="ff" style="margin-bottom:0.8rem;"><label class="fl">Mot de passe actuel</label><input class="fi" type="password" id="pw-cur"></div>
+      <div class="ff" style="margin-bottom:0.8rem;"><label class="fl">Nouveau mot de passe</label><input class="fi" type="password" id="pw-new"></div>
+      <div class="ff" style="margin-bottom:1.2rem;"><label class="fl">Confirmer</label><input class="fi" type="password" id="pw-conf"></div>
+      <button class="btn btn-p" onclick="changePassword()" style="width:100%;">Valider</button>
+      <div id="pw-msg" style="margin-top:0.5rem;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ MODAL: NOTES D'AGENT ══════ -->
+<div class="overlay" id="notes-overlay">
+  <div class="modal" style="max-width:960px;overflow:hidden;">
+    <div class="notes-header-bar">
+      <div>
+        <div class="notes-title-main">📓 Notes d'Agent</div>
+        <div class="notes-title-sub">Carnet personnel — Detective Bureau</div>
+      </div>
+      <button class="mh-close" onclick="closeNotes()">✕ Fermer</button>
+    </div>
+    <div class="notes-modal-body">
+      <div class="notes-layout">
+        <div class="notes-sidebar" id="notes-sidebar">
+          <div class="notes-sidebar-title">Navigation</div>
+          <button class="notes-my-note-btn active" id="notes-my-btn" onclick="selectNote('me')">📓 Ma note</button>
+          <div id="notes-agents-list" style="display:none;">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:#9fa8da;margin:0.8rem 0 0.4rem;padding-top:0.8rem;border-top:1px solid rgba(255,255,255,0.1);">Notes des agents</div>
+          </div>
+        </div>
+        <div class="notes-content">
+          <div class="notes-editor-header">
+            <div>
+              <div class="notes-editor-title" id="notes-editor-title">Ma note personnelle</div>
+              <div class="notes-editor-meta" id="notes-editor-meta">Dernière modification : —</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span class="notes-readonly-badge" id="notes-readonly-badge" style="display:none;">🔒 Lecture seule</span>
+            </div>
+          </div>
+          <textarea class="notes-textarea" id="notes-textarea" placeholder="Écrivez vos notes ici... Observations terrain, informations suspectes, mémos personnels, rappels..."></textarea>
+          <div class="notes-save-row">
+            <button class="notes-save-btn" id="notes-save-btn" onclick="saveNote()">💾 Sauvegarder</button>
+            <span class="notes-saved-badge" id="notes-saved-badge">✓ Sauvegardé</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ SCRIPT ════════ -->
+<script>
+// ═══ CONSTANTS ═══
+const SK='lspd_db_v7',SSK='lspd_sess_v7',ROOT='jamesjones.lspd@gmail.com',DEF_PW='lspd-dd-2026',SESS_MS=15*60*1000;
+
+// ═══ GRADE HIERARCHY ═══
+// Direction=100, Responsable=90, Inspecteur Principal=80, Inspecteur/Officier Principal=70, Enquêteur/Agent PB=60, Recrue=50
+const GRADE_MAP={
+  'Directeur D.D.':100,'Directeur Adjoint':100,'Directeur':100,
+  'Responsable D.D.':90,'Responsable S.C.U.':90,'Responsable':90,
+  'Inspecteur Principal':80,'Officier Principal':80,
+  'Inspecteur':70,'Chef de Brigade':75,
+  'Enquêteur':60,'Enquêtrice':60,
+  'Agent de P.B.':55,
+  'Recrue':50
+};
+
+function getGradeOrder(m){
+  if(m.gradeHier)return parseInt(m.gradeHier)||60;
+  return GRADE_MAP[m.gradeBI]||60;
+}
+
+// ═══ DB ═══
+const loadDB=()=>{try{const r=localStorage.getItem(SK);return r?JSON.parse(r):null;}catch{return null;}};
+const saveDB=d=>localStorage.setItem(SK,JSON.stringify(d));
+const loadSess=()=>{try{const r=localStorage.getItem(SSK);if(!r)return null;const s=JSON.parse(r);return Date.now()-s.ts<SESS_MS?s:null;}catch{return null;}};
+const saveSess=e=>localStorage.setItem(SSK,JSON.stringify({email:e,ts:Date.now()}));
+const clearSess=()=>localStorage.removeItem(SSK);
+
+function initDB(){
+  const ex=loadDB();
+  if(ex){
+    // Ensure new fields exist for migration
+    if(!ex.events)ex.events=[];
+    if(!ex.service)ex.service=[];
+    if(!ex.bracelets)ex.bracelets=[];
+    return ex;
+  }
+  const d={
+    users:{
+      "jamesjones.lspd@gmail.com":     {name:"James Jones",         pw:DEF_PW,role:"direction"},
+      "clement.lopezlspd71@gmail.com": {name:"Clement Lopez",       pw:DEF_PW,role:"responsable"},
+      "raydonpichon@gmail.com":        {name:"Raydon Pichon",       pw:DEF_PW,role:"responsable"},
+      "lysiadubeloybi@gmail.com":      {name:"Dalila Winters-Smith",pw:DEF_PW,role:"agent"},
+      "redacorlozio.ctg@gmail.com":    {name:"Reda Corlozio",       pw:DEF_PW,role:"agent"},
+      "antoine.cumsi@gmail.com":       {name:"Antoine Cumsi",       pw:DEF_PW,role:"agent"},
+      "francisgarcia150800@gmail.com": {name:"Francis Garcia",      pw:DEF_PW,role:"agent"},
+      "john.anderson.ctg@gmail.com":   {name:"Douglas Walker",      pw:DEF_PW,role:"agent"},
+      "velentzasdana@gmail.com":       {name:"Dana Doux",           pw:DEF_PW,role:"agent"},
+      "pro.jamesbelga@gmail.com":      {name:"James Belga",         pw:DEF_PW,role:"agent"},
+      "haydentommy44709@gmail.com":    {name:"Hayden Tommy",        pw:DEF_PW,role:"agent"}
+    },
+    online:{},warrants:[],bracelets:[],events:[],service:[],
+    effectif:[
+      // DIRECTION
+      {mat:"—",nom:"[Poste vacant]",gradeLspd:"",gradeBI:"Directeur D.D.",unit:"Direction",id:"",isVacant:true,isChef:true,gradeHier:100,datePromo:""},
+      {mat:"47",nom:"James Jones",gradeLspd:"Lieutenant — L.S.P.D.",gradeBI:"Directeur Adjoint",unit:"Direction",id:"36986",isVacant:false,isChef:true,gradeHier:100,datePromo:"2026-01-10"},
+      // D.D.
+      {mat:"—",nom:"[Poste vacant]",gradeLspd:"",gradeBI:"Responsable D.D.",unit:"Det. Division",id:"",isVacant:true,isChef:true,gradeHier:90,datePromo:""},
+      {mat:"95",nom:"Hayden Tommy",gradeLspd:"Lieutenant — L.S.P.D.",gradeBI:"Inspecteur",unit:"Det. Division",id:"44709",isVacant:false,isChef:false,gradeHier:70,datePromo:"2025-11-19"},
+      {mat:"56",nom:"Raydon Pichon",gradeLspd:"Sergent II — L.S.P.D.",gradeBI:"Inspecteur",unit:"Det. Division",id:"56556",isVacant:false,isChef:false,gradeHier:70,datePromo:"2025-11-19"},
+      {mat:"61",nom:"Dalila Winters-Smith",gradeLspd:"Officier III — L.S.P.D.",gradeBI:"Enquêtrice",unit:"S. Plaintes",id:"44758",isVacant:false,isChef:false,gradeHier:60,datePromo:"2025-11-02"},
+      {mat:"41",nom:"James Belga",gradeLspd:"Officier II — L.S.P.D.",gradeBI:"Enquêteur",unit:"Det. Division",id:"49858",isVacant:false,isChef:false,gradeHier:60,datePromo:"2025-11-02"},
+      {mat:"07",nom:"Reda Corlozio",gradeLspd:"Officier II — L.S.P.D.",gradeBI:"Enquêteur",unit:"Det. Division",id:"53687",isVacant:false,isChef:false,gradeHier:60,datePromo:"2025-12-27"},
+      {mat:"85",nom:"Antoine Cumsi",gradeLspd:"Officier III — L.S.P.D.",gradeBI:"Enquêteur",unit:"Det. Division",id:"1924",isVacant:false,isChef:false,gradeHier:60,datePromo:"2026-01-21"},
+      {mat:"88",nom:"Francis Garcia",gradeLspd:"Officier III — L.S.P.D.",gradeBI:"Enquêteur",unit:"Det. Division",id:"58754",isVacant:false,isChef:false,gradeHier:60,datePromo:"2026-02-11"},
+      {mat:"05",nom:"Douglas Walker",gradeLspd:"Officier I — L.S.P.D.",gradeBI:"Enquêteur",unit:"Det. Division",id:"53027",isVacant:false,isChef:false,gradeHier:60,datePromo:"2026-02-18"},
+      {mat:"66",nom:"Dana Doux",gradeLspd:"Officier I — L.S.P.D.",gradeBI:"Enquêtrice",unit:"Det. Division",id:"48557",isVacant:false,isChef:false,gradeHier:60,datePromo:"2026-02-18"},
+      // S.C.U.
+      {mat:"71",nom:"Clement Lopez",gradeLspd:"Lieutenant — L.S.P.D.",gradeBI:"Responsable S.C.U.",unit:"S.C.U.",id:"56408",isVacant:false,isChef:true,gradeHier:90,datePromo:"2026-01-14"},
+      {mat:"02",nom:"Marcus Grey",gradeLspd:"Capitaine — L.S.P.D.",gradeBI:"Officier Principal",unit:"S.C.U.",id:"38438",isVacant:false,isChef:true,gradeHier:80,datePromo:"2026-01-11"},
+      {mat:"89",nom:"Benoit James",gradeLspd:"Sergent I — L.S.P.D.",gradeBI:"Agent de P.B.",unit:"S.C.U.",id:"54116",isVacant:false,isChef:false,gradeHier:55,datePromo:"2025-08-02"},
+      {mat:"44",nom:"Silver Andrew",gradeLspd:"Sergent II — L.S.P.D.",gradeBI:"Agent de P.B.",unit:"S.C.U.",id:"44032",isVacant:false,isChef:false,gradeHier:55,datePromo:"2025-11-28"},
+      {mat:"35",nom:"James Colt",gradeLspd:"Officier III — L.S.P.D.",gradeBI:"Agent de P.B.",unit:"S.C.U.",id:"26064",isVacant:false,isChef:false,gradeHier:55,datePromo:"2025-11-28"},
+      {mat:"25",nom:"Alice Grimm",gradeLspd:"Officier III — L.S.P.D.",gradeBI:"Agent de P.B.",unit:"S.C.U.",id:"59925",isVacant:false,isChef:false,gradeHier:55,datePromo:"2025-02-07"},
+      {mat:"01",nom:"Bill Krakenhood",gradeLspd:"Sergent II — L.S.P.D.",gradeBI:"Agent de P.B.",unit:"S.C.U.",id:"12110",isVacant:false,isChef:false,gradeHier:55,datePromo:"2026-03-08"},
+      {mat:"53",nom:"Max Collins",gradeLspd:"Officier III — L.S.P.D.",gradeBI:"Recrue",unit:"S.C.U.",id:"52227",isVacant:false,isChef:false,gradeHier:50,datePromo:"2025-11-02"},
+      {mat:"17",nom:"Lexa Dupont",gradeLspd:"Officier II — L.S.P.D.",gradeBI:"Recrue",unit:"S.C.U.",id:"54723",isVacant:false,isChef:false,gradeHier:50,datePromo:"2026-01-27"}
+    ]
+  };
+  saveDB(d);return d;
+}
+
+let DB=initDB(),currentEmail=null,currentUser=null,userRole='agent';
+const isDirection=()=>userRole==='direction';
+const isResp=()=>userRole==='direction'||userRole==='responsable';
+const roleName=r=>r==='direction'?'Direction':r==='responsable'?'Responsable':'Agent';
+
+// Touch session on activity
+['click','keydown','scroll'].forEach(ev=>document.addEventListener(ev,()=>{if(currentEmail)saveSess(currentEmail);},{passive:true}));
+
+// ═══ LOGIN ═══
+function doLogin(email){
+  DB=loadDB()||initDB();
+  const u=DB.users[email];
+  if(!u)return false;
+  currentEmail=email;currentUser=u.name;userRole=u.role||'agent';
+  DB.online[email]={name:u.name,since:new Date().toISOString()};
+  saveDB(DB);saveSess(email);
+  document.getElementById('nav-username').textContent=currentUser;
+  document.getElementById('hero-username').textContent=currentUser;
+  const rb=document.getElementById('nav-role-badge');
+  rb.textContent=roleName(userRole);rb.className='nav-role-badge role-'+userRole;
+  document.getElementById('admin-nav-btn').style.display=isDirection()?'inline-block':'none';
+  document.getElementById('service-nav-btn').style.display=isResp()?'inline-block':'none';
+  document.getElementById('session-timer').style.display='inline';
+  if(isDirection())document.getElementById('portal-wrap').classList.add('admin-mode');
+  document.getElementById('login-page').classList.remove('active');
+  document.getElementById('portal-page').classList.add('active');
+  renderEffectif();renderUpcomingEvents();
+  return true;
+}
+function handleLogin(){
+  const email=document.getElementById('email').value.trim().toLowerCase();
+  const pw=document.getElementById('password').value;
+  DB=loadDB()||initDB();
+  const u=DB.users[email];
+  if(u&&u.pw===pw){document.getElementById('login-err').classList.remove('show');doLogin(email);window.scrollTo(0,0);}
+  else{document.getElementById('login-err').classList.add('show');document.getElementById('password').value='';}
+}
+function handleLogout(){
+  if(currentEmail&&DB.online[currentEmail]){delete DB.online[currentEmail];saveDB(DB);}
+  clearSess();currentEmail=null;currentUser=null;userRole='agent';
+  document.getElementById('portal-page').classList.remove('active');
+  document.getElementById('portal-wrap').classList.remove('admin-mode');
+  document.getElementById('login-page').classList.add('active');
+  document.getElementById('session-timer').style.display='none';
+  document.getElementById('email').value='';document.getElementById('password').value='';
+  document.getElementById('login-err').classList.remove('show');
+}
+
+// ═══ EFFECTIF (with hierarchy sort) ═══
+function sortGroup(members){
+  return members.slice().sort((a,b)=>{
+    if(a.isVacant&&!b.isVacant)return-1;
+    if(!a.isVacant&&b.isVacant)return 1;
+    if(a.isVacant&&b.isVacant)return 0;
+    const ga=getGradeOrder(a),gb=getGradeOrder(b);
+    if(ga!==gb)return gb-ga; // higher grade first
+    // Same grade: oldest promotion first (earlier date = longer service = higher priority)
+    const da=a.datePromo||'9999',db=b.datePromo||'9999';
+    return da<db?-1:da>db?1:0;
+  });
+}
+function renderEffectif(){
+  DB=loadDB()||initDB();
+  const ef=DB.effectif;
+  const direction=sortGroup(ef.filter(m=>m.unit==='Direction'));
+  const dd=sortGroup(ef.filter(m=>m.unit==='Det. Division'||m.unit==='S. Plaintes'));
+  const scu=sortGroup(ef.filter(m=>m.unit==='S.C.U.'));
+  function card(m){
+    const gi=ef.indexOf(m);
+    const vc=m.isVacant?' vacant':'';
+    const cc=(!m.isVacant&&m.isChef)?' chef':'';
+    return`<div class="agent-card${cc}${vc}">
+      <div class="agent-mat">${m.mat}</div>
+      <div><div class="agent-name">${m.nom}</div><div class="agent-gbi">${m.gradeBI}</div><div class="agent-glspd">${m.gradeLspd}</div></div>
+      <div class="agent-meta">${m.id?`<span class="agent-id">ID ${m.id}</span>`:''}<span class="agent-unit">${m.unit}</span></div>
+      ${isDirection()?`<button class="admin-edit-btn" onclick="openEditMember(${gi})">✏</button>`:''}
+    </div>`;
+  }
+  document.getElementById('effectif-container').innerHTML=`
+    <div style="margin-bottom:1.5rem;"><div class="sub-label">Direction du Detective Bureau</div><div class="effectif-grid">${direction.map(card).join('')}</div></div>
+    <div style="margin-bottom:1.5rem;"><div class="sub-label">Detective Division (D.D.) — Inspecteurs & Enquêteurs</div><div class="effectif-grid">${dd.map(card).join('')}</div></div>
+    <div><div class="sub-label">Street Crimes Unit (S.C.U.) — Agents de Proximité Banalisée</div><div class="effectif-grid">${scu.map(card).join('')}</div></div>`;
+}
+
+// ═══ WARRANTS ═══
+const badgeMapW={'Risque très élevé':'wb-vhigh','Risque élevé':'wb-high','Risque Moyen':'wb-mid','Risque Faible':'wb-low'};
+function openWarrants(){DB=loadDB()||initDB();renderWarrants();document.getElementById('warrants-overlay').classList.add('open');}
+function closeWarrants(){document.getElementById('warrants-overlay').classList.remove('open');}
+function renderWarrants(){
+  const tbody=document.getElementById('warrants-tbody'),nodata=document.getElementById('warrants-nodata');
+  const canEdit=isResp();
+  document.getElementById('w-add-form').style.display=canEdit?'block':'none';
+  document.getElementById('w-readonly').style.display=canEdit?'none':'block';
+  const actifs=(DB.warrants||[]).filter(w=>w.status==='Actif');
+  document.getElementById('warrants-count').textContent=actifs.length+' avis actif(s)';
+  if(!actifs.length){tbody.innerHTML='';nodata.style.display='block';return;}
+  nodata.style.display='none';
+  tbody.innerHTML=actifs.map(w=>{
+    const ri=DB.warrants.indexOf(w),bc=badgeMapW[w.danger]||'wb-mid';
+    const tr=w.trello?`<a href="${w.trello}" target="_blank" class="w-link" title="${w.trello}">🔗 Casier</a>`:'<span class="w-na">N/A</span>';
+    const dc=w.discord?`<a href="${w.discord}" target="_blank" class="w-link" title="${w.discord}">🔗 Discord</a>`:'<span class="w-na">N/A</span>';
+    const dis=canEdit?'':'style="pointer-events:none;opacity:0.5;"';
+    const acts=canEdit
+      ?`<button class="ta-btn ta-edit" onclick="openEditWarrant(${ri})">✏</button><button class="ta-btn ta-close" onclick="closeWarrant(${ri})">✓ Clôt.</button>`
+      :'<span class="w-na">Lecture</span>';
+    return`<tr>
+      <td class="tal lt-id">${w.wid||String(ri+1).padStart(5,'0')}</td>
+      <td class="tal lt-name">${w.nom}</td>
+      <td class="tal lt-prenom">${w.prenom||'—'}</td>
+      <td><span class="wbadge ${bc}">${w.danger}</span></td>
+      <td>${tr}</td><td>${dc}</td>
+      <td><label class="w-toggle" onclick="toggleW(event,${ri},'majTrello')" ${dis}><input type="checkbox" ${w.majTrello?'checked':''} readonly><div class="wt-track"></div><div class="wt-thumb"></div><span class="wt-lbl">${w.majTrello?'✓':'—'}</span></label></td>
+      <td><label class="w-toggle" onclick="toggleW(event,${ri},'majTel')" ${dis}><input type="checkbox" ${w.majTel?'checked':''} readonly><div class="wt-track"></div><div class="wt-thumb"></div><span class="wt-lbl">${w.majTel?'✓':'—'}</span></label></td>
+      <td><div class="ta-actions">${acts}</div></td>
+    </tr>`;
+  }).join('');
+}
+function toggleW(e,i,f){e.preventDefault();if(!isResp())return;DB.warrants[i][f]=!DB.warrants[i][f];saveDB(DB);renderWarrants();}
+function addWarrant(){
+  if(!isResp()){alert('Accès Responsable / Direction requis.');return;}
+  const nom=document.getElementById('w-nom').value.trim().toUpperCase();
+  if(!nom){alert('Le NOM est obligatoire.');return;}
+  if(!DB.warrants)DB.warrants=[];
+  DB.warrants.push({wid:document.getElementById('w-id').value.trim()||String(Date.now()).slice(-5),nom,prenom:document.getElementById('w-prenom').value.trim(),danger:document.getElementById('w-danger').value,trello:document.getElementById('w-trello').value.trim(),discord:document.getElementById('w-discord').value.trim(),date:new Date().toLocaleDateString('fr-FR'),emis:currentUser,status:'Actif',majTrello:false,majTel:false});
+  saveDB(DB);['w-id','w-nom','w-prenom','w-trello','w-discord'].forEach(id=>document.getElementById(id).value='');renderWarrants();
+}
+function closeWarrant(i){
+  if(!isResp())return;
+  if(!confirm('Clôturer cet avis de recherche ?'))return;
+  DB.warrants[i].status='Clôturé';DB.warrants[i].closedBy=currentUser;DB.warrants[i].closedDate=new Date().toLocaleDateString('fr-FR');
+  saveDB(DB);renderWarrants();
+}
+function openEditWarrant(i){
+  const w=DB.warrants[i];
+  document.getElementById('ew-idx').value=i;document.getElementById('ew-id').value=w.wid||'';document.getElementById('ew-nom').value=w.nom;document.getElementById('ew-prenom').value=w.prenom||'';document.getElementById('ew-danger').value=w.danger;document.getElementById('ew-trello').value=w.trello||'';document.getElementById('ew-discord').value=w.discord||'';
+  document.getElementById('edit-warrant-overlay').classList.add('open');
+}
+function closeEditWarrant(){document.getElementById('edit-warrant-overlay').classList.remove('open');}
+function saveEditWarrant(){
+  const i=parseInt(document.getElementById('ew-idx').value);
+  DB.warrants[i]={...DB.warrants[i],wid:document.getElementById('ew-id').value.trim(),nom:document.getElementById('ew-nom').value.trim().toUpperCase(),prenom:document.getElementById('ew-prenom').value.trim(),danger:document.getElementById('ew-danger').value,trello:document.getElementById('ew-trello').value.trim(),discord:document.getElementById('ew-discord').value.trim()};
+  saveDB(DB);closeEditWarrant();renderWarrants();
+}
+
+// ═══ BRACELETS ═══
+function openBracelets(){DB=loadDB()||initDB();renderBracelets();document.getElementById('bracelets-overlay').classList.add('open');}
+function closeBracelets(){document.getElementById('bracelets-overlay').classList.remove('open');}
+const getStCls=s=>{if(!s)return'';if(s==='Brisé')return'st-brise';if(s==='À convoquer')return'st-conv';if(s==='À pointer')return'st-point';if(s==='À retirer')return'st-ret';return'';};
+const getPtCls=s=>{if(!s)return'';if(s.includes('EN RETARD'))return'sp-retard';if(s.includes('EN COURS'))return'sp-cours';return'';};
+function renderBracelets(){
+  const tbody=document.getElementById('brac-tbody'),nodata=document.getElementById('brac-nodata');
+  const canEdit=isResp();
+  document.getElementById('brac-add-form').style.display=canEdit?'block':'none';
+  document.getElementById('brac-readonly').style.display=canEdit?'none':'block';
+  const actifs=(DB.bracelets||[]).filter(b=>b.status!=='Clôturé');
+  document.getElementById('brac-count').textContent=actifs.length+' bracelet(s) actif(s)';
+  if(!actifs.length){tbody.innerHTML='';nodata.style.display='block';return;}
+  nodata.style.display='none';
+  tbody.innerHTML=actifs.map(b=>{
+    const ri=DB.bracelets.indexOf(b);
+    const tc=b.type==='Protection'?'tb-prot':'tb-surv';
+    const sc=getStCls(b.statut),pc=getPtCls(b.statutPointage);
+    const acts=canEdit
+      ?`<button class="ta-btn ta-edit" onclick="openEditBrac(${ri})">✏ Modifier</button><button class="ta-btn ta-close" onclick="closeBracelet(${ri})">✓ Clôt.</button>`
+      :`<button class="ta-btn ta-edit" onclick="openEditBrac(${ri})">👁 Voir</button>`;
+    return`<tr>
+      <td class="tal lt-id">${b.wid||String(ri+1).padStart(5,'0')}</td>
+      <td class="tal lt-name">${b.nom}</td>
+      <td class="tal lt-prenom">${b.prenom||'—'}</td>
+      <td><span class="tbadge ${tc}">${b.type}</span></td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;color:#6a3a9a;">${b.referent||'—'}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-size:10px;">${b.datePose||'—'}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-size:10px;">${b.dernierPointage||'—'}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-size:10px;">${b.pointePar||'—'}</td>
+      <td>${b.statutPointage?`<span class="sp-badge ${pc}">${b.statutPointage}</span>`:'<span class="w-na">—</span>'}</td>
+      <td>${b.statut?`<span class="st-badge ${sc}">${b.statut}</span>`:'<span class="w-na">—</span>'}</td>
+      <td style="font-size:11px;max-width:130px;overflow:hidden;text-overflow:ellipsis;" title="${b.commentaire||''}">${b.commentaire||'—'}</td>
+      <td><div class="ta-actions">${acts}</div></td>
+    </tr>`;
+  }).join('');
+}
+function addBracelet(){
+  if(!isResp()){alert('Accès Responsable / Direction requis.');return;}
+  const nom=document.getElementById('b-nom').value.trim().toUpperCase();
+  if(!nom){alert('Le NOM est obligatoire.');return;}
+  if(!DB.bracelets)DB.bracelets=[];
+  DB.bracelets.push({wid:document.getElementById('b-id').value.trim()||String(Date.now()).slice(-5),nom,prenom:document.getElementById('b-prenom').value.trim(),type:document.getElementById('b-type').value,referent:document.getElementById('b-referent').value.trim(),datePose:document.getElementById('b-date-pose').value,statut:document.getElementById('b-statut').value,commentaire:document.getElementById('b-comment').value.trim(),dernierPointage:'',pointePar:'',statutPointage:'',addedBy:currentUser,status:'Actif'});
+  saveDB(DB);['b-id','b-nom','b-prenom','b-referent','b-date-pose','b-comment'].forEach(id=>document.getElementById(id).value='');renderBracelets();
+}
+function closeBracelet(i){
+  if(!isResp())return;
+  if(!confirm('Clôturer ce bracelet électronique ?'))return;
+  DB.bracelets[i].status='Clôturé';DB.bracelets[i].closedBy=currentUser;DB.bracelets[i].closedDate=new Date().toLocaleDateString('fr-FR');
+  saveDB(DB);renderBracelets();
+}
+function openEditBrac(i){
+  const b=DB.bracelets[i];
+  document.getElementById('eb-idx').value=i;document.getElementById('eb-id').value=b.wid||'';document.getElementById('eb-nom').value=b.nom;document.getElementById('eb-prenom').value=b.prenom||'';document.getElementById('eb-type').value=b.type||'Surveillance';document.getElementById('eb-referent').value=b.referent||'';document.getElementById('eb-date-pose').value=b.datePose||'';document.getElementById('eb-last-pointer').value=b.dernierPointage||'';document.getElementById('eb-pointed-by').value=b.pointePar||'';document.getElementById('eb-statut-pointage').value=b.statutPointage||'';document.getElementById('eb-statut').value=b.statut||'À pointer';document.getElementById('eb-comment').value=b.commentaire||'';
+  document.getElementById('edit-brac-overlay').classList.add('open');
+}
+function closeEditBrac(){document.getElementById('edit-brac-overlay').classList.remove('open');}
+function saveEditBrac(){
+  const i=parseInt(document.getElementById('eb-idx').value);
+  DB.bracelets[i]={...DB.bracelets[i],wid:document.getElementById('eb-id').value.trim(),nom:document.getElementById('eb-nom').value.trim().toUpperCase(),prenom:document.getElementById('eb-prenom').value.trim(),type:document.getElementById('eb-type').value,referent:document.getElementById('eb-referent').value.trim(),datePose:document.getElementById('eb-date-pose').value,dernierPointage:document.getElementById('eb-last-pointer').value,pointePar:document.getElementById('eb-pointed-by').value.trim(),statutPointage:document.getElementById('eb-statut-pointage').value.trim(),statut:document.getElementById('eb-statut').value,commentaire:document.getElementById('eb-comment').value.trim()};
+  saveDB(DB);closeEditBrac();renderBracelets();
+}
+function pointerBracelet(){
+  const today=new Date().toLocaleDateString('fr-FR');
+  document.getElementById('eb-last-pointer').value=today;
+  document.getElementById('eb-pointed-by').value=currentUser;
+  const next=new Date();next.setDate(next.getDate()+14);
+  document.getElementById('eb-statut-pointage').value='EN COURS — Échéance le '+next.toLocaleDateString('fr-FR');
+  document.getElementById('eb-statut').value='À pointer';
+}
+
+// ═══ PRISE D'INFO ═══
+function openPriseInfo(){document.getElementById('priseinfo-overlay').classList.add('open');}
+function closePriseInfo(){document.getElementById('priseinfo-overlay').classList.remove('open');}
+function analyzeRaw(){
+  const texte=document.getElementById('pi-raw').value.split('\n').map(l=>l.trim());
+  for(let i=0;i<texte.length;i++){
+    const l=texte[i].toLowerCase(),v=texte[i+1]?texte[i+1].trim():'';
+    if(l.includes('plaque'))document.getElementById('pi-plaque').value=v.toUpperCase();
+    if(l.includes('modéle')||l.includes('modèle')||l.includes('modele'))document.getElementById('pi-modele').value=v.toUpperCase();
+    if(l.includes('identité')||l.includes('identite'))document.getElementById('pi-nid').value=v;
+    if(l.includes('nom'))document.getElementById('pi-nomprenom').value=v;
+    if(l.includes('tel'))document.getElementById('pi-tel').value=v;
+    if(l.includes('date')||l.includes('heure'))document.getElementById('pi-date').value=v;
+  }
+}
+function generatePI(){
+  const dh=document.getElementById('pi-date').value||'—',pl=document.getElementById('pi-plaque').value.toUpperCase()||'—',mo=document.getElementById('pi-modele').value.toUpperCase()||'—',nid=document.getElementById('pi-nid').value||'—';
+  let np=document.getElementById('pi-nomprenom').value.trim().replace(/[_-]/g,' ');
+  const pts=np.split(' ');let nom='',prenom='';
+  if(pts.length>=2){prenom=pts[0].charAt(0).toUpperCase()+pts[0].slice(1).toLowerCase();nom=pts.slice(1).join(' ').toUpperCase();}else{nom=np.toUpperCase();}
+  const tel=document.getElementById('pi-tel').value||'—';
+  const motifs=document.getElementById('pi-motifs').value.split('\n').map(l=>l.trim()).filter(l=>l).map(l=>`- ${l}`).join('\n');
+  const txt=`:pushpin: **Prise d'information (${dh})**\n\n:pushpin: **__Plaque :__** ${pl}\n:pushpin: **__Modéle :__** ${mo}\n:pushpin: **__N° d'identité :__** ${nid}\n:pushpin: **__NOM, Prénom :__** ${nom} ${prenom}\n:pushpin: **__N° Tel :__** ${tel}\n:pushpin: **__Motif(s) de la prise d'informations__**\n${motifs}\n`;
+  document.getElementById('pi-output').textContent=txt;
+  document.getElementById('pi-copy-btn').style.display='inline-block';
+}
+function clearPI(){
+  ['pi-raw','pi-date','pi-plaque','pi-modele','pi-nid','pi-nomprenom','pi-tel','pi-motifs'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('pi-output').innerHTML='<span class="pi-ph">👉 Le texte généré apparaîtra ici.</span>';
+  document.getElementById('pi-copy-btn').style.display='none';
+}
+function copyPI(){
+  const txt=document.getElementById('pi-output').textContent;
+  if(txt.includes('👉')){alert('⚠️ Génère d\'abord le texte !');return;}
+  navigator.clipboard.writeText(txt).then(()=>{const b=document.getElementById('pi-copy-btn');const o=b.textContent;b.textContent='✅ Copié!';setTimeout(()=>b.textContent=o,2000);});
+}
+
+// ═══ CALENDRIER ═══
+let calCurrentDate=new Date();
+const EV_COLORS={'interrogatoire':'#1e40af','perquisition':'#166534','psychologue':'#6b21a8','ag':'#991b1b','autre':'#57534e'};
+const EV_LABELS={'interrogatoire':'Interrogatoire','perquisition':'Perquisition','psychologue':'Psychologue','ag':'Assemblée générale','autre':'Autre'};
+
+function openCalendrier(){DB=loadDB()||initDB();renderCalendrierModal();document.getElementById('calendrier-overlay').classList.add('open');}
+function closeCalendrier(){document.getElementById('calendrier-overlay').classList.remove('open');}
+
+function buildCalHTML(containerId){
+  const y=calCurrentDate.getFullYear(),m=calCurrentDate.getMonth();
+  const monthNames=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+  const firstDay=new Date(y,m,1).getDay();
+  const daysInMonth=new Date(y,m+1,0).getDate();
+  const startOffset=firstDay===0?6:firstDay-1;
+  const today=new Date();
+  const isModal=containerId==='cal-modal-inner';
+  let html=`<div class="cal-header">
+    <div class="cal-nav">
+      <button class="cal-nav-btn" onclick="calPrev('${containerId}')">‹</button>
+      <div class="cal-month">${monthNames[m]} ${y}</div>
+      <button class="cal-nav-btn" onclick="calNext('${containerId}')">›</button>
+    </div>
+    <button class="btn btn-p btn-sm" onclick="openEventModal(null)">+ Ajouter un événement</button>
+  </div>
+  <div class="cal-grid">
+    <div class="cal-dow">Lun</div><div class="cal-dow">Mar</div><div class="cal-dow">Mer</div>
+    <div class="cal-dow">Jeu</div><div class="cal-dow">Ven</div><div class="cal-dow">Sam</div><div class="cal-dow">Dim</div>`;
+  for(let i=0;i<startOffset;i++) html+=`<div class="cal-day other-month"></div>`;
+  for(let d=1;d<=daysInMonth;d++){
+    const dateStr=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday=today.getFullYear()===y&&today.getMonth()===m&&today.getDate()===d;
+    const dayEvents=(DB.events||[]).filter(ev=>ev.date===dateStr).sort((a,b)=>(a.heureDebut||'').localeCompare(b.heureDebut||''));
+    let evHtml=dayEvents.map(ev=>{
+      const realIdx=(DB.events||[]).indexOf(ev);
+      const timeStr=ev.heureDebut?ev.heureDebut+(ev.heureFin?'→'+ev.heureFin:''):'' ;
+      const isPast=dateStr<`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+      const col=isPast?'#b0aa9e':(EV_COLORS[ev.type]||'#57534e');
+      return`<div class="cal-event ev-${ev.type}" style="background:${col};${isPast?'opacity:0.6;':''}" onclick="openEventModal(${realIdx},event)" title="${ev.titre}${timeStr?' ('+timeStr+')':''}">${timeStr?timeStr+' ':''}<strong>${ev.titre}</strong></div>`;
+    }).join('');
+    const isPastDay=dateStr<`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+    html+=`<div class="cal-day${isToday?' today':''}${isPastDay?' past-day':''}" onclick="openEventModal(null,event,'${dateStr}')">
+      <div class="cal-day-num" style="${isPastDay?'color:var(--gray-light);opacity:0.6;':''}">${d}</div>${evHtml}
+    </div>`;
+  }
+  html+='</div>';
+  // Agenda table — upcoming events this month
+  const monthEvents=(DB.events||[]).filter(ev=>{const d=new Date(ev.date);return d.getFullYear()===y&&d.getMonth()===m;}).sort((a,b)=>a.date.localeCompare(b.date)||(a.heureDebut||'').localeCompare(b.heureDebut||''));
+  if(monthEvents.length){
+    html+=`<div class="cal-agenda"><div class="cal-agenda-title">Événements du mois — ${monthNames[m]} ${y}</div>
+    <table class="cal-agenda-table"><thead><tr><th>Date</th><th>Type</th><th>Titre</th><th>Horaire</th><th>Lieu</th><th>Créé par</th><th>Description</th></tr></thead><tbody>
+    ${monthEvents.map(ev=>{
+      const ri=(DB.events||[]).indexOf(ev);
+      const now2=new Date();
+      const nowStr2=`${now2.getFullYear()}-${String(now2.getMonth()+1).padStart(2,'0')}-${String(now2.getDate()).padStart(2,'0')}`;
+      const isPast=ev.date<nowStr2;
+      const col=isPast?'#b0aa9e':(EV_COLORS[ev.type]||'#57534e');
+      const d2=new Date(ev.date);const dd=d2.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
+      const hor=ev.heureDebut?(ev.heureDebut+(ev.heureFin?' → '+ev.heureFin:'')):'—';
+      return`<tr onclick="openEventModal(${ri},event)" style="cursor:pointer;${isPast?'opacity:0.5;background:#f8f6f2;':''}">
+        <td style="font-family:'IBM Plex Mono',monospace;font-size:10px;white-space:nowrap;">${dd}${isPast?' <span style="color:#b0aa9e;font-size:9px;">(passé)</span>':''}</td>
+        <td><span class="cal-event-badge" style="background:${col};">${EV_LABELS[ev.type]||ev.type}</span></td>
+        <td style="font-weight:600;${isPast?'text-decoration:line-through;color:#888;':''}">${ev.titre}</td>
+        <td style="font-family:'IBM Plex Mono',monospace;font-size:10px;">${hor}</td>
+        <td style="font-size:11px;">${ev.lieu||'—'}</td>
+        <td style="font-size:11px;">${ev.authorName||'—'}</td>
+        <td style="font-size:11px;max-width:150px;overflow:hidden;text-overflow:ellipsis;" title="${ev.desc||''}">${ev.desc||'—'}</td>
+      </tr>`;
+    }).join('')}
+    </tbody></table></div>`;
+  }
+  return html;
+}
+function renderCalendrierModal(){
+  const c=document.getElementById('cal-modal-inner');
+  if(c){c.innerHTML=buildCalHTML('cal-modal-inner');}
+}
+function renderCalendrierPage(){
+  // Section § 03 now shows upcoming events, not the full calendar grid
+  renderUpcomingEvents();
+}
+function calPrev(cid){calCurrentDate=new Date(calCurrentDate.getFullYear(),calCurrentDate.getMonth()-1,1);if(cid==='cal-modal-inner')renderCalendrierModal();else renderUpcomingEvents();}
+function calNext(cid){calCurrentDate=new Date(calCurrentDate.getFullYear(),calCurrentDate.getMonth()+1,1);if(cid==='cal-modal-inner')renderCalendrierModal();else renderUpcomingEvents();}
+function calPrevPage(){calCurrentDate=new Date(calCurrentDate.getFullYear(),calCurrentDate.getMonth()-1,1);renderUpcomingEvents();}
+function calNextPage(){calCurrentDate=new Date(calCurrentDate.getFullYear(),calCurrentDate.getMonth()+1,1);renderUpcomingEvents();}
+
+let editingEventIdx=null;
+function openEventModal(idx,e,prefDate){
+  if(e)e.stopPropagation();
+  editingEventIdx=idx;
+  const delBtn=document.getElementById('ev-delete-btn');
+  const creator=document.getElementById('ev-creator-display');
+  const saveBtn=document.querySelector('#event-overlay .btn-p');
+  if(idx!==null&&idx!==undefined&&idx>=0){
+    const ev=DB.events[idx];
+    document.getElementById('event-modal-title').textContent='📅 Événement';
+    document.getElementById('ev-date').value=ev.date;
+    document.getElementById('ev-heure-debut').value=ev.heureDebut||'';
+    document.getElementById('ev-heure-fin').value=ev.heureFin||'';
+    document.getElementById('ev-type').value=ev.type;
+    document.getElementById('ev-titre').value=ev.titre;
+    document.getElementById('ev-lieu').value=ev.lieu||'';
+    document.getElementById('ev-desc').value=ev.desc||'';
+    creator.textContent=ev.authorName||'—';
+    // Only author (or resp/direction) can edit or delete
+    const canEdit=isResp()||(ev.author===currentEmail);
+    const canDel=isResp()||(ev.author===currentEmail);
+    delBtn.style.display=canDel?'inline-flex':'none';
+    // Lock fields if read-only
+    ['ev-date','ev-heure-debut','ev-heure-fin','ev-type','ev-titre','ev-lieu','ev-desc'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el)el.disabled=!canEdit;
+    });
+    if(saveBtn)saveBtn.style.display=canEdit?'inline-block':'none';
+  }else{
+    document.getElementById('event-modal-title').textContent='📅 Ajouter un événement';
+    document.getElementById('ev-date').value=prefDate||'';
+    document.getElementById('ev-heure-debut').value='';document.getElementById('ev-heure-fin').value='';
+    document.getElementById('ev-type').value='interrogatoire';document.getElementById('ev-titre').value='';
+    document.getElementById('ev-lieu').value='';document.getElementById('ev-desc').value='';
+    creator.textContent=currentUser||'—';
+    delBtn.style.display='none';
+    // Re-enable all fields for new event
+    ['ev-date','ev-heure-debut','ev-heure-fin','ev-type','ev-titre','ev-lieu','ev-desc'].forEach(id=>{
+      const el=document.getElementById(id);if(el)el.disabled=false;
+    });
+    if(saveBtn)saveBtn.style.display='inline-block';
+  }
+  document.getElementById('ev-msg').innerHTML='';
+  document.getElementById('event-overlay').classList.add('open');
+}
+function closeEventModal(){document.getElementById('event-overlay').classList.remove('open');editingEventIdx=null;}
+function saveEvent(){
+  const date=document.getElementById('ev-date').value,titre=document.getElementById('ev-titre').value.trim();
+  if(!date||!titre){showMsg('ev-msg','La date et le titre sont obligatoires.',false);return;}
+  if(editingEventIdx!==null&&editingEventIdx>=0){
+    const existing=DB.events[editingEventIdx];
+    const canEdit=isResp()||(existing.author===currentEmail);
+    if(!canEdit){showMsg('ev-msg','Vous ne pouvez pas modifier l\'événement d\'un autre agent.',false);return;}
+    // Keep original author intact
+    DB.events[editingEventIdx]={
+      ...existing,
+      date,heureDebut:document.getElementById('ev-heure-debut').value,
+      heureFin:document.getElementById('ev-heure-fin').value,
+      type:document.getElementById('ev-type').value,titre,
+      lieu:document.getElementById('ev-lieu').value.trim(),
+      desc:document.getElementById('ev-desc').value.trim(),
+      lastEditBy:currentUser,lastEditDate:new Date().toLocaleString('fr-FR')
+    };
+  }else{
+    if(!DB.events)DB.events=[];
+    DB.events.push({date,heureDebut:document.getElementById('ev-heure-debut').value,heureFin:document.getElementById('ev-heure-fin').value,type:document.getElementById('ev-type').value,titre,lieu:document.getElementById('ev-lieu').value.trim(),desc:document.getElementById('ev-desc').value.trim(),author:currentEmail,authorName:currentUser,createdAt:new Date().toLocaleString('fr-FR')});
+  }
+  saveDB(DB);closeEventModal();renderUpcomingEvents();renderCalendrierModal();
+}
+function deleteEvent(){
+  if(editingEventIdx===null||editingEventIdx<0)return;
+  const ev=DB.events[editingEventIdx];
+  if(!isResp()&&ev.author!==currentEmail){showMsg('ev-msg','Vous ne pouvez pas supprimer l\'événement d\'un autre agent.',false);return;}
+  if(!confirm('Supprimer cet événement ?'))return;
+  DB.events.splice(editingEventIdx,1);saveDB(DB);closeEventModal();renderUpcomingEvents();renderCalendrierModal();
+}
+
+// ═══ ARCHIVES ═══
+function openArchives(){DB=loadDB()||initDB();renderArchives();document.getElementById('archives-overlay').classList.add('open');}
+function closeArchives(){document.getElementById('archives-overlay').classList.remove('open');}
+function switchArchTab(id,el){
+  document.querySelectorAll('.arch-tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.arch-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');el.classList.add('active');
+}
+function deleteArchiveWarrant(globalIdx){
+  if(!isResp()){alert('Accès Responsable / Direction requis.');return;}
+  if(!confirm('Supprimer définitivement cet enregistrement des archives ?'))return;
+  DB.warrants.splice(globalIdx,1);saveDB(DB);renderArchives();
+}
+function deleteArchiveBracelet(globalIdx){
+  if(!isResp()){alert('Accès Responsable / Direction requis.');return;}
+  if(!confirm('Supprimer définitivement cet enregistrement des archives ?'))return;
+  DB.bracelets.splice(globalIdx,1);saveDB(DB);renderArchives();
+}
+function renderArchives(){
+  const closed=(DB.warrants||[]).map((w,i)=>({...w,gi:i})).filter(w=>w.status==='Clôturé');
+  const wtbody=document.getElementById('arch-warrants-tbody'),wnd=document.getElementById('arch-warrants-nodata');
+  if(!closed.length){wtbody.innerHTML='';wnd.style.display='block';}
+  else{
+    wnd.style.display='none';
+    const bc=w=>badgeMapW[w.danger]||'wb-mid';
+    wtbody.innerHTML=closed.map(w=>{
+      const tr=w.trello?`<a href="${w.trello}" target="_blank" class="w-link">🔗 Casier</a>`:'<span class="w-na">N/A</span>';
+      const dc=w.discord?`<a href="${w.discord}" target="_blank" class="w-link">🔗 Discord</a>`:'<span class="w-na">N/A</span>';
+      return`<tr><td class="tal lt-id">${w.wid||'—'}</td><td class="tal lt-name">${w.nom}</td><td class="tal lt-prenom">${w.prenom||'—'}</td><td><span class="wbadge ${bc(w)}">${w.danger}</span></td><td>${tr}</td><td>${dc}</td><td style="font-size:11px;">${w.closedBy||'—'}</td><td style="font-family:'IBM Plex Mono',monospace;font-size:10px;">${w.closedDate||'—'}</td><td><button class="arch-del-btn" onclick="deleteArchiveWarrant(${w.gi})" title="Supprimer des archives">✕</button></td></tr>`;
+    }).join('');
+  }
+  const closedB=(DB.bracelets||[]).map((b,i)=>({...b,gi:i})).filter(b=>b.status==='Clôturé');
+  const btbody=document.getElementById('arch-bracelets-tbody'),bnd=document.getElementById('arch-bracelets-nodata');
+  if(!closedB.length){btbody.innerHTML='';bnd.style.display='block';}
+  else{
+    bnd.style.display='none';
+    btbody.innerHTML=closedB.map(b=>{
+      const tc=b.type==='Protection'?'tb-prot':'tb-surv';
+      const sc=getStCls(b.statut);
+      return`<tr><td class="tal lt-id">${b.wid||'—'}</td><td class="tal lt-name">${b.nom}</td><td class="tal lt-prenom">${b.prenom||'—'}</td><td><span class="tbadge ${tc}">${b.type}</span></td><td style="font-size:11px;">${b.referent||'—'}</td><td style="font-family:'IBM Plex Mono',monospace;font-size:10px;">${b.datePose||'—'}</td><td>${b.statut?`<span class="st-badge ${sc}">${b.statut}</span>`:'—'}</td><td style="font-size:11px;">${b.commentaire||'—'}</td><td style="font-size:11px;">${b.closedBy||'—'}</td><td style="font-family:'IBM Plex Mono',monospace;font-size:10px;">${b.closedDate||'—'}</td><td><button class="arch-del-btn" onclick="deleteArchiveBracelet(${b.gi})" title="Supprimer des archives">✕</button></td></tr>`;
+    }).join('');
+  }
+}
+
+// ═══ TEMPS DE SERVICE ═══
+let svcChartInst=null,svcChartMode='month',svcCurrentAgentId=null;
+function openService(){DB=loadDB()||initDB();populateSvcAgents();renderRecentService();document.getElementById('service-overlay').classList.add('open');}
+function closeService(){document.getElementById('service-overlay').classList.remove('open');}
+function switchSvcTab(id,el){document.querySelectorAll('#service-overlay .atab-content').forEach(t=>t.classList.remove('active'));document.querySelectorAll('#service-overlay .atab').forEach(t=>t.classList.remove('active'));document.getElementById(id).classList.add('active');el.classList.add('active');}
+function populateSvcAgents(){
+  const sel=document.getElementById('svc-agent');sel.innerHTML='';
+  DB.effectif.filter(m=>!m.isVacant).forEach(m=>{const o=document.createElement('option');o.value=m.id||m.nom;o.textContent=`#${m.mat} — ${m.nom} (${m.gradeBI})`;sel.appendChild(o);});
+}
+
+// ---- Durée helpers : "2h31" <-> decimal hours ----
+function parseDuree(str){
+  // Accepte : "2h31", "2H31", "2h", "2h00", "2:31", "2.5"
+  if(!str)return null;
+  str=str.trim().toLowerCase().replace(',','.');
+  // Format Xh ou XhMM
+  const mh=str.match(/^(\d+)h(\d{0,2})$/);
+  if(mh){const h=parseInt(mh[1]);const m=mh[2]?parseInt(mh[2]):0;if(m>59)return null;return h+(m/60);}
+  // Format X:MM
+  const mc=str.match(/^(\d+):(\d{2})$/);
+  if(mc){const h=parseInt(mc[1]);const m=parseInt(mc[2]);if(m>59)return null;return h+(m/60);}
+  // Decimal / integer
+  const mf=parseFloat(str);
+  if(!isNaN(mf)&&mf>0)return mf;
+  return null;
+}
+function formatDuree(decimal){
+  // decimal hours -> "2h31"
+  if(!decimal&&decimal!==0)return'—';
+  const h=Math.floor(decimal);
+  const m=Math.round((decimal-h)*60);
+  if(m===0)return`${h}h00`;
+  return`${h}h${String(m).padStart(2,'0')}`;
+}
+
+// ---- Render full history with edit/delete ----
+function renderRecentService(){
+  const all=(DB.service||[]).slice().reverse(); // most recent first
+  const cnt=document.getElementById('svc-history-count');
+  if(cnt)cnt.textContent='('+all.length+' entrée'+(all.length>1?'s':'')+')';
+  const el=document.getElementById('svc-recent-list');
+  if(!all.length){
+    el.innerHTML='<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;color:var(--gray-light);padding:0.5rem 0;">Aucune entrée enregistrée.</div>';
+    return;
+  }
+  el.innerHTML=`<table class="a-table"><thead><tr>
+    <th>Agent</th><th>Date</th><th>Durée</th><th>Note</th><th>Par</th><th style="width:80px;text-align:center;">Actions</th>
+  </tr></thead><tbody>
+    ${all.map((s)=>{
+      // Real index in DB.service (reversed, so we need original index)
+      const ri=(DB.service||[]).indexOf(s);
+      return`<tr>
+        <td>${s.agentName} <span style="font-size:9px;color:var(--gray-light);">#${s.mat||'—'}</span></td>
+        <td style="font-family:'IBM Plex Mono',monospace;font-size:10px;">${s.date||'—'}</td>
+        <td style="font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--amber);">${formatDuree(parseFloat(s.duree))}</td>
+        <td style="font-size:11px;">${s.note||'—'}</td>
+        <td style="font-size:10px;color:var(--gray-light);">${s.addedBy||'—'}</td>
+        <td style="text-align:center;">
+          <div style="display:flex;gap:4px;justify-content:center;">
+            <button class="ta-btn ta-edit" onclick="openEditSvc(${ri})" title="Modifier">✏</button>
+            <button class="ta-btn ta-close" onclick="deleteSvc(${ri})" title="Supprimer" style="background:#fde8e8;border-color:#f5a0a0;color:#b00010;">✕</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('')}
+  </tbody></table>`;
+}
+
+// ---- Add ----
+function addService(){
+  const agentVal=document.getElementById('svc-agent').value;
+  const date=document.getElementById('svc-date').value;
+  const dureeRaw=document.getElementById('svc-duree').value.trim();
+  const note=document.getElementById('svc-note').value.trim();
+  const duree=parseDuree(dureeRaw);
+  if(!agentVal||!date||!duree){showMsg('svc-msg','Remplissez agent, date et durée (ex: 2h31).',false);return;}
+  if(duree<=0||duree>24){showMsg('svc-msg','Durée invalide (max 24h).',false);return;}
+  const agent=DB.effectif.find(m=>(m.id&&m.id===agentVal)||m.nom===agentVal);
+  if(!DB.service)DB.service=[];
+  DB.service.push({agentId:agentVal,agentName:agent?agent.nom:agentVal,mat:agent?agent.mat:'',date,duree,note,addedBy:currentUser,ts:Date.now()});
+  saveDB(DB);
+  document.getElementById('svc-date').value='';document.getElementById('svc-duree').value='';document.getElementById('svc-note').value='';
+  renderRecentService();
+  showMsg('svc-msg','Service enregistré : '+formatDuree(duree)+' pour '+(agent?agent.nom:agentVal)+'.',true);
+  if(svcCurrentAgentId&&svcCurrentAgentId===(agent?agent.nom:agentVal)){
+    const entries=(DB.service||[]).filter(s=>s.agentName===svcCurrentAgentId);
+    updateSvcStats(entries,svcChartMode);
+    renderSvcChart(entries,svcChartMode);
+  }
+}
+
+// ---- Edit ----
+function openEditSvc(i){
+  const s=DB.service[i];
+  document.getElementById('esvc-idx').value=i;
+  document.getElementById('esvc-agent').value=s.agentName+(s.mat?' (#'+s.mat+')':'');
+  document.getElementById('esvc-date').value=s.date||'';
+  // Show formatted duration (2h31) in edit field
+  document.getElementById('esvc-duree').value=s.duree?formatDuree(parseFloat(s.duree)):'';
+  document.getElementById('esvc-note').value=s.note||'';
+  document.getElementById('edit-svc-overlay').classList.add('open');
+}
+function closeEditSvc(){document.getElementById('edit-svc-overlay').classList.remove('open');}
+function saveEditSvc(){
+  const i=parseInt(document.getElementById('esvc-idx').value);
+  const date=document.getElementById('esvc-date').value;
+  const dureeRaw=document.getElementById('esvc-duree').value.trim();
+  const note=document.getElementById('esvc-note').value.trim();
+  const duree=parseDuree(dureeRaw);
+  if(!date||!duree||duree<=0){alert('Date et durée obligatoires (format : 2h31).');return;}
+  DB.service[i]={...DB.service[i],date,duree,note,editedBy:currentUser,editedAt:new Date().toLocaleString('fr-FR')};
+  saveDB(DB);closeEditSvc();renderRecentService();
+  if(svcCurrentAgentId){
+    const entries=(DB.service||[]).filter(s=>s.agentName===svcCurrentAgentId);
+    updateSvcStats(entries,svcChartMode);
+    renderSvcChart(entries,svcChartMode);
+  }
+}
+
+// ---- Delete ----
+function deleteSvc(i){
+  const s=DB.service[i];
+  if(!confirm('Supprimer cette entrée ?\n'+s.agentName+' — '+s.date+' — '+formatDuree(parseFloat(s.duree))))return;
+  DB.service.splice(i,1);saveDB(DB);renderRecentService();
+  if(svcCurrentAgentId){
+    const entries=(DB.service||[]).filter(s=>s.agentName===svcCurrentAgentId);
+    if(!entries.length){resetSvcDisplay();return;}
+    updateSvcStats(entries,svcChartMode);
+    renderSvcChart(entries,svcChartMode);
+  }
+}
+
+// ---- Search ----
+function searchService(){
+  const q=document.getElementById('svc-search').value.trim().toLowerCase();
+  if(!q){resetSvcDisplay();return;}
+  const allSvc=DB.service||[];
+  const agentMap={};
+  allSvc.forEach(s=>{
+    const key=s.agentName+'||'+(s.mat||'');
+    if(!agentMap[key])agentMap[key]={agentName:s.agentName,mat:s.mat||''};
+  });
+  const matching=Object.values(agentMap).filter(a=>
+    a.agentName.toLowerCase().includes(q)||(a.mat&&a.mat.toLowerCase().includes(q))
+  );
+  if(!matching.length){resetSvcDisplay();document.getElementById('svc-nodata').style.display='block';return;}
+  const best=matching[0];
+  svcCurrentAgentId=best.agentName;
+  const entries=allSvc.filter(s=>s.agentName===best.agentName);
+  if(!entries.length){resetSvcDisplay();document.getElementById('svc-nodata').style.display='block';return;}
+  document.getElementById('svc-result-name').textContent=best.agentName+(best.mat&&best.mat!=='—'?' (#'+best.mat+')':'');
+  document.getElementById('svc-result-name').style.display='block';
+  document.getElementById('svc-stats').style.display='grid';
+  document.getElementById('chart-controls').style.display='flex';
+  document.getElementById('chart-wrap').style.display='block';
+  document.getElementById('svc-nodata').style.display='none';
+  document.querySelectorAll('.chart-btn').forEach(b=>b.classList.remove('active'));
+  const activeBtn=document.getElementById('chart-btn-'+svcChartMode);
+  if(activeBtn)activeBtn.classList.add('active');
+  updateSvcStats(entries,svcChartMode);
+  renderSvcChart(entries,svcChartMode);
+}
+
+// ---- Update stats for given period ----
+function updateSvcStats(entries,mode){
+  const now=new Date();
+  let periodEntries=entries;
+  let lbl='Total heures';
+  if(mode==='week'){
+    const weekStart=new Date(now.getFullYear(),now.getMonth(),now.getDate()-6);
+    const wsStr=`${weekStart.getFullYear()}-${String(weekStart.getMonth()+1).padStart(2,'0')}-${String(weekStart.getDate()).padStart(2,'0')}`;
+    periodEntries=entries.filter(e=>e.date>=wsStr);
+    lbl='Total semaine';
+  }else if(mode==='month'){
+    const mStr=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+    periodEntries=entries.filter(e=>e.date&&e.date.startsWith(mStr));
+    lbl='Total mois';
+  }else if(mode==='year'){
+    const yStr=String(now.getFullYear());
+    periodEntries=entries.filter(e=>e.date&&e.date.startsWith(yStr));
+    lbl='Total année';
+  }
+  const total=periodEntries.reduce((a,b)=>a+(parseFloat(b.duree)||0),0);
+  const sessions=periodEntries.length;
+  document.getElementById('svc-total-h').textContent=formatDuree(total);
+  document.getElementById('svc-sessions').textContent=sessions;
+  document.getElementById('svc-avg').textContent=sessions>0?formatDuree(total/sessions):'0h00';
+  const lblEl=document.getElementById('svc-total-lbl');
+  if(lblEl)lblEl.textContent=lbl;
+}
+
+function resetSvcDisplay(){
+  ['svc-result-name','svc-stats','chart-controls','chart-wrap','svc-nodata'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.display='none';});
+  svcCurrentAgentId=null;
+}
+function switchChart(mode,el){
+  svcChartMode=mode;
+  document.querySelectorAll('.chart-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  if(svcCurrentAgentId){
+    const entries=(DB.service||[]).filter(s=>s.agentName===svcCurrentAgentId);
+    updateSvcStats(entries,mode);
+    renderSvcChart(entries,mode);
+  }
+}
+function renderSvcChart(entries,mode){
+  if(svcChartInst){svcChartInst.destroy();svcChartInst=null;}
+  const canvas=document.getElementById('svc-chart');
+  if(!canvas)return;
+  const parent=canvas.parentNode;
+  const newCanvas=document.createElement('canvas');
+  newCanvas.id='svc-chart';
+  parent.replaceChild(newCanvas,canvas);
+  const ctx=newCanvas.getContext('2d');
+  const now=new Date();
+  let labels=[],data=[];
+  // Helper: local date string YYYY-MM-DD without timezone shift
+  const toLocalDS=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  // Helper: sum durations for a given date string
+  const sumFor=ds=>entries.filter(e=>e.date===ds).reduce((a,b)=>a+(parseFloat(b.duree)||0),0);
+  if(mode==='week'){
+    for(let i=6;i>=0;i--){
+      const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()-i);
+      const ds=toLocalDS(d);
+      labels.push(d.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric'}));
+      data.push(sumFor(ds));
+    }
+  }else if(mode==='month'){
+    const dim=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
+    for(let d=1;d<=dim;d++){
+      const ds=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      labels.push(String(d));
+      data.push(sumFor(ds));
+    }
+  }else{
+    const months=['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+    for(let mo=0;mo<12;mo++){
+      labels.push(months[mo]);
+      // entries have date as YYYY-MM-DD
+      const total=entries.filter(e=>{
+        if(!e.date)return false;
+        const parts=e.date.split('-');
+        return parseInt(parts[0])===now.getFullYear()&&parseInt(parts[1])-1===mo;
+      }).reduce((a,b)=>a+(parseFloat(b.duree)||0),0);
+      data.push(total);
+    }
+  }
+  try{
+    svcChartInst=new Chart(ctx,{
+      type:'bar',
+      data:{labels,datasets:[{label:'Heures de service',data,backgroundColor:'rgba(181,130,26,0.55)',borderColor:'rgba(181,130,26,1)',borderWidth:2,borderRadius:5,borderSkipped:false}]},
+      options:{
+        responsive:true,
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${formatDuree(c.parsed.y)}`}}},
+        scales:{
+          y:{beginAtZero:true,title:{display:true,text:'Heures',font:{family:'IBM Plex Mono',size:11}},ticks:{callback:v=>formatDuree(v)}},
+          x:{ticks:{font:{family:'IBM Plex Mono',size:10},maxRotation:45}}
+        }
+      }
+    });
+  }catch(e){console.error('Chart error:',e);}
+}
+
+// ═══ ADMIN ═══
+function openAdmin(){if(!isDirection())return;DB=loadDB()||initDB();refreshOnline();renderAccounts();renderAdminEf();document.getElementById('admin-overlay').classList.add('open');}
+function closeAdmin(){document.getElementById('admin-overlay').classList.remove('open');}
+function switchAdminTab(id,el){
+  document.querySelectorAll('#admin-overlay .atab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('#admin-overlay .atab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');el.classList.add('active');
+  if(id==='t-online')refreshOnline();if(id==='t-accounts')renderAccounts();if(id==='t-effectif')renderAdminEf();
+}
+function refreshOnline(){
+  DB=loadDB()||initDB();const now=new Date();
+  document.getElementById('online-time').textContent=now.toLocaleTimeString('fr-FR');
+  const entries=Object.entries(DB.online||{});
+  const el=document.getElementById('online-list');
+  if(!entries.length){el.innerHTML='<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;color:var(--gray-light);padding:0.6rem 0;">Aucune session active.</div>';return;}
+  el.innerHTML=`<table class="a-table"><thead><tr><th>Agent</th><th>E-mail</th><th>Depuis</th><th>Statut</th></tr></thead><tbody>
+    ${entries.map(([e,i])=>{const s=new Date(i.since);const diff=Math.floor((now-s)/60000);return`<tr><td><span class="odot odot-on"></span>${i.name}</td><td style="font-size:10px;">${e}</td><td style="font-size:10px;">${s.toLocaleTimeString('fr-FR')} (${diff<60?diff+'min':Math.floor(diff/60)+'h'+diff%60+'min'})</td><td><span class="badge-on">● En ligne</span></td></tr>`;}).join('')}
+  </tbody></table>`;
+}
+function renderAccounts(){
+  DB=loadDB()||initDB();
+  document.getElementById('accounts-list').innerHTML=`<table class="a-table"><thead><tr><th>Nom</th><th>E-mail</th><th>Mot de passe</th><th>Rôle</th><th>Action</th></tr></thead><tbody>
+    ${Object.entries(DB.users).map(([e,u])=>`<tr>
+      <td>${u.name}</td><td style="font-size:10px;">${e}</td>
+      <td><input type="text" value="${u.pw}" style="background:var(--paper-mid);border:1px solid var(--divider);padding:2px 7px;font-family:'IBM Plex Mono',monospace;font-size:10px;width:120px;" onblur="updatePw('${e}',this.value)"></td>
+      <td><select style="background:var(--paper-mid);border:1px solid var(--divider);padding:1px 5px;font-family:'IBM Plex Mono',monospace;font-size:10px;cursor:pointer;" onchange="updateRole('${e}',this.value)" ${e===ROOT?'disabled':''}>
+        <option value="agent" ${u.role==='agent'?'selected':''}>Agent</option>
+        <option value="responsable" ${u.role==='responsable'?'selected':''}>Responsable</option>
+        <option value="direction" ${u.role==='direction'?'selected':''}>Direction</option>
+      </select></td>
+      <td>${e!==ROOT?`<button class="btn btn-d btn-sm" onclick="removeAccount('${e}')">✕</button>`:'<span style="font-size:9px;color:var(--gray-light);">Protégé</span>'}</td>
+    </tr>`).join('')}
+  </tbody></table>`;
+}
+function updatePw(e,v){if(!v.trim())return;DB.users[e].pw=v.trim();saveDB(DB);showMsg('acc-msg','Mot de passe mis à jour.',true);}
+function updateRole(e,v){DB.users[e].role=v;saveDB(DB);showMsg('acc-msg','Rôle mis à jour : '+v,true);}
+function addAccount(){
+  const n=document.getElementById('nu-name').value.trim(),e=document.getElementById('nu-email').value.trim().toLowerCase(),p=document.getElementById('nu-pw').value.trim()||DEF_PW,r=document.getElementById('nu-role').value;
+  if(!n||!e){showMsg('acc-msg','Nom et e-mail obligatoires.',false);return;}
+  if(DB.users[e]){showMsg('acc-msg','Ce compte existe déjà.',false);return;}
+  DB.users[e]={name:n,pw:p,role:r};saveDB(DB);
+  document.getElementById('nu-name').value='';document.getElementById('nu-email').value='';document.getElementById('nu-pw').value=DEF_PW;
+  renderAccounts();showMsg('acc-msg','Compte créé : '+n,true);
+}
+function removeAccount(e){if(!confirm('Supprimer le compte de '+DB.users[e].name+'?'))return;delete DB.users[e];if(DB.online&&DB.online[e])delete DB.online[e];saveDB(DB);renderAccounts();}
+function renderAdminEf(){
+  DB=loadDB()||initDB();
+  document.getElementById('admin-ef-list').innerHTML=`<table class="a-table"><thead><tr><th>Mat.</th><th>Nom</th><th>Grade B.I.</th><th>Unité</th><th>Rang</th><th>Promo</th><th></th></tr></thead><tbody>
+    ${DB.effectif.map((m,i)=>`<tr><td>${m.mat}</td><td>${m.nom}</td><td style="font-size:10px;">${m.gradeBI}</td><td><span class="agent-unit" style="font-size:9px;">${m.unit}</span></td><td style="font-family:'IBM Plex Mono',monospace;font-size:10px;">${m.gradeHier||'—'}</td><td style="font-family:'IBM Plex Mono',monospace;font-size:10px;">${m.datePromo||'—'}</td><td><button style="background:none;border:1px solid var(--amber-dim);color:var(--amber-dim);font-family:'IBM Plex Mono',monospace;font-size:9px;padding:2px 7px;cursor:pointer;" onclick="openEfFromAdmin(${i})">✏</button></td></tr>`).join('')}
+  </tbody></table>`;
+}
+function addMember(){
+  const nom=document.getElementById('ef-nom').value.trim();
+  if(!nom){showMsg('ef-msg','Nom obligatoire.',false);return;}
+  const gl=document.getElementById('ef-glspd').value.trim();
+  const gh=parseInt(document.getElementById('ef-grade-hier').value)||60;
+  DB.effectif.push({mat:document.getElementById('ef-mat').value.trim(),nom,gradeLspd:gl?(gl.includes('L.S.P.D.')?gl:gl+' — L.S.P.D.'):'',gradeBI:document.getElementById('ef-gbi').value.trim(),unit:document.getElementById('ef-unit').value,id:document.getElementById('ef-id').value.trim(),datePromo:document.getElementById('ef-date-promo').value,gradeHier:gh,isVacant:false,isChef:false});
+  saveDB(DB);['ef-mat','ef-nom','ef-glspd','ef-gbi','ef-id'].forEach(id=>document.getElementById(id).value='');renderEffectif();renderAdminEf();showMsg('ef-msg',nom+' ajouté.',true);
+}
+function openEfFromAdmin(i){closeAdmin();openEditMember(i);}
+function openEditMember(i){
+  DB=loadDB()||initDB();const m=DB.effectif[i];
+  document.getElementById('em-idx').value=i;document.getElementById('em-mat').value=m.mat;document.getElementById('em-nom').value=m.nom;
+  document.getElementById('em-glspd').value=m.gradeLspd.replace(' — L.S.P.D.','').replace(' — L.S.P.D','');
+  document.getElementById('em-gbi').value=m.gradeBI;document.getElementById('em-unit').value=m.unit;document.getElementById('em-id').value=m.id||'';
+  document.getElementById('em-date-promo').value=m.datePromo||'';document.getElementById('em-grade-hier').value=m.gradeHier||60;
+  document.getElementById('em-msg').innerHTML='';document.getElementById('edit-member-overlay').classList.add('open');
+}
+function closeEditMember(){document.getElementById('edit-member-overlay').classList.remove('open');}
+function saveMember(){
+  const i=parseInt(document.getElementById('em-idx').value);
+  const nom=document.getElementById('em-nom').value.trim()||'[Poste vacant]';
+  const gl=document.getElementById('em-glspd').value.trim();
+  const gh=parseInt(document.getElementById('em-grade-hier').value)||60;
+  DB.effectif[i]={...DB.effectif[i],mat:document.getElementById('em-mat').value.trim(),nom,gradeLspd:gl?(gl.includes('L.S.P.D.')?gl:gl+' — L.S.P.D.'):'',gradeBI:document.getElementById('em-gbi').value.trim(),unit:document.getElementById('em-unit').value,id:document.getElementById('em-id').value.trim(),datePromo:document.getElementById('em-date-promo').value,gradeHier:gh,isVacant:(nom==='[Poste vacant]'||nom==='')};
+  saveDB(DB);renderEffectif();closeEditMember();if(isDirection())renderAdminEf();
+}
+function deleteMember(){
+  const i=parseInt(document.getElementById('em-idx').value);
+  const m=DB.effectif[i];
+  if(!confirm('Supprimer '+m.nom+' du registre ? Cette action est irréversible.'))return;
+  // Find matching user account to clean service records (optional — keep data but mark as deleted)
+  const name=m.nom;
+  // Mark service entries as belonging to a deleted agent (don't erase historical data)
+  if(DB.service){
+    DB.service.forEach(s=>{if(s.agentName===name)s.deleted=true;});
+  }
+  DB.effectif.splice(i,1);
+  saveDB(DB);
+  renderEffectif();
+  closeEditMember();
+  if(isDirection())renderAdminEf();
+  // Refresh notes sidebar if notes modal open
+  const notesOverlay=document.getElementById('notes-overlay');
+  if(notesOverlay&&notesOverlay.classList.contains('open'))buildNotesSidebar();
+}
+
+// ═══ CHANGE PW ═══
+function openChangePw(){document.getElementById('changepw-overlay').classList.add('open');}
+function closeChangePw(){document.getElementById('changepw-overlay').classList.remove('open');}
+function changePassword(){
+  const c=document.getElementById('pw-cur').value,n=document.getElementById('pw-new').value,cf=document.getElementById('pw-conf').value;
+  if(!c||!n||!cf){showMsg('pw-msg','Remplissez tous les champs.',false);return;}
+  if(DB.users[currentEmail].pw!==c){showMsg('pw-msg','Mot de passe actuel incorrect.',false);return;}
+  if(n!==cf){showMsg('pw-msg','Les mots de passe ne correspondent pas.',false);return;}
+  if(n.length<6){showMsg('pw-msg','Minimum 6 caractères.',false);return;}
+  DB.users[currentEmail].pw=n;saveDB(DB);
+  ['pw-cur','pw-new','pw-conf'].forEach(id=>document.getElementById(id).value='');
+  showMsg('pw-msg','Mot de passe modifié ✓',true);setTimeout(closeChangePw,1500);
+}
+
+// ═══ UTILS ═══
+function showMsg(id,txt,ok){const el=document.getElementById(id);if(!el)return;el.innerHTML=`<div class="alert ${ok?'alert-ok':'alert-err'}">${txt}</div>`;setTimeout(()=>{if(el)el.innerHTML='';},3000);}
+function showManuels(){const p=document.getElementById('manuels-panel');p.style.display='block';p.scrollIntoView({behavior:'smooth',block:'nearest'});}
+function hideManuels(){document.getElementById('manuels-panel').style.display='none';}
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
+document.getElementById('password').addEventListener('keydown',e=>{if(e.key==='Enter')handleLogin();});
+document.getElementById('email').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('password').focus();});
+window.addEventListener('scroll',()=>{const b=document.getElementById('scrollTop');window.scrollY>400?b.classList.add('show'):b.classList.remove('show');});
+
+// Session timer
+setInterval(()=>{
+  if(!currentEmail)return;
+  const sess=loadSess();
+  if(!sess){handleLogout();return;}
+  const rem=SESS_MS-(Date.now()-sess.ts);
+  if(rem<=0){handleLogout();return;}
+  const mins=Math.floor(rem/60000),secs=Math.floor((rem%60000)/1000);
+  const tv=document.getElementById('timer-val'),tw=document.getElementById('session-timer');
+  if(tv)tv.textContent=String(mins).padStart(2,'0')+':'+String(secs).padStart(2,'0');
+  if(tw)tw.style.color=rem<120000?'rgba(220,80,80,0.85)':'rgba(181,130,26,0.65)';
+},1000);
+
+// ═══ UPCOMING EVENTS (page section) ═══
+function renderUpcomingEvents(){
+  const container=document.getElementById('upcoming-events-container');
+  if(!container)return;
+  const now=new Date();
+  const nowStr=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+  // Show upcoming + today's events; also show last 3 past events greyed out for context
+  const past=(DB.events||[]).filter(ev=>ev.date<nowStr).sort((a,b)=>b.date.localeCompare(a.date)||(b.heureDebut||'').localeCompare(a.heureDebut||'')).slice(0,3).reverse();
+  const future=(DB.events||[]).filter(ev=>ev.date>=nowStr).sort((a,b)=>a.date.localeCompare(b.date)||(a.heureDebut||'').localeCompare(b.heureDebut||'')).slice(0,8);
+  const all=[...past,...future];
+  if(!all.length){
+    container.innerHTML='<div class="upcoming-empty">— Aucun événement planifié —<br><span style="font-size:10px;margin-top:4px;display:block;">Utilisez le calendrier complet pour en ajouter</span></div>';
+    return;
+  }
+  const monthsFr=['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+  const html=`<div class="upcoming-list">
+    ${all.map(ev=>{
+      const ri=(DB.events||[]).indexOf(ev);
+      const d=new Date(ev.date+'T12:00:00');
+      const isPast=ev.date<nowStr;
+      const isToday=ev.date===nowStr;
+      const col=isPast?'#b0aa9e':(EV_COLORS[ev.type]||'#57534e');
+      const lbl=EV_LABELS[ev.type]||ev.type;
+      const hor=ev.heureDebut?(ev.heureDebut+(ev.heureFin?' → '+ev.heureFin:'')):'';
+      const pastStyle=isPast?'opacity:0.55;filter:grayscale(0.6);':'';
+      const todayStyle=isToday?'box-shadow:0 0 0 2px '+(EV_COLORS[ev.type]||'#57534e')+';':'';
+      return`<div class="upcoming-item" onclick="openEventModal(${ri},event)" style="${pastStyle}${todayStyle}">
+        <div class="upcoming-stripe" style="background:${col};"></div>
+        <div class="upcoming-body">
+          <div class="upcoming-date-box" style="${isToday?'background:'+col+'22;border:1px solid '+col+'66;':''}${isPast?'background:#f0ece8;':''}">
+            <div class="upcoming-date-day" style="color:${isToday?col:(isPast?'#b0aa9e':'var(--ink)')}">${d.getDate()}</div>
+            <div class="upcoming-date-month" style="${isPast?'color:#b0aa9e;':''}">${monthsFr[d.getMonth()]}</div>
+          </div>
+          <div class="upcoming-info">
+            <div class="upcoming-title" style="${isPast?'color:#888;text-decoration:line-through;text-decoration-color:#ccc;':''}">${ev.titre}</div>
+            <div class="upcoming-meta">
+              ${isPast?'<span style="color:#b0aa9e;font-style:italic;">Événement passé</span>':''}
+              ${!isPast&&hor?`<span>🕐 ${hor}</span>`:''}
+              ${!isPast&&ev.lieu?`<span>📍 ${ev.lieu}</span>`:''}
+              ${!isPast&&ev.desc?`<span style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${ev.desc}">📄 ${ev.desc}</span>`:''}
+            </div>
+          </div>
+          <div class="upcoming-right">
+            <div class="upcoming-type-badge" style="background:${col};">${lbl}</div>
+            <div class="upcoming-author">Par ${ev.authorName||'—'}</div>
+          </div>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>
+  ${(DB.events||[]).filter(ev=>ev.date>=nowStr).length>8?`<div class="upcoming-show-more"><button class="btn btn-p btn-sm" onclick="openCalendrier()">Voir tous les événements →</button></div>`:''}`;
+  container.innerHTML=html;
+}
+
+// ═══ NOTES ═══
+let currentNoteKey=null;
+function noteKey(email){return'note_'+email.replace(/[^a-z0-9]/gi,'_');}
+function openNotes(){
+  DB=loadDB()||initDB();
+  buildNotesSidebar();
+  selectNote('me');
+  document.getElementById('notes-overlay').classList.add('open');
+}
+function closeNotes(){document.getElementById('notes-overlay').classList.remove('open');}
+function buildNotesSidebar(){
+  const agentsList=document.getElementById('notes-agents-list');
+  if(isResp()){
+    agentsList.style.display='block';
+    const others=Object.entries(DB.users).filter(([e])=>e!==currentEmail).sort((a,b)=>a[1].name.localeCompare(b[1].name));
+    const roleLabel=()=>'•';
+    agentsList.innerHTML=`<div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:#9fa8da;margin:0.8rem 0 0.4rem;padding-top:0.8rem;border-top:1px solid rgba(255,255,255,0.1);">Notes des agents</div>`
+      +others.map(([email,u])=>`<button class="notes-agent-btn" id="note-btn-${noteKey(email)}" onclick="selectNote('${email}')">• ${u.name}</button>`).join('');
+  }else{
+    agentsList.style.display='none';
+  }
+}
+function selectNote(target){
+  // Deactivate all sidebar buttons
+  document.querySelectorAll('.notes-my-note-btn,.notes-agent-btn').forEach(b=>b.classList.remove('active'));
+  const isMe=target==='me';
+  const email=isMe?currentEmail:target;
+  currentNoteKey=noteKey(email);
+  const userName=isMe?currentUser:(DB.users[email]?DB.users[email].name:email);
+  const canEdit=isMe;
+  // Activate correct button
+  if(isMe){document.getElementById('notes-my-btn').classList.add('active');}
+  else{const b=document.getElementById('note-btn-'+currentNoteKey);if(b)b.classList.add('active');}
+  // Load note content
+  const stored=localStorage.getItem('lspd_note_'+currentNoteKey);
+  let noteData={content:'',lastEdit:''};
+  if(stored){try{noteData=JSON.parse(stored);}catch{noteData={content:stored,lastEdit:''};}}
+  const ta=document.getElementById('notes-textarea');
+  const title=document.getElementById('notes-editor-title');
+  const meta=document.getElementById('notes-editor-meta');
+  const roLabel=document.getElementById('notes-readonly-badge');
+  const saveBtn=document.getElementById('notes-save-btn');
+  ta.value=noteData.content||'';
+  ta.disabled=!canEdit;
+  title.textContent=isMe?'Ma note personnelle':'Note de '+userName;
+  meta.textContent=noteData.lastEdit?'Dernière modification : '+noteData.lastEdit:'Aucune modification enregistrée';
+  roLabel.style.display=canEdit?'none':'inline-block';
+  saveBtn.disabled=!canEdit;
+  document.getElementById('notes-saved-badge').style.display='none';
+}
+function saveNote(){
+  if(!currentNoteKey)return;
+  const content=document.getElementById('notes-textarea').value;
+  const now=new Date().toLocaleString('fr-FR');
+  const data={content,lastEdit:now,savedBy:currentUser};
+  localStorage.setItem('lspd_note_'+currentNoteKey,JSON.stringify(data));
+  document.getElementById('notes-editor-meta').textContent='Dernière modification : '+now;
+  const badge=document.getElementById('notes-saved-badge');
+  badge.style.display='inline';
+  setTimeout(()=>badge.style.display='none',2500);
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  DB=initDB();
+  const sess=loadSess();
+  if(sess){const ok=doLogin(sess.email);if(!ok)clearSess();}
+});
+</script>
+</body>
+</html>
