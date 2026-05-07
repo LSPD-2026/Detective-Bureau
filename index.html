@@ -1320,467 +1320,134 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
   </div>
 </div>
 
-<!-- ════════ FIREBASE SDK (compat — fonctionne dans un fichier HTML simple) ════════ -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
 <!-- ════════ SCRIPT ════════ -->
 <script>
-// ══════════════════════════════════════════════
-// FIREBASE CONFIG
-// ══════════════════════════════════════════════
-const FIREBASE_CONFIG = {
-  apiKey: "AIzaSyCdlCQgOW2UCuMp68V3XnP_WnI3LjbtkU0",
-  authDomain: "lspd-db-portal.firebaseapp.com",
-  projectId: "lspd-db-portal",
-  storageBucket: "lspd-db-portal.firebasestorage.app",
-  messagingSenderId: "767612288218",
-  appId: "1:767612288218:web:4b2d3bf7ba7389fce339e3"
-};
+// ═══ CONSTANTS ═══
+const SK='lspd_db_v7',SSK='lspd_sess_v7',ROOT='jamesjones.lspd@gmail.com',DEF_PW='lspd-dd-2026',SESS_MS=15*60*1000;
 
-// ══════════════════════════════════════════════
-// CONSTANTES APP
-// ══════════════════════════════════════════════
-const SSK       = 'lspd_sess_v14';   // clé session (localStorage — locale par design)
-const ROOT      = 'jamesjones.lspd@gmail.com';
-const DEF_PW    = 'lspd-dd-2026';
-const SESS_MS   = 15 * 60 * 1000;
-
-// ══════════════════════════════════════════════
-// HIÉRARCHIE GRADES
-// ══════════════════════════════════════════════
-const GRADE_MAP = {
+// ═══ GRADE HIERARCHY ═══
+// Direction=100, Responsable=90, Inspecteur Principal=80, Inspecteur/Officier Principal=70, Enquêteur/Agent PB=60, Recrue=50
+const GRADE_MAP={
   'Directeur D.D.':100,'Directeur Adjoint':100,'Directeur':100,
   'Responsable D.D.':90,'Responsable S.C.U.':90,'Responsable':90,
   'Inspecteur Principal':80,'Officier Principal':80,
   'Inspecteur':70,'Chef de Brigade':75,
   'Enquêteur':60,'Enquêtrice':60,
-  'Agent de P.B.':55, 'Recrue':50
-};
-function getGradeOrder(m){ return parseInt(m.gradeHier)||GRADE_MAP[m.gradeBI]||60; }
-
-// ══════════════════════════════════════════════
-// DONNÉES PAR DÉFAUT (seed au premier démarrage)
-// ══════════════════════════════════════════════
-const DEFAULT_USERS = {
-  "jamesjones.lspd@gmail.com":     {name:"James Jones",          pw:DEF_PW, role:"direction"},
-  "clement.lopezlspd71@gmail.com": {name:"Clement Lopez",        pw:DEF_PW, role:"responsable"},
-  "raydonpichon@gmail.com":        {name:"Raydon Pichon",        pw:DEF_PW, role:"responsable"},
-  "lysiadubeloybi@gmail.com":      {name:"Dalila Winters-Smith", pw:DEF_PW, role:"agent"},
-  "redacorlozio.ctg@gmail.com":    {name:"Reda Corlozio",        pw:DEF_PW, role:"agent"},
-  "antoine.cumsi@gmail.com":       {name:"Antoine Cumsi",        pw:DEF_PW, role:"agent"},
-  "francisgarcia150800@gmail.com": {name:"Francis Garcia",       pw:DEF_PW, role:"agent"},
-  "john.anderson.ctg@gmail.com":   {name:"Douglas Walker",       pw:DEF_PW, role:"agent"},
-  "velentzasdana@gmail.com":       {name:"Dana Doux",            pw:DEF_PW, role:"agent"},
-  "pro.jamesbelga@gmail.com":      {name:"James Belga",          pw:DEF_PW, role:"agent"},
-  "haydentommy44709@gmail.com":    {name:"Hayden Tommy",         pw:DEF_PW, role:"agent"}
+  'Agent de P.B.':55,
+  'Recrue':50
 };
 
-const DEFAULT_EFFECTIF = [
-  {mat:"—",  nom:"[Poste vacant]",       gradeLspd:"",                          gradeBI:"Directeur D.D.",      unit:"Direction",     id:"",      isVacant:true,  isChef:true,  gradeHier:100, datePromo:""},
-  {mat:"47", nom:"James Jones",          gradeLspd:"Lieutenant — L.S.P.D.",     gradeBI:"Directeur Adjoint",   unit:"Direction",     id:"36986", isVacant:false, isChef:true,  gradeHier:100, datePromo:"2026-01-10"},
-  {mat:"—",  nom:"[Poste vacant]",       gradeLspd:"",                          gradeBI:"Responsable D.D.",    unit:"Det. Division", id:"",      isVacant:true,  isChef:true,  gradeHier:90,  datePromo:""},
-  {mat:"95", nom:"Hayden Tommy",         gradeLspd:"Lieutenant — L.S.P.D.",     gradeBI:"Inspecteur",          unit:"Det. Division", id:"44709", isVacant:false, isChef:false, gradeHier:70,  datePromo:"2025-11-19"},
-  {mat:"56", nom:"Raydon Pichon",        gradeLspd:"Sergent II — L.S.P.D.",     gradeBI:"Inspecteur",          unit:"Det. Division", id:"56556", isVacant:false, isChef:false, gradeHier:70,  datePromo:"2025-11-19"},
-  {mat:"61", nom:"Dalila Winters-Smith", gradeLspd:"Officier III — L.S.P.D.",   gradeBI:"Enquêtrice",          unit:"S. Plaintes",   id:"44758", isVacant:false, isChef:false, gradeHier:60,  datePromo:"2025-11-02"},
-  {mat:"41", nom:"James Belga",          gradeLspd:"Officier II — L.S.P.D.",    gradeBI:"Enquêteur",           unit:"Det. Division", id:"49858", isVacant:false, isChef:false, gradeHier:60,  datePromo:"2025-11-02"},
-  {mat:"07", nom:"Reda Corlozio",        gradeLspd:"Officier II — L.S.P.D.",    gradeBI:"Enquêteur",           unit:"Det. Division", id:"53687", isVacant:false, isChef:false, gradeHier:60,  datePromo:"2025-12-27"},
-  {mat:"85", nom:"Antoine Cumsi",        gradeLspd:"Officier III — L.S.P.D.",   gradeBI:"Enquêteur",           unit:"Det. Division", id:"1924",  isVacant:false, isChef:false, gradeHier:60,  datePromo:"2026-01-21"},
-  {mat:"88", nom:"Francis Garcia",       gradeLspd:"Officier III — L.S.P.D.",   gradeBI:"Enquêteur",           unit:"Det. Division", id:"58754", isVacant:false, isChef:false, gradeHier:60,  datePromo:"2026-02-11"},
-  {mat:"05", nom:"Douglas Walker",       gradeLspd:"Officier I — L.S.P.D.",     gradeBI:"Enquêteur",           unit:"Det. Division", id:"53027", isVacant:false, isChef:false, gradeHier:60,  datePromo:"2026-02-18"},
-  {mat:"66", nom:"Dana Doux",            gradeLspd:"Officier I — L.S.P.D.",     gradeBI:"Enquêtrice",          unit:"Det. Division", id:"48557", isVacant:false, isChef:false, gradeHier:60,  datePromo:"2026-02-18"},
-  {mat:"71", nom:"Clement Lopez",        gradeLspd:"Lieutenant — L.S.P.D.",     gradeBI:"Responsable S.C.U.",  unit:"S.C.U.",        id:"56408", isVacant:false, isChef:true,  gradeHier:90,  datePromo:"2026-01-14"},
-  {mat:"02", nom:"Marcus Grey",          gradeLspd:"Capitaine — L.S.P.D.",      gradeBI:"Officier Principal",  unit:"S.C.U.",        id:"38438", isVacant:false, isChef:true,  gradeHier:80,  datePromo:"2026-01-11"},
-  {mat:"89", nom:"Benoit James",         gradeLspd:"Sergent I — L.S.P.D.",      gradeBI:"Agent de P.B.",       unit:"S.C.U.",        id:"54116", isVacant:false, isChef:false, gradeHier:55,  datePromo:"2025-08-02"},
-  {mat:"44", nom:"Silver Andrew",        gradeLspd:"Sergent II — L.S.P.D.",     gradeBI:"Agent de P.B.",       unit:"S.C.U.",        id:"44032", isVacant:false, isChef:false, gradeHier:55,  datePromo:"2025-11-28"},
-  {mat:"35", nom:"James Colt",           gradeLspd:"Officier III — L.S.P.D.",   gradeBI:"Agent de P.B.",       unit:"S.C.U.",        id:"26064", isVacant:false, isChef:false, gradeHier:55,  datePromo:"2025-11-28"},
-  {mat:"25", nom:"Alice Grimm",          gradeLspd:"Officier III — L.S.P.D.",   gradeBI:"Agent de P.B.",       unit:"S.C.U.",        id:"59925", isVacant:false, isChef:false, gradeHier:55,  datePromo:"2025-02-07"},
-  {mat:"01", nom:"Bill Krakenhood",      gradeLspd:"Sergent II — L.S.P.D.",     gradeBI:"Agent de P.B.",       unit:"S.C.U.",        id:"12110", isVacant:false, isChef:false, gradeHier:55,  datePromo:"2026-03-08"},
-  {mat:"53", nom:"Max Collins",          gradeLspd:"Officier III — L.S.P.D.",   gradeBI:"Recrue",              unit:"S.C.U.",        id:"52227", isVacant:false, isChef:false, gradeHier:50,  datePromo:"2025-11-02"},
-  {mat:"17", nom:"Lexa Dupont",          gradeLspd:"Officier II — L.S.P.D.",    gradeBI:"Recrue",              unit:"S.C.U.",        id:"54723", isVacant:false, isChef:false, gradeHier:50,  datePromo:"2026-01-27"}
-];
-
-// ══════════════════════════════════════════════
-// ÉTAT GLOBAL (in-memory, miroir de Firestore)
-// ══════════════════════════════════════════════
-let DB = {
-  users:    {},  // { email: {name,pw,role} }
-  effectif: [],  // array
-  warrants: [],  // array
-  bracelets:[],  // array
-  events:   [],  // array
-  service:  [],  // array
-  notes:    {},  // { noteKey: {content,lastEdit} }
-  online:   {}   // { email: {name,since} }
-};
-
-let FS = null;               // instance Firestore
-let currentEmail = null;
-let currentUser  = null;
-let userRole     = 'agent';
-const isDirection = ()=> userRole === 'direction';
-const isResp      = ()=> userRole === 'direction' || userRole === 'responsable';
-const roleName    = r  => r==='direction'?'Direction':r==='responsable'?'Responsable':'Agent';
-
-// ══════════════════════════════════════════════
-// SESSION (reste localStorage — intentionnellement local)
-// ══════════════════════════════════════════════
-const loadSess  = ()=>{ try{ const r=localStorage.getItem(SSK); if(!r)return null; const s=JSON.parse(r); return Date.now()-s.ts<SESS_MS?s:null; }catch{return null;} };
-const saveSess  = e => localStorage.setItem(SSK, JSON.stringify({email:e, ts:Date.now()}));
-const clearSess = ()=> localStorage.removeItem(SSK);
-
-// ══════════════════════════════════════════════
-// FIRESTORE — COUCHE D'ACCÈS
-// Architecture : une collection par type de données
-// Collections : users / effectif / warrants / bracelets / events / service / notes / online
-// ══════════════════════════════════════════════
-
-// ── Lecture unique d'une collection → array ou object ──
-async function fsGetCollection(col) {
-  const snap = await FS.collection(col).get();
-  const result = {};
-  snap.forEach(doc => { result[doc.id] = doc.data(); });
-  return result;
+function getGradeOrder(m){
+  if(m.gradeHier)return parseInt(m.gradeHier)||60;
+  return GRADE_MAP[m.gradeBI]||60;
 }
 
-// ── Écriture d'un document ──
-async function fsSet(col, docId, data) {
-  await FS.collection(col).doc(docId).set(data);
-}
+// ═══ DB ═══
+const loadDB=()=>{try{const r=localStorage.getItem(SK);return r?JSON.parse(r):null;}catch{return null;}};
+const saveDB=d=>localStorage.setItem(SK,JSON.stringify(d));
+const loadSess=()=>{try{const r=localStorage.getItem(SSK);if(!r)return null;const s=JSON.parse(r);return Date.now()-s.ts<SESS_MS?s:null;}catch{return null;}};
+const saveSess=e=>localStorage.setItem(SSK,JSON.stringify({email:e,ts:Date.now()}));
+const clearSess=()=>localStorage.removeItem(SSK);
 
-// ── Suppression d'un document ──
-async function fsDel(col, docId) {
-  await FS.collection(col).doc(docId).delete();
-}
-
-// ── Écriture d'un array complet (efface tout puis réécrit) ──
-async function fsSetArray(col, arr) {
-  const batch = FS.batch();
-  // Supprimer anciens docs
-  const snap = await FS.collection(col).get();
-  snap.forEach(doc => batch.delete(doc.ref));
-  // Réécrire
-  arr.forEach((item, i) => {
-    const ref = FS.collection(col).doc(String(i).padStart(6,'0'));
-    batch.set(ref, item);
-  });
-  await batch.commit();
-}
-
-// ── Lecture d'un array (retourne array trié par docId) ──
-async function fsGetArray(col) {
-  const snap = await FS.collection(col).get();
-  const docs = [];
-  snap.forEach(doc => docs.push({_id: doc.id, ...doc.data()}));
-  docs.sort((a,b) => a._id.localeCompare(b._id));
-  return docs.map(d => { const {_id,...rest}=d; return rest; });
-}
-
-// ══════════════════════════════════════════════
-// SAUVEGARDE — une fonction par type
-// ══════════════════════════════════════════════
-const saveUsers    = ()=> {
-  const batch = FS.batch();
-  Object.entries(DB.users).forEach(([email,u]) => {
-    // Encode email comme docId (remplacer . et @ pour Firestore)
-    const docId = email.replace(/\./g,'_').replace(/@/g,'__AT__');
-    batch.set(FS.collection('users').doc(docId), {...u, _email: email});
-  });
-  return batch.commit();
-};
-const saveEffectif = ()=> fsSetArray('effectif', DB.effectif);
-const saveWarrants = ()=> fsSetArray('warrants', DB.warrants);
-const saveBracelets= ()=> fsSetArray('bracelets', DB.bracelets);
-const saveEvents   = ()=> fsSetArray('events', DB.events);
-const saveService  = ()=> fsSetArray('service', DB.service);
-const saveOnline   = ()=> {
-  const batch = FS.batch();
-  // Clear all then rewrite
-  return FS.collection('online').get().then(snap => {
-    snap.forEach(doc => batch.delete(doc.ref));
-    Object.entries(DB.online||{}).forEach(([email, info]) => {
-      const docId = email.replace(/\./g,'_').replace(/@/g,'__AT__');
-      batch.set(FS.collection('online').doc(docId), {...info, _email: email});
-    });
-    return batch.commit();
-  });
-};
-const saveNote = (noteKey, data) => fsSet('notes', noteKey, data);
-
-// Fonction générique appelée depuis l'app existante
-// Détermine quelles collections mettre à jour
-const saveDB = async (d) => {
-  if(!FS) return;
-  DB = d;
-  // On sauvegarde tout en parallèle
-  await Promise.all([
-    saveUsers(),
-    saveEffectif(),
-    saveWarrants(),
-    saveBracelets(),
-    saveEvents(),
-    saveService(),
-    saveOnline()
-  ]);
-};
-
-// ══════════════════════════════════════════════
-// CHARGEMENT INITIAL
-// ══════════════════════════════════════════════
-async function loadAllFromFirestore() {
-  // Charger users
-  const usersSnap = await FS.collection('users').get();
-  if(usersSnap.empty) {
-    // Premier démarrage : seed les données par défaut
-    console.log('🌱 Premier démarrage — initialisation des données...');
-    DB.users    = DEFAULT_USERS;
-    DB.effectif = DEFAULT_EFFECTIF;
-    DB.warrants = []; DB.bracelets = []; DB.events = []; DB.service = []; DB.notes = {}; DB.online = {};
-    await saveDB(DB);
-    console.log('✅ Données initialisées dans Firestore');
-    return;
+function initDB(){
+  const ex=loadDB();
+  if(ex){
+    // Ensure new fields exist for migration
+    if(!ex.events)ex.events=[];
+    if(!ex.service)ex.service=[];
+    if(!ex.bracelets)ex.bracelets=[];
+    return ex;
   }
-  // Charger users
-  DB.users = {};
-  usersSnap.forEach(doc => {
-    const d = doc.data();
-    const email = d._email || doc.id.replace(/__AT__/g,'@').replace(/_/g,'.');
-    DB.users[email] = {name:d.name, pw:d.pw, role:d.role};
-  });
-  // Charger arrays
-  DB.effectif  = await fsGetArray('effectif');
-  DB.warrants  = await fsGetArray('warrants');
-  DB.bracelets = await fsGetArray('bracelets');
-  DB.events    = await fsGetArray('events');
-  DB.service   = await fsGetArray('service');
-  // Charger notes
-  const notesSnap = await FS.collection('notes').get();
-  DB.notes = {};
-  notesSnap.forEach(doc => { DB.notes[doc.id] = doc.data(); });
-  // Charger online
-  const onlineSnap = await FS.collection('online').get();
-  DB.online = {};
-  onlineSnap.forEach(doc => {
-    const d = doc.data();
-    const email = d._email || doc.id.replace(/__AT__/g,'@').replace(/_/g,'.');
-    DB.online[email] = {name:d.name, since:d.since};
-  });
-}
-
-// ══════════════════════════════════════════════
-// SYNCHRONISATION TEMPS RÉEL
-// Écoute sur chaque collection séparément
-// ══════════════════════════════════════════════
-const _unsubs = []; // stocker les unsubscribers
-
-function startRealtimeSync() {
-  // Stopper les anciens listeners
-  _unsubs.forEach(u => u());
-  _unsubs.length = 0;
-
-  // Helper : convertir snapshot en array trié
-  const snapToArray = snap => {
-    const docs = [];
-    snap.forEach(doc => docs.push({_id: doc.id, ...doc.data()}));
-    docs.sort((a,b) => a._id.localeCompare(b._id));
-    return docs.map(d => { const {_id,...r}=d; return r; });
+  const d={
+    users:{
+      "jamesjones.lspd@gmail.com":     {name:"James Jones",         pw:DEF_PW,role:"direction"},
+      "clement.lopezlspd71@gmail.com": {name:"Clement Lopez",       pw:DEF_PW,role:"responsable"},
+      "raydonpichon@gmail.com":        {name:"Raydon Pichon",       pw:DEF_PW,role:"responsable"},
+      "lysiadubeloybi@gmail.com":      {name:"Dalila Winters-Smith",pw:DEF_PW,role:"agent"},
+      "redacorlozio.ctg@gmail.com":    {name:"Reda Corlozio",       pw:DEF_PW,role:"agent"},
+      "antoine.cumsi@gmail.com":       {name:"Antoine Cumsi",       pw:DEF_PW,role:"agent"},
+      "francisgarcia150800@gmail.com": {name:"Francis Garcia",      pw:DEF_PW,role:"agent"},
+      "john.anderson.ctg@gmail.com":   {name:"Douglas Walker",      pw:DEF_PW,role:"agent"},
+      "velentzasdana@gmail.com":       {name:"Dana Doux",           pw:DEF_PW,role:"agent"},
+      "pro.jamesbelga@gmail.com":      {name:"James Belga",         pw:DEF_PW,role:"agent"},
+      "haydentommy44709@gmail.com":    {name:"Hayden Tommy",        pw:DEF_PW,role:"agent"}
+    },
+    online:{},warrants:[],bracelets:[],events:[],service:[],
+    effectif:[
+      // DIRECTION
+      {mat:"—",nom:"[Poste vacant]",gradeLspd:"",gradeBI:"Directeur D.D.",unit:"Direction",id:"",isVacant:true,isChef:true,gradeHier:100,datePromo:""},
+      {mat:"47",nom:"James Jones",gradeLspd:"Lieutenant — L.S.P.D.",gradeBI:"Directeur Adjoint",unit:"Direction",id:"36986",isVacant:false,isChef:true,gradeHier:100,datePromo:"2026-01-10"},
+      // D.D.
+      {mat:"—",nom:"[Poste vacant]",gradeLspd:"",gradeBI:"Responsable D.D.",unit:"Det. Division",id:"",isVacant:true,isChef:true,gradeHier:90,datePromo:""},
+      {mat:"95",nom:"Hayden Tommy",gradeLspd:"Lieutenant — L.S.P.D.",gradeBI:"Inspecteur",unit:"Det. Division",id:"44709",isVacant:false,isChef:false,gradeHier:70,datePromo:"2025-11-19"},
+      {mat:"56",nom:"Raydon Pichon",gradeLspd:"Sergent II — L.S.P.D.",gradeBI:"Inspecteur",unit:"Det. Division",id:"56556",isVacant:false,isChef:false,gradeHier:70,datePromo:"2025-11-19"},
+      {mat:"61",nom:"Dalila Winters-Smith",gradeLspd:"Officier III — L.S.P.D.",gradeBI:"Enquêtrice",unit:"S. Plaintes",id:"44758",isVacant:false,isChef:false,gradeHier:60,datePromo:"2025-11-02"},
+      {mat:"41",nom:"James Belga",gradeLspd:"Officier II — L.S.P.D.",gradeBI:"Enquêteur",unit:"Det. Division",id:"49858",isVacant:false,isChef:false,gradeHier:60,datePromo:"2025-11-02"},
+      {mat:"07",nom:"Reda Corlozio",gradeLspd:"Officier II — L.S.P.D.",gradeBI:"Enquêteur",unit:"Det. Division",id:"53687",isVacant:false,isChef:false,gradeHier:60,datePromo:"2025-12-27"},
+      {mat:"85",nom:"Antoine Cumsi",gradeLspd:"Officier III — L.S.P.D.",gradeBI:"Enquêteur",unit:"Det. Division",id:"1924",isVacant:false,isChef:false,gradeHier:60,datePromo:"2026-01-21"},
+      {mat:"88",nom:"Francis Garcia",gradeLspd:"Officier III — L.S.P.D.",gradeBI:"Enquêteur",unit:"Det. Division",id:"58754",isVacant:false,isChef:false,gradeHier:60,datePromo:"2026-02-11"},
+      {mat:"05",nom:"Douglas Walker",gradeLspd:"Officier I — L.S.P.D.",gradeBI:"Enquêteur",unit:"Det. Division",id:"53027",isVacant:false,isChef:false,gradeHier:60,datePromo:"2026-02-18"},
+      {mat:"66",nom:"Dana Doux",gradeLspd:"Officier I — L.S.P.D.",gradeBI:"Enquêtrice",unit:"Det. Division",id:"48557",isVacant:false,isChef:false,gradeHier:60,datePromo:"2026-02-18"},
+      // S.C.U.
+      {mat:"71",nom:"Clement Lopez",gradeLspd:"Lieutenant — L.S.P.D.",gradeBI:"Responsable S.C.U.",unit:"S.C.U.",id:"56408",isVacant:false,isChef:true,gradeHier:90,datePromo:"2026-01-14"},
+      {mat:"02",nom:"Marcus Grey",gradeLspd:"Capitaine — L.S.P.D.",gradeBI:"Officier Principal",unit:"S.C.U.",id:"38438",isVacant:false,isChef:true,gradeHier:80,datePromo:"2026-01-11"},
+      {mat:"89",nom:"Benoit James",gradeLspd:"Sergent I — L.S.P.D.",gradeBI:"Agent de P.B.",unit:"S.C.U.",id:"54116",isVacant:false,isChef:false,gradeHier:55,datePromo:"2025-08-02"},
+      {mat:"44",nom:"Silver Andrew",gradeLspd:"Sergent II — L.S.P.D.",gradeBI:"Agent de P.B.",unit:"S.C.U.",id:"44032",isVacant:false,isChef:false,gradeHier:55,datePromo:"2025-11-28"},
+      {mat:"35",nom:"James Colt",gradeLspd:"Officier III — L.S.P.D.",gradeBI:"Agent de P.B.",unit:"S.C.U.",id:"26064",isVacant:false,isChef:false,gradeHier:55,datePromo:"2025-11-28"},
+      {mat:"25",nom:"Alice Grimm",gradeLspd:"Officier III — L.S.P.D.",gradeBI:"Agent de P.B.",unit:"S.C.U.",id:"59925",isVacant:false,isChef:false,gradeHier:55,datePromo:"2025-02-07"},
+      {mat:"01",nom:"Bill Krakenhood",gradeLspd:"Sergent II — L.S.P.D.",gradeBI:"Agent de P.B.",unit:"S.C.U.",id:"12110",isVacant:false,isChef:false,gradeHier:55,datePromo:"2026-03-08"},
+      {mat:"53",nom:"Max Collins",gradeLspd:"Officier III — L.S.P.D.",gradeBI:"Recrue",unit:"S.C.U.",id:"52227",isVacant:false,isChef:false,gradeHier:50,datePromo:"2025-11-02"},
+      {mat:"17",nom:"Lexa Dupont",gradeLspd:"Officier II — L.S.P.D.",gradeBI:"Recrue",unit:"S.C.U.",id:"54723",isVacant:false,isChef:false,gradeHier:50,datePromo:"2026-01-27"}
+    ]
   };
-
-  // ── warrants ──
-  _unsubs.push(FS.collection('warrants').onSnapshot(snap => {
-    DB.warrants = snapToArray(snap);
-    if(currentEmail) {
-      renderUpcomingEvents();
-      if(document.getElementById('warrants-overlay').classList.contains('open')) renderWarrants();
-      if(document.getElementById('archives-overlay').classList.contains('open')) renderArchives();
-      showSync();
-    }
-  }));
-
-  // ── bracelets ──
-  _unsubs.push(FS.collection('bracelets').onSnapshot(snap => {
-    DB.bracelets = snapToArray(snap);
-    if(currentEmail) {
-      if(document.getElementById('bracelets-overlay').classList.contains('open')) renderBracelets();
-      if(document.getElementById('archives-overlay').classList.contains('open')) renderArchives();
-      showSync();
-    }
-  }));
-
-  // ── events ──
-  _unsubs.push(FS.collection('events').onSnapshot(snap => {
-    DB.events = snapToArray(snap);
-    if(currentEmail) {
-      renderUpcomingEvents();
-      if(document.getElementById('calendrier-overlay').classList.contains('open')) renderCalendrierModal();
-      showSync();
-    }
-  }));
-
-  // ── effectif ──
-  _unsubs.push(FS.collection('effectif').onSnapshot(snap => {
-    DB.effectif = snapToArray(snap);
-    if(currentEmail) {
-      renderEffectif();
-      if(document.getElementById('admin-overlay').classList.contains('open')) renderAdminEf();
-      showSync();
-    }
-  }));
-
-  // ── users ──
-  _unsubs.push(FS.collection('users').onSnapshot(snap => {
-    const newUsers = {};
-    snap.forEach(doc => {
-      const d = doc.data();
-      const email = d._email || doc.id.replace(/__AT__/g,'@').replace(/_/g,'.');
-      newUsers[email] = {name:d.name, pw:d.pw, role:d.role};
-    });
-    DB.users = newUsers;
-    if(currentEmail && document.getElementById('admin-overlay').classList.contains('open')) renderAccounts();
-    showSync();
-  }));
-
-  // ── service ──
-  _unsubs.push(FS.collection('service').onSnapshot(snap => {
-    DB.service = snapToArray(snap);
-    if(currentEmail) {
-      if(document.getElementById('service-overlay').classList.contains('open')) renderRecentService();
-      showSync();
-    }
-  }));
-
-  // ── notes ──
-  _unsubs.push(FS.collection('notes').onSnapshot(snap => {
-    DB.notes = {};
-    snap.forEach(doc => { DB.notes[doc.id] = doc.data(); });
-    showSync();
-  }));
-
-  // ── online ──
-  _unsubs.push(FS.collection('online').onSnapshot(snap => {
-    DB.online = {};
-    snap.forEach(doc => {
-      const d = doc.data();
-      const email = d._email || doc.id.replace(/__AT__/g,'@').replace(/_/g,'.');
-      DB.online[email] = {name:d.name, since:d.since};
-    });
-    if(currentEmail && document.getElementById('admin-overlay').classList.contains('open')) refreshOnline();
-  }));
+  saveDB(d);return d;
 }
 
-// ── Indicateur de sync ──
-function showSync() {
-  let el = document.getElementById('sync-dot');
-  if(!el) {
-    el = document.createElement('div');
-    el.id = 'sync-dot';
-    el.style.cssText = 'position:fixed;bottom:5.5rem;right:2rem;background:#065f46;color:#ecfdf5;font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:0.1em;padding:5px 12px;border-radius:3px;z-index:999;opacity:0;transition:opacity 0.4s;pointer-events:none;';
-    document.body.appendChild(el);
-  }
-  el.textContent = '↻ Synchronisé';
-  el.style.opacity = '1';
-  clearTimeout(el._t);
-  el._t = setTimeout(() => el.style.opacity = '0', 2000);
-}
+let DB=initDB(),currentEmail=null,currentUser=null,userRole='agent';
+const isDirection=()=>userRole==='direction';
+const isResp=()=>userRole==='direction'||userRole==='responsable';
+const roleName=r=>r==='direction'?'Direction':r==='responsable'?'Responsable':'Agent';
 
-// ══════════════════════════════════════════════
-// NOTES — override des fonctions (stockées dans Firestore/notes)
-// ══════════════════════════════════════════════
-function noteKey(email){ return 'note_' + email.replace(/[^a-z0-9]/gi,'_'); }
+// Touch session on activity
+['click','keydown','scroll'].forEach(ev=>document.addEventListener(ev,()=>{if(currentEmail)saveSess(currentEmail);},{passive:true}));
 
-async function saveNoteToFS(){
-  if(!currentNoteKey || !FS) return;
-  const content = document.getElementById('notes-textarea').value;
-  const now = new Date().toLocaleString('fr-FR');
-  const data = {content, lastEdit:now, savedBy:currentUser};
-  DB.notes[currentNoteKey] = data;
-  await fsSet('notes', currentNoteKey, data);
-  document.getElementById('notes-editor-meta').textContent = 'Dernière modification : '+now;
-  const badge = document.getElementById('notes-saved-badge');
-  badge.style.display = 'inline';
-  setTimeout(() => badge.style.display = 'none', 2500);
-}
-
-function selectNote(target){
-  document.querySelectorAll('.notes-my-note-btn,.notes-agent-btn').forEach(b=>b.classList.remove('active'));
-  const isMe = target === 'me';
-  const email = isMe ? currentEmail : target;
-  currentNoteKey = noteKey(email);
-  const userName = isMe ? currentUser : (DB.users[email]?DB.users[email].name:email);
-  const canEdit = isMe;
-  if(isMe){ document.getElementById('notes-my-btn').classList.add('active'); }
-  else { const b=document.getElementById('note-btn-'+currentNoteKey); if(b)b.classList.add('active'); }
-  // Charger depuis DB.notes (mis à jour par onSnapshot)
-  const noteData = DB.notes[currentNoteKey] || {content:'', lastEdit:''};
-  const ta = document.getElementById('notes-textarea');
-  ta.value = noteData.content || '';
-  ta.disabled = !canEdit;
-  document.getElementById('notes-editor-title').textContent = isMe?'Ma note personnelle':'Note de '+userName;
-  document.getElementById('notes-editor-meta').textContent = noteData.lastEdit?'Dernière modification : '+noteData.lastEdit:'Aucune modification enregistrée';
-  document.getElementById('notes-readonly-badge').style.display = canEdit?'none':'inline-block';
-  document.getElementById('notes-save-btn').disabled = !canEdit;
-  document.getElementById('notes-saved-badge').style.display = 'none';
-}
-
-// ══════════════════════════════════════════════
-// TOUCH SESSION
-// ══════════════════════════════════════════════
-['click','keydown','scroll'].forEach(ev =>
-  document.addEventListener(ev, ()=>{ if(currentEmail) saveSess(currentEmail); }, {passive:true})
-);
-
-// ══════════════════════════════════════════════
-// LOGIN / LOGOUT
-// ══════════════════════════════════════════════
+// ═══ LOGIN ═══
 function doLogin(email){
-  const u = DB.users[email];
-  if(!u) return false;
-  currentEmail = email; currentUser = u.name; userRole = u.role||'agent';
-  DB.online[email] = {name:u.name, since:new Date().toISOString()};
-  saveOnline(); // async fire-and-forget
-  saveSess(email);
-  document.getElementById('nav-username').textContent = currentUser;
-  document.getElementById('hero-username').textContent = currentUser;
-  const rb = document.getElementById('nav-role-badge');
-  rb.textContent = roleName(userRole); rb.className = 'nav-role-badge role-'+userRole;
-  document.getElementById('admin-nav-btn').style.display   = isDirection()?'inline-block':'none';
-  document.getElementById('service-nav-btn').style.display = isResp()?'inline-block':'none';
-  document.getElementById('session-timer').style.display   = 'inline';
-  if(isDirection()) document.getElementById('portal-wrap').classList.add('admin-mode');
+  DB=loadDB()||initDB();
+  const u=DB.users[email];
+  if(!u)return false;
+  currentEmail=email;currentUser=u.name;userRole=u.role||'agent';
+  DB.online[email]={name:u.name,since:new Date().toISOString()};
+  saveDB(DB);saveSess(email);
+  document.getElementById('nav-username').textContent=currentUser;
+  document.getElementById('hero-username').textContent=currentUser;
+  const rb=document.getElementById('nav-role-badge');
+  rb.textContent=roleName(userRole);rb.className='nav-role-badge role-'+userRole;
+  document.getElementById('admin-nav-btn').style.display=isDirection()?'inline-block':'none';
+  document.getElementById('service-nav-btn').style.display=isResp()?'inline-block':'none';
+  document.getElementById('session-timer').style.display='inline';
+  if(isDirection())document.getElementById('portal-wrap').classList.add('admin-mode');
   document.getElementById('login-page').classList.remove('active');
   document.getElementById('portal-page').classList.add('active');
-  renderEffectif();
-  renderUpcomingEvents();
+  renderEffectif();renderUpcomingEvents();
   return true;
 }
-
 function handleLogin(){
-  const email = document.getElementById('email').value.trim().toLowerCase();
-  const pw    = document.getElementById('password').value;
-  const u     = DB.users[email];
-  if(u && u.pw === pw){
-    document.getElementById('login-err').classList.remove('show');
-    doLogin(email); window.scrollTo(0,0);
-  } else {
-    document.getElementById('login-err').classList.add('show');
-    document.getElementById('password').value = '';
-  }
+  const email=document.getElementById('email').value.trim().toLowerCase();
+  const pw=document.getElementById('password').value;
+  DB=loadDB()||initDB();
+  const u=DB.users[email];
+  if(u&&u.pw===pw){document.getElementById('login-err').classList.remove('show');doLogin(email);window.scrollTo(0,0);}
+  else{document.getElementById('login-err').classList.add('show');document.getElementById('password').value='';}
 }
-
 function handleLogout(){
-  if(currentEmail && DB.online[currentEmail]){
-    delete DB.online[currentEmail];
-    saveOnline();
-  }
-  _unsubs.forEach(u=>u()); _unsubs.length=0;
-  clearSess();
-  currentEmail=null; currentUser=null; userRole='agent';
+  if(currentEmail&&DB.online[currentEmail]){delete DB.online[currentEmail];saveDB(DB);}
+  clearSess();currentEmail=null;currentUser=null;userRole='agent';
   document.getElementById('portal-page').classList.remove('active');
   document.getElementById('portal-wrap').classList.remove('admin-mode');
   document.getElementById('login-page').classList.add('active');
   document.getElementById('session-timer').style.display='none';
-  document.getElementById('email').value='';
-  document.getElementById('password').value='';
+  document.getElementById('email').value='';document.getElementById('password').value='';
   document.getElementById('login-err').classList.remove('show');
 }
 
@@ -1798,6 +1465,7 @@ function sortGroup(members){
   });
 }
 function renderEffectif(){
+  DB=loadDB()||initDB();
   const ef=DB.effectif;
   const direction=sortGroup(ef.filter(m=>m.unit==='Direction'));
   const dd=sortGroup(ef.filter(m=>m.unit==='Det. Division'||m.unit==='S. Plaintes'));
@@ -1821,7 +1489,7 @@ function renderEffectif(){
 
 // ═══ WARRANTS ═══
 const badgeMapW={'Risque très élevé':'wb-vhigh','Risque élevé':'wb-high','Risque Moyen':'wb-mid','Risque Faible':'wb-low'};
-function openWarrants(){renderWarrants();document.getElementById('warrants-overlay').classList.add('open');}
+function openWarrants(){DB=loadDB()||initDB();renderWarrants();document.getElementById('warrants-overlay').classList.add('open');}
 function closeWarrants(){document.getElementById('warrants-overlay').classList.remove('open');}
 function renderWarrants(){
   const tbody=document.getElementById('warrants-tbody'),nodata=document.getElementById('warrants-nodata');
@@ -1880,7 +1548,7 @@ function saveEditWarrant(){
 }
 
 // ═══ BRACELETS ═══
-function openBracelets(){renderBracelets();document.getElementById('bracelets-overlay').classList.add('open');}
+function openBracelets(){DB=loadDB()||initDB();renderBracelets();document.getElementById('bracelets-overlay').classList.add('open');}
 function closeBracelets(){document.getElementById('bracelets-overlay').classList.remove('open');}
 const getStCls=s=>{if(!s)return'';if(s==='Brisé')return'st-brise';if(s==='À convoquer')return'st-conv';if(s==='À pointer')return'st-point';if(s==='À retirer')return'st-ret';return'';};
 const getPtCls=s=>{if(!s)return'';if(s.includes('EN RETARD'))return'sp-retard';if(s.includes('EN COURS'))return'sp-cours';return'';};
@@ -1992,7 +1660,7 @@ let calCurrentDate=new Date();
 const EV_COLORS={'interrogatoire':'#1e40af','perquisition':'#166534','psychologue':'#6b21a8','ag':'#991b1b','autre':'#57534e'};
 const EV_LABELS={'interrogatoire':'Interrogatoire','perquisition':'Perquisition','psychologue':'Psychologue','ag':'Assemblée générale','autre':'Autre'};
 
-function openCalendrier(){renderCalendrierModal();document.getElementById('calendrier-overlay').classList.add('open');}
+function openCalendrier(){DB=loadDB()||initDB();renderCalendrierModal();document.getElementById('calendrier-overlay').classList.add('open');}
 function closeCalendrier(){document.getElementById('calendrier-overlay').classList.remove('open');}
 
 function buildCalHTML(containerId){
@@ -2150,7 +1818,7 @@ function deleteEvent(){
 }
 
 // ═══ ARCHIVES ═══
-function openArchives(){renderArchives();document.getElementById('archives-overlay').classList.add('open');}
+function openArchives(){DB=loadDB()||initDB();renderArchives();document.getElementById('archives-overlay').classList.add('open');}
 function closeArchives(){document.getElementById('archives-overlay').classList.remove('open');}
 function switchArchTab(id,el){
   document.querySelectorAll('.arch-tab-content').forEach(t=>t.classList.remove('active'));
@@ -2195,7 +1863,7 @@ function renderArchives(){
 
 // ═══ TEMPS DE SERVICE ═══
 let svcChartInst=null,svcChartMode='month',svcCurrentAgentId=null;
-function openService(){populateSvcAgents();renderRecentService();document.getElementById('service-overlay').classList.add('open');}
+function openService(){DB=loadDB()||initDB();populateSvcAgents();renderRecentService();document.getElementById('service-overlay').classList.add('open');}
 function closeService(){document.getElementById('service-overlay').classList.remove('open');}
 function switchSvcTab(id,el){document.querySelectorAll('#service-overlay .atab-content').forEach(t=>t.classList.remove('active'));document.querySelectorAll('#service-overlay .atab').forEach(t=>t.classList.remove('active'));document.getElementById(id).classList.add('active');el.classList.add('active');}
 function populateSvcAgents(){
@@ -2457,7 +2125,7 @@ function renderSvcChart(entries,mode){
 }
 
 // ═══ ADMIN ═══
-function openAdmin(){if(!isDirection())return;refreshOnline();renderAccounts();renderAdminEf();document.getElementById('admin-overlay').classList.add('open');}
+function openAdmin(){if(!isDirection())return;DB=loadDB()||initDB();refreshOnline();renderAccounts();renderAdminEf();document.getElementById('admin-overlay').classList.add('open');}
 function closeAdmin(){document.getElementById('admin-overlay').classList.remove('open');}
 function switchAdminTab(id,el){
   document.querySelectorAll('#admin-overlay .atab-content').forEach(t=>t.classList.remove('active'));
@@ -2466,7 +2134,7 @@ function switchAdminTab(id,el){
   if(id==='t-online')refreshOnline();if(id==='t-accounts')renderAccounts();if(id==='t-effectif')renderAdminEf();
 }
 function refreshOnline(){
-  const now=new Date();
+  DB=loadDB()||initDB();const now=new Date();
   document.getElementById('online-time').textContent=now.toLocaleTimeString('fr-FR');
   const entries=Object.entries(DB.online||{});
   const el=document.getElementById('online-list');
@@ -2476,6 +2144,7 @@ function refreshOnline(){
   </tbody></table>`;
 }
 function renderAccounts(){
+  DB=loadDB()||initDB();
   document.getElementById('accounts-list').innerHTML=`<table class="a-table"><thead><tr><th>Nom</th><th>E-mail</th><th>Mot de passe</th><th>Rôle</th><th>Action</th></tr></thead><tbody>
     ${Object.entries(DB.users).map(([e,u])=>`<tr>
       <td>${u.name}</td><td style="font-size:10px;">${e}</td>
@@ -2501,6 +2170,7 @@ function addAccount(){
 }
 function removeAccount(e){if(!confirm('Supprimer le compte de '+DB.users[e].name+'?'))return;delete DB.users[e];if(DB.online&&DB.online[e])delete DB.online[e];saveDB(DB);renderAccounts();}
 function renderAdminEf(){
+  DB=loadDB()||initDB();
   document.getElementById('admin-ef-list').innerHTML=`<table class="a-table"><thead><tr><th>Mat.</th><th>Nom</th><th>Grade B.I.</th><th>Unité</th><th>Rang</th><th>Promo</th><th></th></tr></thead><tbody>
     ${DB.effectif.map((m,i)=>`<tr><td>${m.mat}</td><td>${m.nom}</td><td style="font-size:10px;">${m.gradeBI}</td><td><span class="agent-unit" style="font-size:9px;">${m.unit}</span></td><td style="font-family:'IBM Plex Mono',monospace;font-size:10px;">${m.gradeHier||'—'}</td><td style="font-family:'IBM Plex Mono',monospace;font-size:10px;">${m.datePromo||'—'}</td><td><button style="background:none;border:1px solid var(--amber-dim);color:var(--amber-dim);font-family:'IBM Plex Mono',monospace;font-size:9px;padding:2px 7px;cursor:pointer;" onclick="openEfFromAdmin(${i})">✏</button></td></tr>`).join('')}
   </tbody></table>`;
@@ -2515,7 +2185,7 @@ function addMember(){
 }
 function openEfFromAdmin(i){closeAdmin();openEditMember(i);}
 function openEditMember(i){
-  const m=DB.effectif[i];
+  DB=loadDB()||initDB();const m=DB.effectif[i];
   document.getElementById('em-idx').value=i;document.getElementById('em-mat').value=m.mat;document.getElementById('em-nom').value=m.nom;
   document.getElementById('em-glspd').value=m.gradeLspd.replace(' — L.S.P.D.','').replace(' — L.S.P.D','');
   document.getElementById('em-gbi').value=m.gradeBI;document.getElementById('em-unit').value=m.unit;document.getElementById('em-id').value=m.id||'';
@@ -2645,6 +2315,7 @@ function renderUpcomingEvents(){
 let currentNoteKey=null;
 function noteKey(email){return'note_'+email.replace(/[^a-z0-9]/gi,'_');}
 function openNotes(){
+  DB=loadDB()||initDB();
   buildNotesSidebar();
   selectNote('me');
   document.getElementById('notes-overlay').classList.add('open');
@@ -2690,9 +2361,19 @@ function selectNote(target){
   saveBtn.disabled=!canEdit;
   document.getElementById('notes-saved-badge').style.display='none';
 }
-function saveNote(){ saveNoteToFS(); }
+function saveNote(){
+  if(!currentNoteKey)return;
+  const content=document.getElementById('notes-textarea').value;
+  const now=new Date().toLocaleString('fr-FR');
+  const data={content,lastEdit:now,savedBy:currentUser};
+  localStorage.setItem('lspd_note_'+currentNoteKey,JSON.stringify(data));
+  document.getElementById('notes-editor-meta').textContent='Dernière modification : '+now;
+  const badge=document.getElementById('notes-saved-badge');
+  badge.style.display='inline';
+  setTimeout(()=>badge.style.display='none',2500);
+}
 document.addEventListener('DOMContentLoaded',()=>{
-  
+  DB=initDB();
   const sess=loadSess();
   if(sess){const ok=doLogin(sess.email);if(!ok)clearSess();}
 });
