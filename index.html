@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>L.S.P.D. — Detective Bureau Portal</title>
+<title>L.S.P.D. — Criminal Investigation Union Portal</title>
 <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=IBM+Plex+Mono:wght@300;400;500;600&family=Barlow+Condensed:wght@300;400;600;700;900&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
@@ -478,7 +478,7 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
       <img src="db_logo.png" alt="DB Logo" style="width:56px;height:56px;object-fit:contain;filter:drop-shadow(0 2px 8px rgba(181,130,26,0.4));" onerror="this.style.display='none'">
       <div>
         <div class="login-hd">Los Santos Police Department</div>
-        <div class="login-ht">Detective<br>Bureau</div>
+        <div class="login-ht">Criminal Investigation<br>Union</div>
         <div class="login-hs">Portail Interne — Bureau des Inspecteurs</div>
       </div>
     </div>
@@ -486,10 +486,10 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
       <div class="login-warn"><span>⚠ Accès restreint — Personnel autorisé uniquement</span></div>
       <div class="lfield"><label class="llabel" for="email">Adresse e-mail institutionnelle</label><input class="linput" type="email" id="email" placeholder="prenom.nom@gmail.com" autocomplete="off"></div>
       <div class="lfield"><label class="llabel" for="password">Code d'accès</label><input class="linput" type="password" id="password" placeholder="••••••••" autocomplete="off"></div>
-      <button class="login-btn" onclick="handleLogin()">Connexion — Système D.B.</button>
-      <div class="login-err" id="login-err">✕ &nbsp;Accès refusé — Identifiants non reconnus dans la base D.B.</div>
+      <button class="login-btn" onclick="handleLogin()">Connexion — Système C.I.U.</button>
+      <div class="login-err" id="login-err">✕ &nbsp;Accès refusé — Identifiants non reconnus dans la base C.I.U.</div>
     </div>
-    <div class="login-foot">© L.S.P.D. — Detective Bureau &nbsp;|&nbsp; Usage interne &nbsp;|&nbsp; San Andreas</div>
+    <div class="login-foot">© L.S.P.D. — Criminal Investigation Union &nbsp;|&nbsp; Usage interne &nbsp;|&nbsp; San Andreas</div>
   </div>
 </div>
 
@@ -500,7 +500,7 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
 <nav>
   <div class="nav-brand">
     <img src="db_logo.png" alt="DB" class="nav-logo" style="width:34px;height:34px;object-fit:contain;" onerror="this.style.display='none'">
-    <span class="nav-title">L.S.P.D. — <span>Detective Bureau</span></span>
+    <span class="nav-title">L.S.P.D. — <span>Criminal Investigation Union</span></span>
   </div>
   <div class="nav-right">
     <span class="nav-user">Agent : <strong id="nav-username">—</strong></span>
@@ -516,7 +516,7 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
 
 <div class="top-banner">
   <span>Los Santos Police Department</span><span class="bsep">///</span>
-  <span>Detective Bureau</span><span class="bsep">///</span>
+  <span>Criminal Investigation Union</span><span class="bsep">///</span>
   <span>Detective Division & Street Crimes Unit — Portail Interne</span>
 </div>
 
@@ -526,15 +526,15 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
     <img src="db_logo.png" alt="DB Logo" class="emb-svg" style="width:150px;height:150px;object-fit:contain;filter:drop-shadow(3px 4px 12px rgba(0,0,0,0.18));" onerror="this.style.display='none'">
     <div style="display:flex;align-items:center;gap:10px;margin-top:0.5rem;">
       <img src="dd_logo.png" alt="DD Logo" style="width:38px;height:38px;border-radius:50%;border:2px solid var(--amber);object-fit:cover;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.15));" onerror="this.style.display='none'">
-      <div class="emb-sub" style="text-align:left;">D.B. — Insigne Officiel<br>Det. Bureau · Los Santos</div>
+      <div class="emb-sub" style="text-align:left;">C.I.U. — Insigne Officiel<br>Det. Bureau · Los Santos</div>
     </div>
   </div>
   <div>
     <div class="hero-eyebrow">Bureau spécialisé — L.S.P.D.</div>
-    <h1>Detective<br>Bureau</h1>
+    <h1>Criminal Investigation<br>Union</h1>
     <div class="hero-sub">Detective Division & Street Crimes Unit</div>
     <div class="hero-bar"></div>
-    <p class="hero-desc">Le Detective Bureau regroupe la Detective Division (D.D.) et la Street Crimes Unit (S.C.U.), les deux unités d'investigation du Los Santos Police Department. Discrétion, rigueur et méthode sont nos seules armes.</p>
+    <p class="hero-desc">Le Criminal Investigation Union regroupe la Detective Division (D.D.) et la Street Crimes Unit (S.C.U.), les deux unités d'investigation du Los Santos Police Department. Discrétion, rigueur et méthode sont nos seules armes.</p>
     <div class="hero-welcome">Accès authentifié — Agent : <strong id="hero-username">—</strong></div>
     <div class="stamps-row"><span class="stamp stamp-red">Unité active</span><span class="stamp stamp-green">Portail Officiel</span></div>
   </div>
@@ -542,8 +542,8 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
 
 <!-- GATEWAY -->
 <div class="gway-section">
-  <div class="sec-head"><span class="sec-num">§ 00</span><h2 class="sec-title">Accès Rapide — Outils D.B.</h2><div class="sec-rule"></div></div>
-  <div class="info-box"><p>Sélectionnez un module pour accéder aux outils opérationnels. Tout accès est journalisé. Ces ressources sont réservées au personnel habilité du Detective Bureau.</p></div>
+  <div class="sec-head"><span class="sec-num">§ 00</span><h2 class="sec-title">Accès Rapide — Outils C.I.U.</h2><div class="sec-rule"></div></div>
+  <div class="info-box"><p>Sélectionnez un module pour accéder aux outils opérationnels. Tout accès est journalisé. Ces ressources sont réservées au personnel habilité du Criminal Investigation Union.</p></div>
   <div class="gway-grid">
     <div class="gcard" onclick="openWarrants()">
       <div class="gi">🔍</div><div class="gc">Module A — D.D. Ops</div>
@@ -555,7 +555,7 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
       <div class="gi">📋</div><div class="gc">Module B — Renseignement</div>
       <div class="gt">Prise d'Informations</div>
       <p class="gd">Collecte et consignation des informations terrain. Formulaires standardisés D.D.</p>
-      <span class="gbadge bg-int">Interne D.B.</span>
+      <span class="gbadge bg-int">Interne C.I.U.</span>
     </div>
     <div class="gcard" onclick="openBracelets()">
       <div class="gi">📡</div><div class="gc">Module C — Surveillance</div>
@@ -571,15 +571,15 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
     </a>
     <div class="gcard" onclick="openCalendrier()">
       <div class="gi">📅</div><div class="gc">Module E — Planning</div>
-      <div class="gt">Calendrier D.B.</div>
+      <div class="gt">Calendrier C.I.U.</div>
       <p class="gd">Planifier et consulter les événements : interrogatoires, perquisitions, assemblées générales.</p>
-      <span class="gbadge bg-int">Interne D.B.</span>
+      <span class="gbadge bg-int">Interne C.I.U.</span>
     </div>
     <div class="gcard" onclick="openArchives()">
       <div class="gi">🗃️</div><div class="gc">Module F — Archives</div>
       <div class="gt">Archives</div>
       <p class="gd">Consulter les avis de recherche et bracelets électroniques clôturés.</p>
-      <span class="gbadge bg-int">Archives D.B.</span>
+      <span class="gbadge bg-int">Archives C.I.U.</span>
     </div>
     <div class="gcard" onclick="showManuels()">
       <div class="gi">📚</div><div class="gc">Module G — Formation</div>
@@ -604,24 +604,20 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
     <div class="manuels-wrap">
       <div class="manuels-head">
         <span>Module G — Manuels & Documents</span>
-        <button onclick="hideManuels()" style="background:none;border:none;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--gray-light);cursor:pointer;">✕</button>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button id="manuels-edit-btn" onclick="openManuelsEditor()" style="display:none;background:rgba(181,130,26,0.15);border:1px solid rgba(181,130,26,0.3);color:var(--amber-dim);font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:4px 10px;cursor:pointer;">✏ Gérer</button>
+          <button onclick="hideManuels()" style="background:none;border:none;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--gray-light);cursor:pointer;">✕</button>
+        </div>
       </div>
-      <div class="manuels-grid">
-        <a href="https://docs.google.com/presentation/d/1Gt8CqScOCVQUIwzG4_ew1ME1s3v8IKBCA0RkO2qbRrk/edit?usp=sharing" target="_blank" class="ml"><span style="font-size:20px;">🔒</span><div><div class="ml-title">Manuel Bracelets Électroniques</div><div class="ml-sub">Formation — D.D.</div></div></a>
-        <a href="https://docs.google.com/presentation/d/1rI8GxHcYUptwd1VyZ1o3oDR4U8Ah_LCzusujAQjbXB4/edit?slide=id.g2b540d2a35a_0_195" target="_blank" class="ml"><span style="font-size:20px;">📝</span><div><div class="ml-title">Manuel Traitement de Plainte</div><div class="ml-sub">Formation — S. Plaintes</div></div></a>
-        <a href="https://docs.google.com/presentation/d/1O7M6_VxHNDTHrby6lGjLqbWoxN7PtmgMVz1Ndd1V1ng/edit?slide=id.g2b226f655ca_0_0" target="_blank" class="ml"><span style="font-size:20px;">⚠️</span><div><div class="ml-title">Manuel Vice de Procédure</div><div class="ml-sub">Formation — Juridique</div></div></a>
-        <a href="https://docs.google.com/presentation/d/1SxqIE_CPIuGVjluevbBZSs063jNNjYWQGpVjiy1eevs/edit?slide=id.g2b226f655ca_0_0" target="_blank" class="ml"><span style="font-size:20px;">🔬</span><div><div class="ml-title">Manuel Collecte de Preuves</div><div class="ml-sub">Formation — Forensique</div></div></a>
-        <a href="https://docs.google.com/presentation/d/18Yj8AXoLeYXD7WzYQFTfJaHBkX5Kzvt7gpmNh2MasR8/edit?slide=id.g2b226f655ca_0_0" target="_blank" class="ml"><span style="font-size:20px;">🏢</span><div><div class="ml-title">Liste des Bureaux</div><div class="ml-sub">Detective Bureau</div></div></a>
-        <a href="https://docs.google.com/document/d/1OgG3DJCqZl4eKgihsbvGrgT-PgHvGBJyOWFcYOBpqTg/edit?tab=t.0" target="_blank" class="ml classified"><span style="font-size:20px;">📬</span><div><div class="ml-title">Modèle de Convocation</div><div class="ml-sub">Confidentiel — D.B.</div></div></a>
-      </div>
+      <div class="manuels-grid" id="manuels-dynamic-grid"></div>
     </div>
   </div>
 </div>
 
 <!-- § 01 MISSIONS -->
 <div class="section-bg"><section id="missions">
-  <div class="sec-head"><span class="sec-num">§ 01</span><h2 class="sec-title">Missions & Compétences — D.B.</h2><div class="sec-rule"></div></div>
-  <div class="info-box"><p>Le Detective Bureau opère via deux unités : la Detective Division (D.D.) chargée des enquêtes criminelles, et la Street Crimes Unit (S.C.U.) dédiée aux délits de terrain. Les deux opèrent en civil sous couverture Echo.</p></div>
+  <div class="sec-head"><span class="sec-num">§ 01</span><h2 class="sec-title">Missions & Compétences — C.I.U.</h2><div class="sec-rule"></div></div>
+  <div class="info-box"><p>Le Criminal Investigation Union opère via deux unités : la Detective Division (D.D.) chargée des enquêtes criminelles, et la Street Crimes Unit (S.C.U.) dédiée aux délits de terrain. Les deux opèrent en civil sous couverture Echo.</p></div>
   <div class="mission-grid">
     <div class="mission-card"><div class="mission-num">01</div><div class="mission-title">Investigations criminelles</div><p class="mission-desc">D.D. — Conduite des enquêtes sur les homicides, assassinats et affaires de criminalité grave. Collecte de preuves et auditions.</p></div>
     <div class="mission-card"><div class="mission-num">02</div><div class="mission-title">Surveillance & Filature</div><p class="mission-desc">D.D. — Opérations de surveillance discrète, filatures en véhicule banalisé, recueil de renseignements terrain.</p></div>
@@ -634,8 +630,8 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
 
 <!-- § 02 EFFECTIF -->
 <section id="effectif">
-  <div class="sec-head"><span class="sec-num">§ 02</span><h2 class="sec-title">Registre du Personnel — D.B.</h2><div class="sec-rule"></div></div>
-  <div class="info-box"><p>Registre officiel des agents affectés au Detective Bureau. La hiérarchie au sein du D.B. est la suivante : <strong>Directeur → Directeur Adjoint → Responsable → Inspecteur / Officier Principal → Inspecteur / Agent de P.B. → Enquêteur / Recrue</strong>. À grade égal, l'ancienneté prime. Document interne — ne pas divulguer.</p></div>
+  <div class="sec-head"><span class="sec-num">§ 02</span><h2 class="sec-title">Registre du Personnel — C.I.U.</h2><div class="sec-rule"></div></div>
+  <div class="info-box"><p>Registre officiel des agents affectés au Criminal Investigation Union. La hiérarchie au sein du C.I.U. est la suivante : <strong>Directeur → Directeur Adjoint → Responsable → Inspecteur / Officier Principal → Inspecteur / Agent de P.B. → Enquêteur / Recrue</strong>. À grade égal, l'ancienneté prime. Document interne — ne pas divulguer.</p></div>
   <div id="effectif-container"></div>
 </section>
 
@@ -658,8 +654,8 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
 
 <!-- § 04 CODE PÉNAL -->
 <div class="dark-wrap"><div class="dark-inner" id="penal">
-  <div class="sec-head"><span class="sec-num">§ 04</span><h2 class="sec-title">[D.D. × D.O.J.] Code Pénal — Niveaux de Risque</h2><div class="sec-rule"></div></div>
-  <p style="font-size:12px;color:rgba(242,234,216,0.5);margin-bottom:1rem;line-height:1.6;">Source : <a href="https://docs.google.com/spreadsheets/d/1jU0FH00c-5lCGhBOcRV0Sqa2BLYmlgJ35AaHYfL_s4c/edit?gid=0#gid=0" target="_blank" style="color:var(--amber-dim);text-decoration:underline;">Spreadsheet D.D. × D.O.J.</a> — Classement opérationnel interne D.B.</p>
+  <div class="sec-head"><span class="sec-num">§ 04</span><h2 class="sec-title">[D.D. × D.O.J.] Code Pénal — Niveaux de Risque</h2><div class="sec-rule"></div><button id="penal-edit-btn" onclick="openPenalEditor()" style="display:none;background:rgba(181,130,26,0.2);border:1px solid var(--amber-dim);color:var(--amber-light);font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:5px 12px;cursor:pointer;flex-shrink:0;white-space:nowrap;">✏ Modifier</button></div>
+  <p style="font-size:12px;color:rgba(242,234,216,0.5);margin-bottom:1rem;line-height:1.6;">Source : <a href="https://docs.google.com/spreadsheets/d/1jU0FH00c-5lCGhBOcRV0Sqa2BLYmlgJ35AaHYfL_s4c/edit?gid=0#gid=0" target="_blank" style="color:var(--amber-dim);text-decoration:underline;">Spreadsheet D.D. × D.O.J.</a> — Classement opérationnel interne C.I.U.</p>
   <div style="display:flex;gap:0.6rem;flex-wrap:wrap;margin-bottom:1.5rem;">
     <span class="risk r0" style="font-size:10px;padding:3px 10px;">Aucun risque</span>
     <span class="risk r1" style="font-size:10px;padding:3px 10px;">Risque faible</span>
@@ -667,162 +663,81 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
     <span class="risk r3" style="font-size:10px;padding:3px 10px;">Risque élevé</span>
     <span class="risk r4" style="font-size:10px;padding:3px 10px;">Risque très élevé</span>
   </div>
-  <div class="penal-grid">
-    <!-- TITRE I -->
-    <div class="pchap"><div class="pchap-title">Titre I — Ch. I — Complicité</div>
-      <div class="prow"><span class="part">Art. 111-1 — Complicité</span><span class="risk r0">Aucun</span></div>
-    </div>
-    <div class="pchap"><div class="pchap-title">Titre I — Ch. II — Légitime défense</div>
-      <div class="prow"><span class="part">Art. 112-1 — Droit à la légitime défense</span><span class="risk r0">Aucun</span></div>
-      <div class="prow"><span class="part">Art. 112-2 — Usage de la force mortelle</span><span class="risk r0">Aucun</span></div>
-      <div class="prow"><span class="part">Art. 112-3 — Protection domicile & véhicule</span><span class="risk r0">Aucun</span></div>
-      <div class="prow"><span class="part">Art. 112-4 — Absence de devoir de retraite</span><span class="risk r0">Aucun</span></div>
-      <div class="prow"><span class="part">Art. 112-5 — Exclusions et limites</span><span class="risk r0">Aucun</span></div>
-      <div class="prow"><span class="part">Art. 112-6 — Sanctions légitime défense abusive</span><span class="risk r0">Aucun</span></div>
-    </div>
-    <div class="pchap"><div class="pchap-title">Titre I — Ch. III — Traître du gouvernement</div>
-      <div class="prow"><span class="part">Art. 113-1 — Retrait illégal bracelet électronique</span><span class="risk r3">Élevé</span></div>
-      <div class="prow"><span class="part">Art. 113-2 — Rupture contrat de justice / police</span><span class="risk r3">Élevé</span></div>
-    </div>
-    <!-- LIVRE II — ATTEINTES À LA PERSONNE -->
-    <div class="pchap"><div class="pchap-title">Livre II — Ch. I — Atteintes à la vie</div>
-      <div class="prow"><span class="part">Art. 211-1 — Meurtre</span><span class="risk r1">Faible</span></div>
-      <div class="prow"><span class="part">Art. 211-1-1 — Tentative de meurtre / assassinat</span><span class="risk r1">Faible</span></div>
-      <div class="prow"><span class="part">Art. 211-2 — Assassinat</span><span class="risk r2">Moyen</span></div>
-      <div class="prow"><span class="part">Art. 211-3 — Trafic d'organes humains</span><span class="risk r3">Élevé</span></div>
-      <div class="prow"><span class="part">Art. 211-4 — Homicide involontaire</span><span class="risk r1">Faible</span></div>
-    </div>
-    <div class="pchap"><div class="pchap-title">Livre II — Ch. II — Mise en danger de la vie</div>
-      <div class="prow"><span class="part">Art. 212-1 — Mise en danger de la vie d'autrui</span><span class="risk r0">Aucun</span></div>
-      <div class="prow"><span class="part">Art. 212-2 — Non-assistance à personne en danger</span><span class="risk r0">Aucun</span></div>
-      <div class="prow"><span class="part">Art. 212-3 — Incitation au suicide</span><span class="risk r1">Faible</span></div>
-    </div>
-    <div class="pchap"><div class="pchap-title">Livre II — Ch. III S.1 — Intégrité physique</div>
-      <div class="prow"><span class="part">Art. 213-1 — Agression simple</span><span class="risk r1">Faible</span></div>
-      <div class="prow"><span class="part">Art. 213-2 — Agression avec préméditation</span><span class="risk r1">Faible</span></div>
-      <div class="prow"><span class="part">Art. 213-3 — Torture</span><span class="risk r4">Très élevé</span></div>
-      <div class="prow"><span class="part">Art. 213-4 — Menace criminelle</span><span class="risk r2">Moyen</span></div>
-    </div>
-    <div class="pchap"><div class="pchap-title">Livre II — Ch. III S.2 — Agressions sexuelles</div>
-      <div class="prow"><span class="part">Art. 213-5 — Viol ou tentative de viol</span><span class="risk r3">Élevé</span></div>
-      <div class="prow"><span class="part">Art. 213-6 — Viol en réunion</span><span class="risk r4">Très élevé</span></div>
-      <div class="prow"><span class="part">Art. 213-7 — Agressions sexuelles</span><span class="risk r3">Élevé</span></div>
-      <div class="prow"><span class="part">Art. 213-8 — Tentative d'agression sexuelle</span><span class="risk r2">Moyen</span></div>
-      <div class="prow"><span class="part">Art. 213-9 — Exhibition sexuelle</span><span class="risk r0">Aucun</span></div>
-    </div>
-    <div class="pchap"><div class="pchap-title">Livre II — Ch. III S.3 — Autres atteintes à la personne</div>
-      <div class="prow"><span class="part">Art. 213-10 — Harcèlement moral</span><span class="risk r2">Moyen</span></div>
-      <div class="prow"><span class="part">Art. 213-11 — Non-respect du secret professionnel</span><span class="risk r2">Moyen</span></div>
-      <div class="prow"><span class="part">Art. 213-12 — Diffamation publique</span><span class="risk r1">Faible</span></div>
-      <div class="prow"><span class="part">Art. 213-13 — Injure publique</span><span class="risk r0">Aucun</span></div>
-      <div class="prow"><span class="part">Art. 213-14 — Tapage de jour ou de nuit</span><span class="risk r0">Aucun</span></div>
-    </div>
-    <div class="pchap"><div class="pchap-title">Livre II — Ch. IV — Atteintes aux libertés</div>
-      <div class="prow"><span class="part">Art. 214-1 — Enlèvement et/ou séquestration</span><span class="risk r2">Moyen</span></div>
-      <div class="prow"><span class="part">Art. 214-2 — Prise d'otage</span><span class="risk r2">Moyen</span></div>
-      <div class="prow"><span class="part">Art. 214-3 — Prise de pouvoir sur un agent</span><span class="risk r2">Moyen</span></div>
-    </div>
-    <div class="pchap"><div class="pchap-title">Livre II — Ch. V — Atteintes à la propriété privée</div>
-      <div class="prow"><span class="part">Art. 215-1 — Violation de propriété privée</span><span class="risk r0">Aucun</span></div>
-    </div>
-    <!-- LIVRE III — ORDRE PUBLIC -->
-    <div class="pchap"><div class="pchap-title">Livre III — Ch. I — Administration publique</div>
-      <div class="prow"><span class="part">Art. 311-1 — Outrage envers un organisme public</span><span class="risk r1">Faible</span></div>
-      <div class="prow"><span class="part">Art. 311-2 — Outrage envers un agent assermenté</span><span class="risk r1">Faible</span></div>
-      <div class="prow"><span class="part">Art. 311-3 — Outrage en fait d'arrestation</span><span class="risk r1">Faible</span></div>
-      <div class="prow"><span class="part">Art. 311-4 — Détournement de fonds ou biens publics</span><span class="risk r2">Moyen</span></div>
-      <div class="prow"><span class="part">Art. 311-5 — Usurpation d'identité</span><span class="risk r1">Faible</span></div>
-      <div class="prow"><span class="part">Art. 311-6 — Usurpation de fonction</span><span class="risk r2">Moyen</span></div>
-    </div>
-    <div class="pchap"><div class="pchap-title">Livre III — Ch. II — Action de la justice</div>
-      <div class="prow"><span class="part">Art. 312-1 — Outrage à magistrat</span><span class="risk r1">Faible</span></div>
-      <div class="prow"><span class="part">Art. 312-2 — Délit de fuite</span><span class="risk r1">Faible</span></div>
-      <div class="prow"><span class="part">Art. 312-3 — Refus d'obtempérer</span><span class="risk r1">Faible</span></div>
-      <div class="prow"><span class="part">Art. 312-4 — Entrave à la justice simple</span><span class="risk r1">Faible</span></div>
-      <div class="prow"><span class="part">Art. 312-5 — Entrave par dépositaire de l'ordre public</span><span class="risk r2">Moyen</span></div>
-      <div class="prow"><span class="part">Art. 312-6 — Mensonge sous serment / faux témoignage</span><span class="risk r2">Moyen</span></div>
-      <div class="prow"><span class="part">Art. 312-7 — Divulgation d'informations classifiées</span><span class="risk r3">Élevé</span></div>
-      <div class="prow"><span class="part">Art. 312-8 — Dissimulation ou substitution de preuve</span><span class="risk r3">Élevé</span></div>
-      <div class="prow"><span class="part">Art. 312-9 — Appel 911 abusif</span><span class="risk r1">Faible</span></div>
-      <div class="prow"><span class="part">Art. 312-10 — Non-présentation d'une pièce d'identité</span><span class="risk r1">Faible</span></div>
-      <div class="prow"><span class="part">Art. 312-11 — Évasion</span><span class="risk r4">Très élevé</span></div>
-    </div>
-    <div class="pchap"><div class="pchap-title">Livre III — Ch. III — Paix publique</div>
-      <div class="prow"><span class="part">Art. 313-1 — Manifestations et rassemblements illégaux</span><span class="risk r1">Faible</span></div>
-      <div class="prow"><span class="part">Art. 313-2 — Trouble à l'ordre public simple</span><span class="risk r1">Faible</span></div>
-      <div class="prow"><span class="part">Art. 313-3 — Trouble à l'ordre public aggravé</span><span class="risk r2">Moyen</span></div>
-      <div class="prow"><span class="part">Art. 313-4 — Création d'hostilité envers l'autorité</span><span class="risk r1">Faible</span></div>
-      <div class="prow"><span class="part">Art. 313-5 — Membre d'une organisation criminelle</span><span class="risk r3">Élevé</span></div>
-    </div>
-    <!-- TITRE II — CORRUPTION & FAUX -->
-    <div class="pchap"><div class="pchap-title">Titre II — Ch. I — Corruption</div>
-      <div class="prow"><span class="part">Art. 321-1 — Corruption active ou passive</span><span class="risk r2">Moyen</span></div>
-      <div class="prow"><span class="part">Art. 321-2 — Tentative de corruption</span><span class="risk r2">Moyen</span></div>
-    </div>
-    <div class="pchap"><div class="pchap-title">Titre II — Ch. II — Faux & usage de faux</div>
-      <div class="prow"><span class="part">Art. 322-1 — Faux et usage de faux en écriture</span><span class="risk r1">Faible</span></div>
-    </div>
-    <!-- TITRE III — TERRORISME -->
-    <div class="pchap"><div class="pchap-title">Titre III — Ch. I — Terrorisme</div>
-      <div class="prow"><span class="part">Art. 331-1 — Acte terroriste</span><span class="risk r4">Très élevé</span></div>
-      <div class="prow"><span class="part">Art. 331-2 — Attaques chimiques / biologiques</span><span class="risk r4">Très élevé</span></div>
-    </div>
-    <!-- TITRE IV — DROGUES & ARMES -->
-    <div class="pchap"><div class="pchap-title">Titre IV — Ch. I — Drogues</div>
-      <div class="prow"><span class="part">Art. 411-1 — Consommation de substances illicites</span><span class="risk r1">Faible</span></div>
-      <div class="prow"><span class="part">Art. 411-2 — Possession de substances illicites</span><span class="risk r1">Faible</span></div>
-      <div class="prow"><span class="part">Art. 411-3 — Possession aggravée (grande quantité)</span><span class="risk r2">Moyen</span></div>
-      <div class="prow"><span class="part">Art. 411-4 — Distribution / Deal de drogues</span><span class="risk r2">Moyen</span></div>
-      <div class="prow"><span class="part">Art. 411-5 — Production / Fabrication de drogues</span><span class="risk r3">Élevé</span></div>
-      <div class="prow"><span class="part">Art. 411-6 — Trafic international de stupéfiants</span><span class="risk r3">Élevé</span></div>
-    </div>
-    <div class="pchap"><div class="pchap-title">Titre IV — Ch. II — Armes & Explosifs</div>
-      <div class="prow"><span class="part">Art. 421-1 — Port d'arme sans autorisation</span><span class="risk r1">Faible</span></div>
-      <div class="prow"><span class="part">Art. 421-2 — Port d'arme de guerre</span><span class="risk r2">Moyen</span></div>
-      <div class="prow"><span class="part">Art. 421-3 — Trafic d'armes à feu</span><span class="risk r3">Élevé</span></div>
-      <div class="prow"><span class="part">Art. 421-4 — Possession d'explosifs illégaux</span><span class="risk r3">Élevé</span></div>
-      <div class="prow"><span class="part">Art. 421-5 — Trafic d'explosifs</span><span class="risk r4">Très élevé</span></div>
-    </div>
-    <!-- TITRE V — INFRACTIONS ROUTIÈRES -->
-    <div class="pchap"><div class="pchap-title">Titre V — Infractions routières</div>
-      <div class="prow"><span class="part">Art. 511-1 — Conduite sans permis</span><span class="risk r0">Aucun</span></div>
-      <div class="prow"><span class="part">Art. 511-2 — Conduite en état d'ivresse / stupéfiants</span><span class="risk r1">Faible</span></div>
-      <div class="prow"><span class="part">Art. 511-3 — Excès de vitesse grave</span><span class="risk r0">Aucun</span></div>
-      <div class="prow"><span class="part">Art. 511-4 — Course de rue illégale</span><span class="risk r1">Faible</span></div>
-      <div class="prow"><span class="part">Art. 511-5 — Conduite dangereuse / imprudente</span><span class="risk r1">Faible</span></div>
-      <div class="prow"><span class="part">Art. 511-6 — Destruction de bien public (véhicule)</span><span class="risk r1">Faible</span></div>
-    </div>
-    <!-- TITRE VI — CRIMES ÉCONOMIQUES -->
-    <div class="pchap"><div class="pchap-title">Titre VI — Crimes économiques</div>
-      <div class="prow"><span class="part">Art. 611-1 — Vol simple</span><span class="risk r1">Faible</span></div>
-      <div class="prow"><span class="part">Art. 611-2 — Vol avec violence</span><span class="risk r2">Moyen</span></div>
-      <div class="prow"><span class="part">Art. 611-3 — Braquage / Robbery</span><span class="risk r2">Moyen</span></div>
-      <div class="prow"><span class="part">Art. 611-4 — Braquage de banque ou armurerie</span><span class="risk r3">Élevé</span></div>
-      <div class="prow"><span class="part">Art. 611-5 — Extorsion de fonds</span><span class="risk r2">Moyen</span></div>
-      <div class="prow"><span class="part">Art. 611-6 — Blanchiment d'argent</span><span class="risk r3">Élevé</span></div>
-      <div class="prow"><span class="part">Art. 611-7 — Fraude / Escroquerie</span><span class="risk r1">Faible</span></div>
-      <div class="prow"><span class="part">Art. 611-8 — Recel de bien volé</span><span class="risk r1">Faible</span></div>
-    </div>
+  <div class="penal-grid" id="penal-grid-container">
   </div>
 </div></div>
+
+<!-- ══════ MODAL: ÉDITEUR CODE PÉNAL ══════ -->
+<div class="overlay" id="penal-editor-overlay">
+  <div class="modal" style="max-width:1000px;">
+    <div class="mh" style="border-bottom-color:var(--amber-light);">
+      <span class="mh-title">⚖ Éditeur — Code Pénal [D.D. × D.O.J.]</span>
+      <button class="mh-close" onclick="closePenalEditor()">✕ Fermer</button>
+    </div>
+    <div class="mb" style="padding:0;">
+      <div style="display:flex;height:calc(85vh - 80px);min-height:500px;">
+        <!-- Sidebar chapitres -->
+        <div id="penal-sidebar" style="width:280px;min-width:220px;background:#181510;border-right:1px solid rgba(255,255,255,0.08);overflow-y:auto;display:flex;flex-direction:column;">
+          <div style="padding:10px 12px;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--amber-dim);border-bottom:1px solid rgba(255,255,255,0.08);">Chapitres</div>
+          <div id="penal-chap-list" style="flex:1;overflow-y:auto;"></div>
+          <div style="padding:10px 12px;border-top:1px solid rgba(255,255,255,0.08);">
+            <button onclick="addPenalChapter()" style="width:100%;background:rgba(181,130,26,0.15);border:1px solid rgba(181,130,26,0.3);color:var(--amber-light);font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:7px;cursor:pointer;">+ Nouveau chapitre</button>
+          </div>
+        </div>
+        <!-- Editor panel -->
+        <div id="penal-edit-panel" style="flex:1;background:var(--paper);overflow-y:auto;padding:1.5rem;">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--gray-light);text-align:center;margin-top:3rem;">← Sélectionnez un chapitre pour l'éditer</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ MODAL: GESTION MANUELS ══════ -->
+<div class="overlay" id="manuels-editor-overlay">
+  <div class="modal" style="max-width:800px;">
+    <div class="mh" style="border-bottom-color:var(--amber-light);">
+      <span class="mh-title">📚 Gestion — Manuels & Documents</span>
+      <button class="mh-close" onclick="closeManuelsEditor()">✕ Fermer</button>
+    </div>
+    <div class="mb">
+      <div class="msec">Ajouter un manuel</div>
+      <div class="frow">
+        <div class="ff" style="max-width:80px;"><label class="fl">Emoji</label><input class="fi" id="man-emoji" placeholder="📘" style="text-align:center;font-size:18px;"></div>
+        <div class="ff"><label class="fl">Titre</label><input class="fi" id="man-title" placeholder="Manuel Procédures..."></div>
+        <div class="ff"><label class="fl">Sous-titre</label><input class="fi" id="man-sub" placeholder="Formation — D.D."></div>
+      </div>
+      <div class="ff" style="margin-bottom:1rem;"><label class="fl">Lien URL</label><input class="fi" id="man-url" placeholder="https://docs.google.com/..."></div>
+      <div style="display:flex;gap:6px;margin-bottom:1.5rem;">
+        <label style="display:flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--amber-dim);cursor:pointer;">
+          <input type="checkbox" id="man-classified" style="accent-color:var(--red-stamp);"> Confidentiel (bordure rouge)
+        </label>
+      </div>
+      <button class="btn btn-p" onclick="addManuel()">+ Ajouter le manuel</button>
+      <div id="man-msg" style="margin-top:0.5rem;"></div>
+      <div class="msec" style="margin-top:1.5rem;">Manuels existants</div>
+      <div id="man-list-admin"></div>
+    </div>
+  </div>
+</div>
 
 <!-- § 05 CHARTE -->
 <div class="dark-wrap" style="border-top:1px solid rgba(255,255,255,0.06);">
 <div class="dark-inner" id="charte">
-  <div class="sec-head"><span class="sec-num">§ 05</span><h2 class="sec-title">Charte du Detective Bureau</h2><div class="sec-rule"></div></div>
+  <div class="sec-head"><span class="sec-num">§ 05</span><h2 class="sec-title">Charte du Criminal Investigation Union</h2><div class="sec-rule"></div></div>
   <div class="charte-grid">
     <div class="charte-card"><div class="charte-icon">⚖</div><div class="charte-title">Intégrité & Impartialité</div><p class="charte-text">Chaque agent conduit ses enquêtes sans préjugé. Toute compromission doit être signalée immédiatement.</p></div>
     <div class="charte-card"><div class="charte-icon">🔒</div><div class="charte-title">Confidentialité absolue</div><p class="charte-text">Les informations relatives aux dossiers et opérations de surveillance sont strictement confidentielles.</p></div>
     <div class="charte-card"><div class="charte-icon">📋</div><div class="charte-title">Rigueur procédurale</div><p class="charte-text">Chaque acte d'enquête doit être documenté avec précision. Un dossier mal instruit est un dossier perdu.</p></div>
-    <div class="charte-card"><div class="charte-icon">🤝</div><div class="charte-title">Coordination inter-services</div><p class="charte-text">Le D.B. opère en liaison permanente avec les patrouilles générales, le S.W.A.T. et le D.O.J.</p></div>
+    <div class="charte-card"><div class="charte-icon">🤝</div><div class="charte-title">Coordination inter-services</div><p class="charte-text">Le C.I.U. opère en liaison permanente avec les patrouilles générales, le S.W.A.T. et le D.O.J.</p></div>
     <div class="charte-card"><div class="charte-icon">⚡</div><div class="charte-title">Discrétion opérationnelle</div><p class="charte-text">La couverture Echo implique l'absence de tout marquage susceptible de trahir l'identité des agents.</p></div>
     <div class="charte-card"><div class="charte-icon">🎯</div><div class="charte-title">Proportionnalité de la force</div><p class="charte-text">L'usage de la force est soumis au principe de stricte proportionnalité. Rapport écrit sous 24h.</p></div>
   </div>
 </div></div>
 
 <footer><div class="footer-in">
-  <span class="fcopy">© L.S.P.D. — Detective Bureau (D.D. & S.C.U.) — Document interne — Los Santos, San Andreas</span>
-  <span class="fcopy" style="font-style:italic;opacity:0.5;">D.B. — Bureau des Inspecteurs</span>
+  <span class="fcopy">© L.S.P.D. — Criminal Investigation Union (D.D. & S.C.U.) — Document interne — Los Santos, San Andreas</span>
+  <span class="fcopy" style="font-style:italic;opacity:0.5;">C.I.U. — Bureau des Inspecteurs</span>
 </div></footer>
 </div>
 </div>
@@ -839,7 +754,7 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
       </div>
     </div>
     <div class="mb wm-body" style="padding:1.2rem;">
-      <div class="wm-warn">⚠ Document confidentiel — Usage interne D.B. exclusif — Ajout réservé aux Responsables et à la Direction</div>
+      <div class="wm-warn">⚠ Document confidentiel — Usage interne C.I.U. exclusif — Ajout réservé aux Responsables et à la Direction</div>
       <div class="lt-wrap">
         <table class="lt">
           <thead><tr>
@@ -1014,7 +929,7 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
 <!-- ══════ MODAL: CALENDRIER ══════ -->
 <div class="overlay" id="calendrier-overlay">
   <div class="modal" style="max-width:1100px;">
-    <div class="mh"><span class="mh-title">📅 Calendrier Opérationnel — D.B.</span><button class="mh-close" onclick="closeCalendrier()">✕ Fermer</button></div>
+    <div class="mh"><span class="mh-title">📅 Calendrier Opérationnel — C.I.U.</span><button class="mh-close" onclick="closeCalendrier()">✕ Fermer</button></div>
     <div class="mb">
       <div id="cal-modal-inner"></div>
     </div>
@@ -1096,7 +1011,7 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
 <!-- ══════ MODAL: TEMPS DE SERVICE ══════ -->
 <div class="overlay" id="service-overlay">
   <div class="modal" style="max-width:900px;">
-    <div class="mh"><span class="mh-title">📊 Temps de Service — D.B.</span><button class="mh-close" onclick="closeService()">✕ Fermer</button></div>
+    <div class="mh"><span class="mh-title">📊 Temps de Service — C.I.U.</span><button class="mh-close" onclick="closeService()">✕ Fermer</button></div>
     <div class="mb">
       <div class="admin-tabs">
         <button class="atab active" onclick="switchSvcTab('tab-svc-add',this)">Enregistrer</button>
@@ -1165,7 +1080,7 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
 <!-- ══════ MODAL: ADMIN ══════ -->
 <div class="overlay" id="admin-overlay">
   <div class="modal" style="max-width:960px;">
-    <div class="mh" style="border-bottom-color:var(--amber-light);"><span class="mh-title">⚙ Panneau Direction — D.B.</span><button class="mh-close" onclick="closeAdmin()">✕ Fermer</button></div>
+    <div class="mh" style="border-bottom-color:var(--amber-light);"><span class="mh-title">⚙ Panneau Direction — C.I.U.</span><button class="mh-close" onclick="closeAdmin()">✕ Fermer</button></div>
     <div class="mb">
       <div class="admin-tabs">
         <button class="atab active" onclick="switchAdminTab('t-online',this)">Connexions</button>
@@ -1286,7 +1201,7 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
     <div class="notes-header-bar">
       <div>
         <div class="notes-title-main">📓 Notes d'Agent</div>
-        <div class="notes-title-sub">Carnet personnel — Detective Bureau</div>
+        <div class="notes-title-sub">Carnet personnel — Criminal Investigation Union</div>
       </div>
       <button class="mh-close" onclick="closeNotes()">✕ Fermer</button>
     </div>
@@ -1324,6 +1239,28 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
 <script>
 // ═══ CONSTANTS ═══
 const SK='lspd_db_v7',SSK='lspd_sess_v7',ROOT='jamesjones.lspd@gmail.com',DEF_PW='lspd-dd-2026',SESS_MS=15*60*1000;
+function getPenalCodeDefault(){return[
+  {title:'Titre I — Ch. I — Complicité',articles:[{text:'Art. 111-1 — Complicité',risk:'r0'}]},
+  {title:'Titre I — Ch. II — Légitime défense',articles:[{text:'Art. 112-1 — Droit à la légitime défense',risk:'r0'},{text:'Art. 112-2 — Usage de la force mortelle',risk:'r0'},{text:'Art. 112-3 — Protection domicile & véhicule',risk:'r0'},{text:'Art. 112-4 — Absence de devoir de retraite',risk:'r0'},{text:'Art. 112-5 — Exclusions et limites',risk:'r0'},{text:'Art. 112-6 — Sanctions légitime défense abusive',risk:'r0'}]},
+  {title:'Titre I — Ch. III — Traître du gouvernement',articles:[{text:'Art. 113-1 — Retrait illégal bracelet électronique',risk:'r3'},{text:'Art. 113-2 — Rupture contrat de justice / police',risk:'r3'}]},
+  {title:'Livre II — Ch. I — Atteintes à la vie',articles:[{text:'Art. 211-1 — Meurtre',risk:'r1'},{text:'Art. 211-1-1 — Tentative de meurtre / assassinat',risk:'r1'},{text:'Art. 211-2 — Assassinat',risk:'r2'},{text:'Art. 211-3 — Trafic d\'organes humains',risk:'r3'},{text:'Art. 211-4 — Homicide involontaire',risk:'r1'}]},
+  {title:'Livre II — Ch. II — Mise en danger de la vie',articles:[{text:'Art. 212-1 — Mise en danger de la vie d\'autrui',risk:'r0'},{text:'Art. 212-2 — Non-assistance à personne en danger',risk:'r0'},{text:'Art. 212-3 — Incitation au suicide',risk:'r1'}]},
+  {title:'Livre II — Ch. III S.1 — Intégrité physique',articles:[{text:'Art. 213-1 — Agression simple',risk:'r1'},{text:'Art. 213-2 — Agression avec préméditation',risk:'r1'},{text:'Art. 213-3 — Torture',risk:'r4'},{text:'Art. 213-4 — Menace criminelle',risk:'r2'}]},
+  {title:'Livre II — Ch. III S.2 — Agressions sexuelles',articles:[{text:'Art. 213-5 — Viol ou tentative de viol',risk:'r3'},{text:'Art. 213-6 — Viol en réunion',risk:'r4'},{text:'Art. 213-7 — Agressions sexuelles',risk:'r3'},{text:'Art. 213-8 — Tentative d\'agression sexuelle',risk:'r2'},{text:'Art. 213-9 — Exhibition sexuelle',risk:'r0'}]},
+  {title:'Livre II — Ch. III S.3 — Autres atteintes à la personne',articles:[{text:'Art. 213-10 — Harcèlement moral',risk:'r2'},{text:'Art. 213-11 — Non-respect du secret professionnel',risk:'r2'},{text:'Art. 213-12 — Diffamation publique',risk:'r1'},{text:'Art. 213-13 — Injure publique',risk:'r0'},{text:'Art. 213-14 — Tapage de jour ou de nuit',risk:'r0'}]},
+  {title:'Livre II — Ch. IV — Atteintes aux libertés',articles:[{text:'Art. 214-1 — Enlèvement et/ou séquestration',risk:'r2'},{text:'Art. 214-2 — Prise d\'otage',risk:'r2'},{text:'Art. 214-3 — Prise de pouvoir sur un agent',risk:'r2'}]},
+  {title:'Livre II — Ch. V — Atteintes à la propriété privée',articles:[{text:'Art. 215-1 — Violation de propriété privée',risk:'r0'}]},
+  {title:'Livre III — Ch. I — Administration publique',articles:[{text:'Art. 311-1 — Outrage envers un organisme public',risk:'r1'},{text:'Art. 311-2 — Outrage envers un agent assermenté',risk:'r1'},{text:'Art. 311-3 — Outrage en fait d\'arrestation',risk:'r1'},{text:'Art. 311-4 — Détournement de fonds ou biens publics',risk:'r2'},{text:'Art. 311-5 — Usurpation d\'identité',risk:'r1'},{text:'Art. 311-6 — Usurpation de fonction',risk:'r2'}]},
+  {title:'Livre III — Ch. II — Action de la justice',articles:[{text:'Art. 312-1 — Outrage à magistrat',risk:'r1'},{text:'Art. 312-2 — Délit de fuite',risk:'r1'},{text:'Art. 312-3 — Refus d\'obtempérer',risk:'r1'},{text:'Art. 312-4 — Entrave à la justice simple',risk:'r1'},{text:'Art. 312-5 — Entrave par dépositaire de l\'ordre public',risk:'r2'},{text:'Art. 312-6 — Mensonge sous serment / faux témoignage',risk:'r2'},{text:'Art. 312-7 — Divulgation d\'informations classifiées',risk:'r3'},{text:'Art. 312-8 — Dissimulation ou substitution de preuve',risk:'r3'},{text:'Art. 312-9 — Appel 911 abusif',risk:'r1'},{text:'Art. 312-10 — Non-présentation d\'une pièce d\'identité',risk:'r1'},{text:'Art. 312-11 — Évasion',risk:'r4'}]},
+  {title:'Livre III — Ch. III — Paix publique',articles:[{text:'Art. 313-1 — Manifestations et rassemblements illégaux',risk:'r1'},{text:'Art. 313-2 — Trouble à l\'ordre public simple',risk:'r1'},{text:'Art. 313-3 — Trouble à l\'ordre public aggravé',risk:'r2'},{text:'Art. 313-4 — Création d\'hostilité envers l\'autorité',risk:'r1'},{text:'Art. 313-5 — Membre d\'une organisation criminelle',risk:'r3'}]},
+  {title:'Titre II — Ch. I — Corruption',articles:[{text:'Art. 321-1 — Corruption active ou passive',risk:'r2'},{text:'Art. 321-2 — Tentative de corruption',risk:'r2'}]},
+  {title:'Titre II — Ch. II — Faux & usage de faux',articles:[{text:'Art. 322-1 — Faux et usage de faux en écriture',risk:'r1'}]},
+  {title:'Titre III — Ch. I — Terrorisme',articles:[{text:'Art. 331-1 — Acte terroriste',risk:'r4'},{text:'Art. 331-2 — Attaques chimiques / biologiques',risk:'r4'}]},
+  {title:'Titre IV — Ch. I — Drogues',articles:[{text:'Art. 411-1 — Consommation de substances illicites',risk:'r1'},{text:'Art. 411-2 — Possession de substances illicites',risk:'r1'},{text:'Art. 411-3 — Possession aggravée (grande quantité)',risk:'r2'},{text:'Art. 411-4 — Distribution / Deal de drogues',risk:'r2'},{text:'Art. 411-5 — Production / Fabrication de drogues',risk:'r3'},{text:'Art. 411-6 — Trafic international de stupéfiants',risk:'r3'}]},
+  {title:'Titre IV — Ch. II — Armes & Explosifs',articles:[{text:'Art. 421-1 — Port d\'arme sans autorisation',risk:'r1'},{text:'Art. 421-2 — Port d\'arme de guerre',risk:'r2'},{text:'Art. 421-3 — Trafic d\'armes à feu',risk:'r3'},{text:'Art. 421-4 — Possession d\'explosifs illégaux',risk:'r3'},{text:'Art. 421-5 — Trafic d\'explosifs',risk:'r4'}]},
+  {title:'Titre V — Infractions routières',articles:[{text:'Art. 511-1 — Conduite sans permis',risk:'r0'},{text:'Art. 511-2 — Conduite en état d\'ivresse / stupéfiants',risk:'r1'},{text:'Art. 511-3 — Excès de vitesse grave',risk:'r0'},{text:'Art. 511-4 — Course de rue illégale',risk:'r1'},{text:'Art. 511-5 — Conduite dangereuse / imprudente',risk:'r1'},{text:'Art. 511-6 — Destruction de bien public (véhicule)',risk:'r1'}]},
+  {title:'Titre VI — Crimes économiques',articles:[{text:'Art. 611-1 — Vol simple',risk:'r1'},{text:'Art. 611-2 — Vol avec violence',risk:'r2'},{text:'Art. 611-3 — Braquage / Robbery',risk:'r2'},{text:'Art. 611-4 — Braquage de banque ou armurerie',risk:'r3'},{text:'Art. 611-5 — Extorsion de fonds',risk:'r2'},{text:'Art. 611-6 — Blanchiment d\'argent',risk:'r3'},{text:'Art. 611-7 — Fraude / Escroquerie',risk:'r1'},{text:'Art. 611-8 — Recel de bien volé',risk:'r1'}]}
+];}
 
 // ═══ GRADE HIERARCHY ═══
 // Direction=100, Responsable=90, Inspecteur Principal=80, Inspecteur/Officier Principal=70, Enquêteur/Agent PB=60, Recrue=50
@@ -1356,6 +1293,16 @@ function initDB(){
     if(!ex.events)ex.events=[];
     if(!ex.service)ex.service=[];
     if(!ex.bracelets)ex.bracelets=[];
+    if(!ex.manuels)ex.manuels=[
+      {emoji:'🔒',title:'Manuel Bracelets Électroniques',sub:'Formation — D.D.',url:'https://docs.google.com/presentation/d/1Gt8CqScOCVQUIwzG4_ew1ME1s3v8IKBCA0RkO2qbRrk/edit?usp=sharing',classified:false},
+      {emoji:'📝',title:'Manuel Traitement de Plainte',sub:'Formation — S. Plaintes',url:'https://docs.google.com/presentation/d/1rI8GxHcYUptwd1VyZ1o3oDR4U8Ah_LCzusujAQjbXB4/edit?slide=id.g2b540d2a35a_0_195',classified:false},
+      {emoji:'⚠️',title:'Manuel Vice de Procédure',sub:'Formation — Juridique',url:'https://docs.google.com/presentation/d/1O7M6_VxHNDTHrby6lGjLqbWoxN7PtmgMVz1Ndd1V1ng/edit?slide=id.g2b226f655ca_0_0',classified:false},
+      {emoji:'🔬',title:'Manuel Collecte de Preuves',sub:'Formation — Forensique',url:'https://docs.google.com/presentation/d/1SxqIE_CPIuGVjluevbBZSs063jNNjYWQGpVjiy1eevs/edit?slide=id.g2b226f655ca_0_0',classified:false},
+      {emoji:'🏢',title:'Liste des Bureaux',sub:'Criminal Investigation Union',url:'https://docs.google.com/presentation/d/18Yj8AXoLeYXD7WzYQFTfJaHBkX5Kzvt7gpmNh2MasR8/edit?slide=id.g2b226f655ca_0_0',classified:false},
+      {emoji:'📬',title:'Modèle de Convocation',sub:'Confidentiel — C.I.U.',url:'https://docs.google.com/document/d/1OgG3DJCqZl4eKgihsbvGrgT-PgHvGBJyOWFcYOBpqTg/edit?tab=t.0',classified:true}
+    ];
+    if(!ex.penalCode||ex.penalCode===null)ex.penalCode=getPenalCodeDefault();
+    saveDB(ex);
     return ex;
   }
   const d={
@@ -1373,6 +1320,36 @@ function initDB(){
       "haydentommy44709@gmail.com":    {name:"Hayden Tommy",        pw:DEF_PW,role:"agent"}
     },
     online:{},warrants:[],bracelets:[],events:[],service:[],
+    manuels:[
+      {emoji:'🔒',title:'Manuel Bracelets Électroniques',sub:'Formation — D.D.',url:'https://docs.google.com/presentation/d/1Gt8CqScOCVQUIwzG4_ew1ME1s3v8IKBCA0RkO2qbRrk/edit?usp=sharing',classified:false},
+      {emoji:'📝',title:'Manuel Traitement de Plainte',sub:'Formation — S. Plaintes',url:'https://docs.google.com/presentation/d/1rI8GxHcYUptwd1VyZ1o3oDR4U8Ah_LCzusujAQjbXB4/edit?slide=id.g2b540d2a35a_0_195',classified:false},
+      {emoji:'⚠️',title:'Manuel Vice de Procédure',sub:'Formation — Juridique',url:'https://docs.google.com/presentation/d/1O7M6_VxHNDTHrby6lGjLqbWoxN7PtmgMVz1Ndd1V1ng/edit?slide=id.g2b226f655ca_0_0',classified:false},
+      {emoji:'🔬',title:'Manuel Collecte de Preuves',sub:'Formation — Forensique',url:'https://docs.google.com/presentation/d/1SxqIE_CPIuGVjluevbBZSs063jNNjYWQGpVjiy1eevs/edit?slide=id.g2b226f655ca_0_0',classified:false},
+      {emoji:'🏢',title:'Liste des Bureaux',sub:'Criminal Investigation Union',url:'https://docs.google.com/presentation/d/18Yj8AXoLeYXD7WzYQFTfJaHBkX5Kzvt7gpmNh2MasR8/edit?slide=id.g2b226f655ca_0_0',classified:false},
+      {emoji:'📬',title:'Modèle de Convocation',sub:'Confidentiel — C.I.U.',url:'https://docs.google.com/document/d/1OgG3DJCqZl4eKgihsbvGrgT-PgHvGBJyOWFcYOBpqTg/edit?tab=t.0',classified:true}
+    ],
+    penalCode:[
+      {title:'Titre I — Ch. I — Complicité',articles:[{text:'Art. 111-1 — Complicité',risk:'r0'}]},
+      {title:'Titre I — Ch. II — Légitime défense',articles:[{text:'Art. 112-1 — Droit à la légitime défense',risk:'r0'},{text:'Art. 112-2 — Usage de la force mortelle',risk:'r0'},{text:'Art. 112-3 — Protection domicile & véhicule',risk:'r0'},{text:'Art. 112-4 — Absence de devoir de retraite',risk:'r0'},{text:'Art. 112-5 — Exclusions et limites',risk:'r0'},{text:'Art. 112-6 — Sanctions légitime défense abusive',risk:'r0'}]},
+      {title:'Titre I — Ch. III — Traître du gouvernement',articles:[{text:'Art. 113-1 — Retrait illégal bracelet électronique',risk:'r3'},{text:'Art. 113-2 — Rupture contrat de justice / police',risk:'r3'}]},
+      {title:'Livre II — Ch. I — Atteintes à la vie',articles:[{text:'Art. 211-1 — Meurtre',risk:'r1'},{text:'Art. 211-1-1 — Tentative de meurtre / assassinat',risk:'r1'},{text:'Art. 211-2 — Assassinat',risk:'r2'},{text:'Art. 211-3 — Trafic d\'organes humains',risk:'r3'},{text:'Art. 211-4 — Homicide involontaire',risk:'r1'}]},
+      {title:'Livre II — Ch. II — Mise en danger de la vie',articles:[{text:'Art. 212-1 — Mise en danger de la vie d\'autrui',risk:'r0'},{text:'Art. 212-2 — Non-assistance à personne en danger',risk:'r0'},{text:'Art. 212-3 — Incitation au suicide',risk:'r1'}]},
+      {title:'Livre II — Ch. III S.1 — Intégrité physique',articles:[{text:'Art. 213-1 — Agression simple',risk:'r1'},{text:'Art. 213-2 — Agression avec préméditation',risk:'r1'},{text:'Art. 213-3 — Torture',risk:'r4'},{text:'Art. 213-4 — Menace criminelle',risk:'r2'}]},
+      {title:'Livre II — Ch. III S.2 — Agressions sexuelles',articles:[{text:'Art. 213-5 — Viol ou tentative de viol',risk:'r3'},{text:'Art. 213-6 — Viol en réunion',risk:'r4'},{text:'Art. 213-7 — Agressions sexuelles',risk:'r3'},{text:'Art. 213-8 — Tentative d\'agression sexuelle',risk:'r2'},{text:'Art. 213-9 — Exhibition sexuelle',risk:'r0'}]},
+      {title:'Livre II — Ch. III S.3 — Autres atteintes à la personne',articles:[{text:'Art. 213-10 — Harcèlement moral',risk:'r2'},{text:'Art. 213-11 — Non-respect du secret professionnel',risk:'r2'},{text:'Art. 213-12 — Diffamation publique',risk:'r1'},{text:'Art. 213-13 — Injure publique',risk:'r0'},{text:'Art. 213-14 — Tapage de jour ou de nuit',risk:'r0'}]},
+      {title:'Livre II — Ch. IV — Atteintes aux libertés',articles:[{text:'Art. 214-1 — Enlèvement et/ou séquestration',risk:'r2'},{text:'Art. 214-2 — Prise d\'otage',risk:'r2'},{text:'Art. 214-3 — Prise de pouvoir sur un agent',risk:'r2'}]},
+      {title:'Livre II — Ch. V — Atteintes à la propriété privée',articles:[{text:'Art. 215-1 — Violation de propriété privée',risk:'r0'}]},
+      {title:'Livre III — Ch. I — Administration publique',articles:[{text:'Art. 311-1 — Outrage envers un organisme public',risk:'r1'},{text:'Art. 311-2 — Outrage envers un agent assermenté',risk:'r1'},{text:'Art. 311-3 — Outrage en fait d\'arrestation',risk:'r1'},{text:'Art. 311-4 — Détournement de fonds ou biens publics',risk:'r2'},{text:'Art. 311-5 — Usurpation d\'identité',risk:'r1'},{text:'Art. 311-6 — Usurpation de fonction',risk:'r2'}]},
+      {title:'Livre III — Ch. II — Action de la justice',articles:[{text:'Art. 312-1 — Outrage à magistrat',risk:'r1'},{text:'Art. 312-2 — Délit de fuite',risk:'r1'},{text:'Art. 312-3 — Refus d\'obtempérer',risk:'r1'},{text:'Art. 312-4 — Entrave à la justice simple',risk:'r1'},{text:'Art. 312-5 — Entrave par dépositaire de l\'ordre public',risk:'r2'},{text:'Art. 312-6 — Mensonge sous serment / faux témoignage',risk:'r2'},{text:'Art. 312-7 — Divulgation d\'informations classifiées',risk:'r3'},{text:'Art. 312-8 — Dissimulation ou substitution de preuve',risk:'r3'},{text:'Art. 312-9 — Appel 911 abusif',risk:'r1'},{text:'Art. 312-10 — Non-présentation d\'une pièce d\'identité',risk:'r1'},{text:'Art. 312-11 — Évasion',risk:'r4'}]},
+      {title:'Livre III — Ch. III — Paix publique',articles:[{text:'Art. 313-1 — Manifestations et rassemblements illégaux',risk:'r1'},{text:'Art. 313-2 — Trouble à l\'ordre public simple',risk:'r1'},{text:'Art. 313-3 — Trouble à l\'ordre public aggravé',risk:'r2'},{text:'Art. 313-4 — Création d\'hostilité envers l\'autorité',risk:'r1'},{text:'Art. 313-5 — Membre d\'une organisation criminelle',risk:'r3'}]},
+      {title:'Titre II — Ch. I — Corruption',articles:[{text:'Art. 321-1 — Corruption active ou passive',risk:'r2'},{text:'Art. 321-2 — Tentative de corruption',risk:'r2'}]},
+      {title:'Titre II — Ch. II — Faux & usage de faux',articles:[{text:'Art. 322-1 — Faux et usage de faux en écriture',risk:'r1'}]},
+      {title:'Titre III — Ch. I — Terrorisme',articles:[{text:'Art. 331-1 — Acte terroriste',risk:'r4'},{text:'Art. 331-2 — Attaques chimiques / biologiques',risk:'r4'}]},
+      {title:'Titre IV — Ch. I — Drogues',articles:[{text:'Art. 411-1 — Consommation de substances illicites',risk:'r1'},{text:'Art. 411-2 — Possession de substances illicites',risk:'r1'},{text:'Art. 411-3 — Possession aggravée (grande quantité)',risk:'r2'},{text:'Art. 411-4 — Distribution / Deal de drogues',risk:'r2'},{text:'Art. 411-5 — Production / Fabrication de drogues',risk:'r3'},{text:'Art. 411-6 — Trafic international de stupéfiants',risk:'r3'}]},
+      {title:'Titre IV — Ch. II — Armes & Explosifs',articles:[{text:'Art. 421-1 — Port d\'arme sans autorisation',risk:'r1'},{text:'Art. 421-2 — Port d\'arme de guerre',risk:'r2'},{text:'Art. 421-3 — Trafic d\'armes à feu',risk:'r3'},{text:'Art. 421-4 — Possession d\'explosifs illégaux',risk:'r3'},{text:'Art. 421-5 — Trafic d\'explosifs',risk:'r4'}]},
+      {title:'Titre V — Infractions routières',articles:[{text:'Art. 511-1 — Conduite sans permis',risk:'r0'},{text:'Art. 511-2 — Conduite en état d\'ivresse / stupéfiants',risk:'r1'},{text:'Art. 511-3 — Excès de vitesse grave',risk:'r0'},{text:'Art. 511-4 — Course de rue illégale',risk:'r1'},{text:'Art. 511-5 — Conduite dangereuse / imprudente',risk:'r1'},{text:'Art. 511-6 — Destruction de bien public (véhicule)',risk:'r1'}]},
+      {title:'Titre VI — Crimes économiques',articles:[{text:'Art. 611-1 — Vol simple',risk:'r1'},{text:'Art. 611-2 — Vol avec violence',risk:'r2'},{text:'Art. 611-3 — Braquage / Robbery',risk:'r2'},{text:'Art. 611-4 — Braquage de banque ou armurerie',risk:'r3'},{text:'Art. 611-5 — Extorsion de fonds',risk:'r2'},{text:'Art. 611-6 — Blanchiment d\'argent',risk:'r3'},{text:'Art. 611-7 — Fraude / Escroquerie',risk:'r1'},{text:'Art. 611-8 — Recel de bien volé',risk:'r1'}]}
+    ],
     effectif:[
       // DIRECTION
       {mat:"—",nom:"[Poste vacant]",gradeLspd:"",gradeBI:"Directeur D.D.",unit:"Direction",id:"",isVacant:true,isChef:true,gradeHier:100,datePromo:""},
@@ -1426,10 +1403,11 @@ function doLogin(email){
   document.getElementById('admin-nav-btn').style.display=isDirection()?'inline-block':'none';
   document.getElementById('service-nav-btn').style.display=isResp()?'inline-block':'none';
   document.getElementById('session-timer').style.display='inline';
-  if(isDirection())document.getElementById('portal-wrap').classList.add('admin-mode');
+  if(isDirection()){document.getElementById('portal-wrap').classList.add('admin-mode');document.getElementById('penal-edit-btn').style.display='inline-block';document.getElementById('manuels-edit-btn').style.display='inline-block';}
+  else{document.getElementById('penal-edit-btn').style.display='none';document.getElementById('manuels-edit-btn').style.display='none';}
   document.getElementById('login-page').classList.remove('active');
   document.getElementById('portal-page').classList.add('active');
-  renderEffectif();renderUpcomingEvents();
+  renderEffectif();renderUpcomingEvents();renderPenalGrid();
   return true;
 }
 function handleLogin(){
@@ -1482,7 +1460,7 @@ function renderEffectif(){
     </div>`;
   }
   document.getElementById('effectif-container').innerHTML=`
-    <div style="margin-bottom:1.5rem;"><div class="sub-label">Direction du Detective Bureau</div><div class="effectif-grid">${direction.map(card).join('')}</div></div>
+    <div style="margin-bottom:1.5rem;"><div class="sub-label">Direction du Criminal Investigation Union</div><div class="effectif-grid">${direction.map(card).join('')}</div></div>
     <div style="margin-bottom:1.5rem;"><div class="sub-label">Detective Division (D.D.) — Inspecteurs & Enquêteurs</div><div class="effectif-grid">${dd.map(card).join('')}</div></div>
     <div><div class="sub-label">Street Crimes Unit (S.C.U.) — Agents de Proximité Banalisée</div><div class="effectif-grid">${scu.map(card).join('')}</div></div>`;
 }
@@ -2237,8 +2215,75 @@ function changePassword(){
 
 // ═══ UTILS ═══
 function showMsg(id,txt,ok){const el=document.getElementById(id);if(!el)return;el.innerHTML=`<div class="alert ${ok?'alert-ok':'alert-err'}">${txt}</div>`;setTimeout(()=>{if(el)el.innerHTML='';},3000);}
-function showManuels(){const p=document.getElementById('manuels-panel');p.style.display='block';p.scrollIntoView({behavior:'smooth',block:'nearest'});}
+function renderManuels(){
+  DB=loadDB()||initDB();
+  const grid=document.getElementById('manuels-dynamic-grid');
+  const manuels=DB.manuels||[];
+  if(!manuels.length){grid.innerHTML='<div style="padding:1.5rem;font-family:\'IBM Plex Mono\',monospace;font-size:11px;color:var(--gray-light);text-align:center;">— Aucun manuel disponible —</div>';return;}
+  grid.innerHTML=manuels.map((m,i)=>`<a href="${m.url}" target="_blank" class="ml${m.classified?' classified':''}"><span style="font-size:20px;">${m.emoji||'📄'}</span><div><div class="ml-title">${m.title}</div><div class="ml-sub">${m.sub}</div></div></a>`).join('');
+}
+function showManuels(){const p=document.getElementById('manuels-panel');renderManuels();p.style.display='block';p.scrollIntoView({behavior:'smooth',block:'nearest'});}
 function hideManuels(){document.getElementById('manuels-panel').style.display='none';}
+
+// ═══ MANUELS EDITOR ═══
+function openManuelsEditor(){
+  if(!isDirection())return;
+  DB=loadDB()||initDB();
+  renderManAdminList();
+  document.getElementById('manuels-editor-overlay').classList.add('open');
+}
+function closeManuelsEditor(){document.getElementById('manuels-editor-overlay').classList.remove('open');renderManuels();}
+function renderManAdminList(){
+  const list=document.getElementById('man-list-admin');
+  const manuels=DB.manuels||[];
+  if(!manuels.length){list.innerHTML='<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;color:var(--gray-light);padding:0.8rem 0;">— Aucun manuel —</div>';return;}
+  list.innerHTML=manuels.map((m,i)=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--divider);">
+      <span style="font-size:18px;width:28px;text-align:center;">${m.emoji||'📄'}</span>
+      <div style="flex:1;">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;text-transform:uppercase;color:var(--ink);" id="man-title-display-${i}">${m.title}</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--amber-dim);">${m.sub}${m.classified?' · 🔴 Confidentiel':''}</div>
+      </div>
+      <button onclick="editManuel(${i})" style="background:none;border:1px solid var(--divider);color:var(--gray-ink);font-family:'IBM Plex Mono',monospace;font-size:9px;padding:3px 8px;cursor:pointer;border-radius:2px;">✏ Renommer</button>
+      <button onclick="deleteManuel(${i})" style="background:none;border:1px solid rgba(139,26,26,0.3);color:var(--red-stamp);font-family:'IBM Plex Mono',monospace;font-size:9px;padding:3px 8px;cursor:pointer;border-radius:2px;">🗑</button>
+    </div>`).join('');
+}
+function addManuel(){
+  DB=loadDB()||initDB();
+  const emoji=document.getElementById('man-emoji').value.trim()||'📄';
+  const title=document.getElementById('man-title').value.trim();
+  const sub=document.getElementById('man-sub').value.trim();
+  const url=document.getElementById('man-url').value.trim();
+  const classified=document.getElementById('man-classified').checked;
+  const msg=document.getElementById('man-msg');
+  if(!title||!url){msg.innerHTML='<span style="color:var(--red-stamp);font-family:\'IBM Plex Mono\',monospace;font-size:11px;">⚠ Titre et lien obligatoires.</span>';return;}
+  if(!DB.manuels)DB.manuels=[];
+  DB.manuels.push({emoji,title,sub,url,classified});
+  saveDB(DB);
+  ['man-emoji','man-title','man-sub','man-url'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('man-classified').checked=false;
+  msg.innerHTML='<span style="color:var(--green-stamp);font-family:\'IBM Plex Mono\',monospace;font-size:11px;">✓ Manuel ajouté.</span>';
+  setTimeout(()=>msg.innerHTML='',2000);
+  renderManAdminList();
+}
+function deleteManuel(i){
+  if(!confirm('Supprimer ce manuel ?'))return;
+  DB=loadDB()||initDB();
+  DB.manuels.splice(i,1);
+  saveDB(DB);renderManAdminList();
+}
+function editManuel(i){
+  DB=loadDB()||initDB();
+  const m=DB.manuels[i];
+  const newTitle=prompt('Nouveau titre :',m.title);
+  if(newTitle===null)return;
+  const newSub=prompt('Nouveau sous-titre :',m.sub);
+  if(newSub===null)return;
+  const newEmoji=prompt('Emoji :',m.emoji||'📄');
+  if(newEmoji===null)return;
+  DB.manuels[i]={...m,title:newTitle.trim()||m.title,sub:newSub.trim(),emoji:newEmoji.trim()||m.emoji};
+  saveDB(DB);renderManAdminList();
+}
 document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
 document.getElementById('password').addEventListener('keydown',e=>{if(e.key==='Enter')handleLogin();});
 document.getElementById('email').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('password').focus();});
@@ -2309,6 +2354,125 @@ function renderUpcomingEvents(){
   </div>
   ${(DB.events||[]).filter(ev=>ev.date>=nowStr).length>8?`<div class="upcoming-show-more"><button class="btn btn-p btn-sm" onclick="openCalendrier()">Voir tous les événements →</button></div>`:''}`;
   container.innerHTML=html;
+}
+
+// ═══ CODE PÉNAL — RENDER & EDITOR ═══
+const RISK_LABELS={'r0':'Aucun','r1':'Faible','r2':'Moyen','r3':'Élevé','r4':'Très élevé'};
+function renderPenalGrid(){
+  DB=loadDB()||initDB();
+  if(!DB.penalCode||!DB.penalCode.length)DB.penalCode=getPenalCodeDefault();
+  const grid=document.getElementById('penal-grid-container');
+  const chapters=DB.penalCode||[];
+  if(!chapters.length){grid.innerHTML='<div style="padding:2rem;color:rgba(242,234,216,0.4);font-family:\'IBM Plex Mono\',monospace;font-size:11px;grid-column:1/-1;text-align:center;">— Aucun article —</div>';return;}
+  grid.innerHTML=chapters.map((ch,ci)=>`
+    <div class="pchap">
+      <div class="pchap-title">${ch.title}</div>
+      ${(ch.articles||[]).map((a,ai)=>`
+        <div class="prow">
+          <span class="part">${a.text}</span>
+          <span class="risk ${a.risk}">${RISK_LABELS[a.risk]||a.risk}</span>
+        </div>`).join('')}
+    </div>`).join('');
+}
+
+let penalCurrentChap=null;
+function openPenalEditor(){
+  if(!isDirection())return;
+  DB=loadDB()||initDB();
+  penalCurrentChap=null;
+  renderPenalSidebar();
+  document.getElementById('penal-edit-panel').innerHTML='<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;color:var(--gray-light);text-align:center;margin-top:3rem;">← Sélectionnez un chapitre pour l\'éditer</div>';
+  document.getElementById('penal-editor-overlay').classList.add('open');
+}
+function closePenalEditor(){document.getElementById('penal-editor-overlay').classList.remove('open');renderPenalGrid();}
+function renderPenalSidebar(){
+  const chapters=DB.penalCode||[];
+  const list=document.getElementById('penal-chap-list');
+  list.innerHTML=chapters.map((ch,i)=>`
+    <button onclick="selectPenalChap(${i})" id="penal-chap-btn-${i}" style="width:100%;text-align:left;background:${penalCurrentChap===i?'rgba(181,130,26,0.2)':'none'};border:none;border-left:3px solid ${penalCurrentChap===i?'var(--amber)':'transparent'};color:${penalCurrentChap===i?'var(--amber-light)':'rgba(242,234,216,0.6)'};font-family:'IBM Plex Mono',monospace;font-size:9px;padding:8px 12px;cursor:pointer;line-height:1.4;transition:all 0.15s;">
+      ${ch.title}<br><span style="color:rgba(242,234,216,0.3);font-size:8px;">${(ch.articles||[]).length} article(s)</span>
+    </button>`).join('');
+}
+function selectPenalChap(i){
+  penalCurrentChap=i;
+  renderPenalSidebar();
+  renderPenalChapEditor(i);
+}
+function renderPenalChapEditor(i){
+  const ch=DB.penalCode[i];
+  const panel=document.getElementById('penal-edit-panel');
+  const riskOpts=['r0','r1','r2','r3','r4'].map(r=>`<option value="${r}">${RISK_LABELS[r]}</option>`).join('');
+  panel.innerHTML=`
+    <div style="margin-bottom:1.2rem;padding-bottom:1rem;border-bottom:2px solid var(--divider);">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--amber-dim);margin-bottom:4px;">Titre du chapitre</div>
+      <div style="display:flex;gap:8px;">
+        <input id="pchap-title-input" value="${ch.title.replace(/"/g,'&quot;')}" style="flex:1;background:var(--paper-mid);border:1px solid var(--divider);border-bottom:2px solid var(--amber-dim);padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink);outline:none;">
+        <button onclick="savePenalChapTitle(${i})" style="background:var(--ink);color:var(--amber-light);border:none;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:7px 12px;cursor:pointer;">✓ Sauv.</button>
+        <button onclick="deletePenalChap(${i})" style="background:var(--red-stamp);color:#fff;border:none;font-family:'IBM Plex Mono',monospace;font-size:9px;padding:7px 10px;cursor:pointer;">🗑</button>
+      </div>
+    </div>
+    <div style="margin-bottom:1rem;">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--amber-dim);margin-bottom:8px;">Articles (${(ch.articles||[]).length})</div>
+      <div id="penal-articles-list">
+        ${(ch.articles||[]).map((a,ai)=>`
+          <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px dotted var(--divider);">
+            <input value="${a.text.replace(/"/g,'&quot;')}" id="part-text-${i}-${ai}" style="flex:1;background:var(--paper-mid);border:1px solid var(--divider);border-bottom:1px solid var(--amber-dim);padding:5px 8px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink);outline:none;">
+            <select id="part-risk-${i}-${ai}" style="background:var(--paper-mid);border:1px solid var(--divider);border-bottom:1px solid var(--amber-dim);padding:5px 6px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink);outline:none;">
+              ${['r0','r1','r2','r3','r4'].map(r=>`<option value="${r}"${a.risk===r?' selected':''}>${RISK_LABELS[r]}</option>`).join('')}
+            </select>
+            <button onclick="savePenalArticle(${i},${ai})" style="background:var(--green-stamp);color:#fff;border:none;font-family:'IBM Plex Mono',monospace;font-size:9px;padding:5px 8px;cursor:pointer;">✓</button>
+            <button onclick="deletePenalArticle(${i},${ai})" style="background:none;border:1px solid rgba(139,26,26,0.4);color:var(--red-stamp);font-family:'IBM Plex Mono',monospace;font-size:11px;width:24px;height:24px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;">×</button>
+          </div>`).join('')}
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;padding-top:0.5rem;">
+      <input id="new-article-text" placeholder="Art. XXX — Nouvel article..." style="flex:1;background:var(--paper-mid);border:1px solid var(--divider);border-bottom:2px solid var(--amber-dim);padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink);outline:none;">
+      <select id="new-article-risk" style="background:var(--paper-mid);border:1px solid var(--divider);border-bottom:2px solid var(--amber-dim);padding:7px 6px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink);outline:none;">${riskOpts}</select>
+      <button onclick="addPenalArticle(${i})" style="background:var(--ink);color:var(--amber-light);border:none;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;padding:7px 12px;cursor:pointer;white-space:nowrap;">+ Ajouter</button>
+    </div>`;
+}
+function savePenalChapTitle(i){
+  DB.penalCode[i].title=document.getElementById('pchap-title-input').value.trim()||DB.penalCode[i].title;
+  saveDB(DB);renderPenalSidebar();
+}
+function deletePenalChap(i){
+  if(!confirm('Supprimer ce chapitre et tous ses articles ?'))return;
+  DB.penalCode.splice(i,1);
+  saveDB(DB);penalCurrentChap=null;
+  renderPenalSidebar();
+  document.getElementById('penal-edit-panel').innerHTML='<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;color:var(--gray-light);text-align:center;margin-top:3rem;">← Sélectionnez un chapitre</div>';
+}
+function savePenalArticle(ci,ai){
+  DB.penalCode[ci].articles[ai].text=document.getElementById(`part-text-${ci}-${ai}`).value.trim()||DB.penalCode[ci].articles[ai].text;
+  DB.penalCode[ci].articles[ai].risk=document.getElementById(`part-risk-${ci}-${ai}`).value;
+  saveDB(DB);renderPenalChapEditor(ci);renderPenalSidebar();
+}
+function deletePenalArticle(ci,ai){
+  if(!confirm('Supprimer cet article ?'))return;
+  DB.penalCode[ci].articles.splice(ai,1);
+  saveDB(DB);renderPenalChapEditor(ci);renderPenalSidebar();
+}
+function addPenalArticle(ci){
+  const text=document.getElementById('new-article-text').value.trim();
+  const risk=document.getElementById('new-article-risk').value;
+  if(!text){alert('Le texte de l\'article est obligatoire.');return;}
+  if(!DB.penalCode[ci].articles)DB.penalCode[ci].articles=[];
+  DB.penalCode[ci].articles.push({text,risk});
+  saveDB(DB);renderPenalChapEditor(ci);renderPenalSidebar();
+}
+function addPenalChapter(){
+  const title=prompt('Titre du nouveau chapitre :','Titre — Nouveau Chapitre');
+  if(!title)return;
+  if(!DB.penalCode)DB.penalCode=[];
+  DB.penalCode.push({title:title.trim(),articles:[]});
+  saveDB(DB);
+  const newIdx=DB.penalCode.length-1;
+  penalCurrentChap=newIdx;
+  renderPenalSidebar();
+  renderPenalChapEditor(newIdx);
+  // Scroll sidebar to bottom
+  const sl=document.getElementById('penal-chap-list');
+  if(sl)sl.scrollTop=sl.scrollHeight;
 }
 
 // ═══ NOTES ═══
