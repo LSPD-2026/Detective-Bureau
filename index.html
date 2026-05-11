@@ -467,6 +467,8 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
   .cal-day{min-height:60px;}
 }
 </style>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
@@ -1235,10 +1237,71 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
   </div>
 </div>
 
+
 <!-- ════════ SCRIPT ════════ -->
 <script>
-// ═══ CONSTANTS ═══
-const SK='lspd_db_v7',SSK='lspd_sess_v7',ROOT='jamesjones.lspd@gmail.com',DEF_PW='lspd-dd-2026',SESS_MS=15*60*1000;
+// ═══════════════════════════════════════════════════════════
+//  C.I.U. PORTAL — Firebase Firestore Edition
+// ═══════════════════════════════════════════════════════════
+
+// ── Firebase SDK (CDN compat) ──────────────────────────────
+// Loaded via <script> tags above
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDjFtSaDCRnBh2rqQezLOAFyvBA6aV2Mds",
+  authDomain: "ciu-portal.firebaseapp.com",
+  projectId: "ciu-portal",
+  storageBucket: "ciu-portal.firebasestorage.app",
+  messagingSenderId: "1072590977967",
+  appId: "1:1072590977967:web:4d1b0b8b3a6bdcfb208d5a"
+};
+firebase.initializeApp(firebaseConfig);
+const fdb = firebase.firestore();
+
+// ── Collections Firestore ──────────────────────────────────
+const COL = {
+  config:    fdb.collection('config'),      // doc 'main' : users, effectif, online, manuels, penalCode
+  warrants:  fdb.collection('warrants'),    // un doc par warrant
+  bracelets: fdb.collection('bracelets'),   // un doc par bracelet
+  events:    fdb.collection('events'),      // un doc par event
+  service:   fdb.collection('service'),     // un doc par entrée
+  notes:     fdb.collection('notes'),       // doc par agent (noteKey)
+};
+
+// ── Session (localStorage uniquement) ─────────────────────
+const SSK='ciu_sess_v1', SESS_MS=15*60*1000, ROOT='jamesjones.lspd@gmail.com', DEF_PW='lspd-dd-2026';
+const loadSess=()=>{try{const r=localStorage.getItem(SSK);if(!r)return null;const s=JSON.parse(r);return Date.now()-s.ts<SESS_MS?s:null;}catch{return null;}};
+const saveSess=e=>localStorage.setItem(SSK,JSON.stringify({email:e,ts:Date.now()}));
+const clearSess=()=>localStorage.removeItem(SSK);
+
+// ── DB en mémoire (mis à jour par les listeners) ───────────
+let DB = { users:{}, effectif:[], online:{}, manuels:[], penalCode:[], warrants:[], bracelets:[], events:[], service:[] };
+let currentEmail=null, currentUser=null, userRole='agent';
+let dbReady = false;
+
+const isDirection=()=>userRole==='direction';
+const isResp=()=>userRole==='direction'||userRole==='responsable';
+const roleName=r=>r==='direction'?'Direction':r==='responsable'?'Responsable':'Agent';
+
+// ── Helpers Firestore ──────────────────────────────────────
+async function fsSet(col, id, data){ await COL[col].doc(id).set(data); }
+async function fsUpdate(col, id, data){ await COL[col].doc(id).update(data); }
+async function fsAdd(col, data){ return await COL[col].add(data); }
+async function fsDelete(col, id){ await COL[col].doc(id).delete(); }
+async function fsGet(col, id){ const d=await COL[col].doc(id).get(); return d.exists?{id:d.id,...d.data()}:null; }
+
+// saveConfig : sauvegarde users/effectif/online/manuels/penalCode dans doc 'main'
+async function saveConfig(){
+  await fsSet('config','main',{
+    users: DB.users,
+    effectif: DB.effectif,
+    online: DB.online||{},
+    manuels: DB.manuels||[],
+    penalCode: DB.penalCode||[]
+  });
+}
+
+// ── Données par défaut ─────────────────────────────────────
 function getPenalCodeDefault(){return[
   {title:'Titre I — Ch. I — Complicité',articles:[{text:'Art. 111-1 — Complicité',risk:'r0'}]},
   {title:'Titre I — Ch. II — Légitime défense',articles:[{text:'Art. 112-1 — Droit à la légitime défense',risk:'r0'},{text:'Art. 112-2 — Usage de la force mortelle',risk:'r0'},{text:'Art. 112-3 — Protection domicile & véhicule',risk:'r0'},{text:'Art. 112-4 — Absence de devoir de retraite',risk:'r0'},{text:'Art. 112-5 — Exclusions et limites',risk:'r0'},{text:'Art. 112-6 — Sanctions légitime défense abusive',risk:'r0'}]},
@@ -1262,50 +1325,8 @@ function getPenalCodeDefault(){return[
   {title:'Titre VI — Crimes économiques',articles:[{text:'Art. 611-1 — Vol simple',risk:'r1'},{text:'Art. 611-2 — Vol avec violence',risk:'r2'},{text:'Art. 611-3 — Braquage / Robbery',risk:'r2'},{text:'Art. 611-4 — Braquage de banque ou armurerie',risk:'r3'},{text:'Art. 611-5 — Extorsion de fonds',risk:'r2'},{text:'Art. 611-6 — Blanchiment d\'argent',risk:'r3'},{text:'Art. 611-7 — Fraude / Escroquerie',risk:'r1'},{text:'Art. 611-8 — Recel de bien volé',risk:'r1'}]}
 ];}
 
-// ═══ GRADE HIERARCHY ═══
-// Direction=100, Responsable=90, Inspecteur Principal=80, Inspecteur/Officier Principal=70, Enquêteur/Agent PB=60, Recrue=50
-const GRADE_MAP={
-  'Directeur D.D.':100,'Directeur Adjoint':100,'Directeur':100,
-  'Responsable D.D.':90,'Responsable S.C.U.':90,'Responsable':90,
-  'Inspecteur Principal':80,'Officier Principal':80,
-  'Inspecteur':70,'Chef de Brigade':75,
-  'Enquêteur':60,'Enquêtrice':60,
-  'Agent de P.B.':55,
-  'Recrue':50
-};
-
-function getGradeOrder(m){
-  if(m.gradeHier)return parseInt(m.gradeHier)||60;
-  return GRADE_MAP[m.gradeBI]||60;
-}
-
-// ═══ DB ═══
-const loadDB=()=>{try{const r=localStorage.getItem(SK);return r?JSON.parse(r):null;}catch{return null;}};
-const saveDB=d=>localStorage.setItem(SK,JSON.stringify(d));
-const loadSess=()=>{try{const r=localStorage.getItem(SSK);if(!r)return null;const s=JSON.parse(r);return Date.now()-s.ts<SESS_MS?s:null;}catch{return null;}};
-const saveSess=e=>localStorage.setItem(SSK,JSON.stringify({email:e,ts:Date.now()}));
-const clearSess=()=>localStorage.removeItem(SSK);
-
-function initDB(){
-  const ex=loadDB();
-  if(ex){
-    // Ensure new fields exist for migration
-    if(!ex.events)ex.events=[];
-    if(!ex.service)ex.service=[];
-    if(!ex.bracelets)ex.bracelets=[];
-    if(!ex.manuels)ex.manuels=[
-      {emoji:'🔒',title:'Manuel Bracelets Électroniques',sub:'Formation — D.D.',url:'https://docs.google.com/presentation/d/1Gt8CqScOCVQUIwzG4_ew1ME1s3v8IKBCA0RkO2qbRrk/edit?usp=sharing',classified:false},
-      {emoji:'📝',title:'Manuel Traitement de Plainte',sub:'Formation — S. Plaintes',url:'https://docs.google.com/presentation/d/1rI8GxHcYUptwd1VyZ1o3oDR4U8Ah_LCzusujAQjbXB4/edit?slide=id.g2b540d2a35a_0_195',classified:false},
-      {emoji:'⚠️',title:'Manuel Vice de Procédure',sub:'Formation — Juridique',url:'https://docs.google.com/presentation/d/1O7M6_VxHNDTHrby6lGjLqbWoxN7PtmgMVz1Ndd1V1ng/edit?slide=id.g2b226f655ca_0_0',classified:false},
-      {emoji:'🔬',title:'Manuel Collecte de Preuves',sub:'Formation — Forensique',url:'https://docs.google.com/presentation/d/1SxqIE_CPIuGVjluevbBZSs063jNNjYWQGpVjiy1eevs/edit?slide=id.g2b226f655ca_0_0',classified:false},
-      {emoji:'🏢',title:'Liste des Bureaux',sub:'Criminal Investigation Union',url:'https://docs.google.com/presentation/d/18Yj8AXoLeYXD7WzYQFTfJaHBkX5Kzvt7gpmNh2MasR8/edit?slide=id.g2b226f655ca_0_0',classified:false},
-      {emoji:'📬',title:'Modèle de Convocation',sub:'Confidentiel — C.I.U.',url:'https://docs.google.com/document/d/1OgG3DJCqZl4eKgihsbvGrgT-PgHvGBJyOWFcYOBpqTg/edit?tab=t.0',classified:true}
-    ];
-    if(!ex.penalCode||ex.penalCode===null)ex.penalCode=getPenalCodeDefault();
-    saveDB(ex);
-    return ex;
-  }
-  const d={
+function getDefaultConfig(){
+  return {
     users:{
       "jamesjones.lspd@gmail.com":     {name:"James Jones",         pw:DEF_PW,role:"direction"},
       "clement.lopezlspd71@gmail.com": {name:"Clement Lopez",       pw:DEF_PW,role:"responsable"},
@@ -1319,7 +1340,7 @@ function initDB(){
       "pro.jamesbelga@gmail.com":      {name:"James Belga",         pw:DEF_PW,role:"agent"},
       "haydentommy44709@gmail.com":    {name:"Hayden Tommy",        pw:DEF_PW,role:"agent"}
     },
-    online:{},warrants:[],bracelets:[],events:[],service:[],
+    online:{},
     manuels:[
       {emoji:'🔒',title:'Manuel Bracelets Électroniques',sub:'Formation — D.D.',url:'https://docs.google.com/presentation/d/1Gt8CqScOCVQUIwzG4_ew1ME1s3v8IKBCA0RkO2qbRrk/edit?usp=sharing',classified:false},
       {emoji:'📝',title:'Manuel Traitement de Plainte',sub:'Formation — S. Plaintes',url:'https://docs.google.com/presentation/d/1rI8GxHcYUptwd1VyZ1o3oDR4U8Ah_LCzusujAQjbXB4/edit?slide=id.g2b540d2a35a_0_195',classified:false},
@@ -1328,33 +1349,10 @@ function initDB(){
       {emoji:'🏢',title:'Liste des Bureaux',sub:'Criminal Investigation Union',url:'https://docs.google.com/presentation/d/18Yj8AXoLeYXD7WzYQFTfJaHBkX5Kzvt7gpmNh2MasR8/edit?slide=id.g2b226f655ca_0_0',classified:false},
       {emoji:'📬',title:'Modèle de Convocation',sub:'Confidentiel — C.I.U.',url:'https://docs.google.com/document/d/1OgG3DJCqZl4eKgihsbvGrgT-PgHvGBJyOWFcYOBpqTg/edit?tab=t.0',classified:true}
     ],
-    penalCode:[
-      {title:'Titre I — Ch. I — Complicité',articles:[{text:'Art. 111-1 — Complicité',risk:'r0'}]},
-      {title:'Titre I — Ch. II — Légitime défense',articles:[{text:'Art. 112-1 — Droit à la légitime défense',risk:'r0'},{text:'Art. 112-2 — Usage de la force mortelle',risk:'r0'},{text:'Art. 112-3 — Protection domicile & véhicule',risk:'r0'},{text:'Art. 112-4 — Absence de devoir de retraite',risk:'r0'},{text:'Art. 112-5 — Exclusions et limites',risk:'r0'},{text:'Art. 112-6 — Sanctions légitime défense abusive',risk:'r0'}]},
-      {title:'Titre I — Ch. III — Traître du gouvernement',articles:[{text:'Art. 113-1 — Retrait illégal bracelet électronique',risk:'r3'},{text:'Art. 113-2 — Rupture contrat de justice / police',risk:'r3'}]},
-      {title:'Livre II — Ch. I — Atteintes à la vie',articles:[{text:'Art. 211-1 — Meurtre',risk:'r1'},{text:'Art. 211-1-1 — Tentative de meurtre / assassinat',risk:'r1'},{text:'Art. 211-2 — Assassinat',risk:'r2'},{text:'Art. 211-3 — Trafic d\'organes humains',risk:'r3'},{text:'Art. 211-4 — Homicide involontaire',risk:'r1'}]},
-      {title:'Livre II — Ch. II — Mise en danger de la vie',articles:[{text:'Art. 212-1 — Mise en danger de la vie d\'autrui',risk:'r0'},{text:'Art. 212-2 — Non-assistance à personne en danger',risk:'r0'},{text:'Art. 212-3 — Incitation au suicide',risk:'r1'}]},
-      {title:'Livre II — Ch. III S.1 — Intégrité physique',articles:[{text:'Art. 213-1 — Agression simple',risk:'r1'},{text:'Art. 213-2 — Agression avec préméditation',risk:'r1'},{text:'Art. 213-3 — Torture',risk:'r4'},{text:'Art. 213-4 — Menace criminelle',risk:'r2'}]},
-      {title:'Livre II — Ch. III S.2 — Agressions sexuelles',articles:[{text:'Art. 213-5 — Viol ou tentative de viol',risk:'r3'},{text:'Art. 213-6 — Viol en réunion',risk:'r4'},{text:'Art. 213-7 — Agressions sexuelles',risk:'r3'},{text:'Art. 213-8 — Tentative d\'agression sexuelle',risk:'r2'},{text:'Art. 213-9 — Exhibition sexuelle',risk:'r0'}]},
-      {title:'Livre II — Ch. III S.3 — Autres atteintes à la personne',articles:[{text:'Art. 213-10 — Harcèlement moral',risk:'r2'},{text:'Art. 213-11 — Non-respect du secret professionnel',risk:'r2'},{text:'Art. 213-12 — Diffamation publique',risk:'r1'},{text:'Art. 213-13 — Injure publique',risk:'r0'},{text:'Art. 213-14 — Tapage de jour ou de nuit',risk:'r0'}]},
-      {title:'Livre II — Ch. IV — Atteintes aux libertés',articles:[{text:'Art. 214-1 — Enlèvement et/ou séquestration',risk:'r2'},{text:'Art. 214-2 — Prise d\'otage',risk:'r2'},{text:'Art. 214-3 — Prise de pouvoir sur un agent',risk:'r2'}]},
-      {title:'Livre II — Ch. V — Atteintes à la propriété privée',articles:[{text:'Art. 215-1 — Violation de propriété privée',risk:'r0'}]},
-      {title:'Livre III — Ch. I — Administration publique',articles:[{text:'Art. 311-1 — Outrage envers un organisme public',risk:'r1'},{text:'Art. 311-2 — Outrage envers un agent assermenté',risk:'r1'},{text:'Art. 311-3 — Outrage en fait d\'arrestation',risk:'r1'},{text:'Art. 311-4 — Détournement de fonds ou biens publics',risk:'r2'},{text:'Art. 311-5 — Usurpation d\'identité',risk:'r1'},{text:'Art. 311-6 — Usurpation de fonction',risk:'r2'}]},
-      {title:'Livre III — Ch. II — Action de la justice',articles:[{text:'Art. 312-1 — Outrage à magistrat',risk:'r1'},{text:'Art. 312-2 — Délit de fuite',risk:'r1'},{text:'Art. 312-3 — Refus d\'obtempérer',risk:'r1'},{text:'Art. 312-4 — Entrave à la justice simple',risk:'r1'},{text:'Art. 312-5 — Entrave par dépositaire de l\'ordre public',risk:'r2'},{text:'Art. 312-6 — Mensonge sous serment / faux témoignage',risk:'r2'},{text:'Art. 312-7 — Divulgation d\'informations classifiées',risk:'r3'},{text:'Art. 312-8 — Dissimulation ou substitution de preuve',risk:'r3'},{text:'Art. 312-9 — Appel 911 abusif',risk:'r1'},{text:'Art. 312-10 — Non-présentation d\'une pièce d\'identité',risk:'r1'},{text:'Art. 312-11 — Évasion',risk:'r4'}]},
-      {title:'Livre III — Ch. III — Paix publique',articles:[{text:'Art. 313-1 — Manifestations et rassemblements illégaux',risk:'r1'},{text:'Art. 313-2 — Trouble à l\'ordre public simple',risk:'r1'},{text:'Art. 313-3 — Trouble à l\'ordre public aggravé',risk:'r2'},{text:'Art. 313-4 — Création d\'hostilité envers l\'autorité',risk:'r1'},{text:'Art. 313-5 — Membre d\'une organisation criminelle',risk:'r3'}]},
-      {title:'Titre II — Ch. I — Corruption',articles:[{text:'Art. 321-1 — Corruption active ou passive',risk:'r2'},{text:'Art. 321-2 — Tentative de corruption',risk:'r2'}]},
-      {title:'Titre II — Ch. II — Faux & usage de faux',articles:[{text:'Art. 322-1 — Faux et usage de faux en écriture',risk:'r1'}]},
-      {title:'Titre III — Ch. I — Terrorisme',articles:[{text:'Art. 331-1 — Acte terroriste',risk:'r4'},{text:'Art. 331-2 — Attaques chimiques / biologiques',risk:'r4'}]},
-      {title:'Titre IV — Ch. I — Drogues',articles:[{text:'Art. 411-1 — Consommation de substances illicites',risk:'r1'},{text:'Art. 411-2 — Possession de substances illicites',risk:'r1'},{text:'Art. 411-3 — Possession aggravée (grande quantité)',risk:'r2'},{text:'Art. 411-4 — Distribution / Deal de drogues',risk:'r2'},{text:'Art. 411-5 — Production / Fabrication de drogues',risk:'r3'},{text:'Art. 411-6 — Trafic international de stupéfiants',risk:'r3'}]},
-      {title:'Titre IV — Ch. II — Armes & Explosifs',articles:[{text:'Art. 421-1 — Port d\'arme sans autorisation',risk:'r1'},{text:'Art. 421-2 — Port d\'arme de guerre',risk:'r2'},{text:'Art. 421-3 — Trafic d\'armes à feu',risk:'r3'},{text:'Art. 421-4 — Possession d\'explosifs illégaux',risk:'r3'},{text:'Art. 421-5 — Trafic d\'explosifs',risk:'r4'}]},
-      {title:'Titre V — Infractions routières',articles:[{text:'Art. 511-1 — Conduite sans permis',risk:'r0'},{text:'Art. 511-2 — Conduite en état d\'ivresse / stupéfiants',risk:'r1'},{text:'Art. 511-3 — Excès de vitesse grave',risk:'r0'},{text:'Art. 511-4 — Course de rue illégale',risk:'r1'},{text:'Art. 511-5 — Conduite dangereuse / imprudente',risk:'r1'},{text:'Art. 511-6 — Destruction de bien public (véhicule)',risk:'r1'}]},
-      {title:'Titre VI — Crimes économiques',articles:[{text:'Art. 611-1 — Vol simple',risk:'r1'},{text:'Art. 611-2 — Vol avec violence',risk:'r2'},{text:'Art. 611-3 — Braquage / Robbery',risk:'r2'},{text:'Art. 611-4 — Braquage de banque ou armurerie',risk:'r3'},{text:'Art. 611-5 — Extorsion de fonds',risk:'r2'},{text:'Art. 611-6 — Blanchiment d\'argent',risk:'r3'},{text:'Art. 611-7 — Fraude / Escroquerie',risk:'r1'},{text:'Art. 611-8 — Recel de bien volé',risk:'r1'}]}
-    ],
+    penalCode: getPenalCodeDefault(),
     effectif:[
-      // DIRECTION
       {mat:"—",nom:"[Poste vacant]",gradeLspd:"",gradeBI:"Directeur D.D.",unit:"Direction",id:"",isVacant:true,isChef:true,gradeHier:100,datePromo:""},
       {mat:"47",nom:"James Jones",gradeLspd:"Lieutenant — L.S.P.D.",gradeBI:"Directeur Adjoint",unit:"Direction",id:"36986",isVacant:false,isChef:true,gradeHier:100,datePromo:"2026-01-10"},
-      // D.D.
       {mat:"—",nom:"[Poste vacant]",gradeLspd:"",gradeBI:"Responsable D.D.",unit:"Det. Division",id:"",isVacant:true,isChef:true,gradeHier:90,datePromo:""},
       {mat:"95",nom:"Hayden Tommy",gradeLspd:"Lieutenant — L.S.P.D.",gradeBI:"Inspecteur",unit:"Det. Division",id:"44709",isVacant:false,isChef:false,gradeHier:70,datePromo:"2025-11-19"},
       {mat:"56",nom:"Raydon Pichon",gradeLspd:"Sergent II — L.S.P.D.",gradeBI:"Inspecteur",unit:"Det. Division",id:"56556",isVacant:false,isChef:false,gradeHier:70,datePromo:"2025-11-19"},
@@ -1365,7 +1363,6 @@ function initDB(){
       {mat:"88",nom:"Francis Garcia",gradeLspd:"Officier III — L.S.P.D.",gradeBI:"Enquêteur",unit:"Det. Division",id:"58754",isVacant:false,isChef:false,gradeHier:60,datePromo:"2026-02-11"},
       {mat:"05",nom:"Douglas Walker",gradeLspd:"Officier I — L.S.P.D.",gradeBI:"Enquêteur",unit:"Det. Division",id:"53027",isVacant:false,isChef:false,gradeHier:60,datePromo:"2026-02-18"},
       {mat:"66",nom:"Dana Doux",gradeLspd:"Officier I — L.S.P.D.",gradeBI:"Enquêtrice",unit:"Det. Division",id:"48557",isVacant:false,isChef:false,gradeHier:60,datePromo:"2026-02-18"},
-      // S.C.U.
       {mat:"71",nom:"Clement Lopez",gradeLspd:"Lieutenant — L.S.P.D.",gradeBI:"Responsable S.C.U.",unit:"S.C.U.",id:"56408",isVacant:false,isChef:true,gradeHier:90,datePromo:"2026-01-14"},
       {mat:"02",nom:"Marcus Grey",gradeLspd:"Capitaine — L.S.P.D.",gradeBI:"Officier Principal",unit:"S.C.U.",id:"38438",isVacant:false,isChef:true,gradeHier:80,datePromo:"2026-01-11"},
       {mat:"89",nom:"Benoit James",gradeLspd:"Sergent I — L.S.P.D.",gradeBI:"Agent de P.B.",unit:"S.C.U.",id:"54116",isVacant:false,isChef:false,gradeHier:55,datePromo:"2025-08-02"},
@@ -1377,81 +1374,228 @@ function initDB(){
       {mat:"17",nom:"Lexa Dupont",gradeLspd:"Officier II — L.S.P.D.",gradeBI:"Recrue",unit:"S.C.U.",id:"54723",isVacant:false,isChef:false,gradeHier:50,datePromo:"2026-01-27"}
     ]
   };
-  saveDB(d);return d;
 }
 
-let DB=initDB(),currentEmail=null,currentUser=null,userRole='agent';
-const isDirection=()=>userRole==='direction';
-const isResp=()=>userRole==='direction'||userRole==='responsable';
-const roleName=r=>r==='direction'?'Direction':r==='responsable'?'Responsable':'Agent';
+// ── Grade Hierarchy ────────────────────────────────────────
+const GRADE_MAP={
+  'Directeur D.D.':100,'Directeur Adjoint':100,'Directeur':100,
+  'Responsable D.D.':90,'Responsable S.C.U.':90,'Responsable':90,
+  'Inspecteur Principal':80,'Officier Principal':80,
+  'Inspecteur':70,'Chef de Brigade':75,
+  'Enquêteur':60,'Enquêtrice':60,
+  'Agent de P.B.':55,'Recrue':50
+};
+function getGradeOrder(m){if(m.gradeHier)return parseInt(m.gradeHier)||60;return GRADE_MAP[m.gradeBI]||60;}
 
-// Touch session on activity
+// ── Loader overlay ─────────────────────────────────────────
+function showLoader(msg){
+  let el=document.getElementById('fs-loader');
+  if(!el){
+    el=document.createElement('div');
+    el.id='fs-loader';
+    el.style.cssText='position:fixed;inset:0;background:rgba(10,9,8,0.82);z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;';
+    el.innerHTML=`<div style="width:36px;height:36px;border:3px solid rgba(181,130,26,0.2);border-top-color:var(--amber);border-radius:50%;animation:spin 0.7s linear infinite;"></div><div id="fs-loader-msg" style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.15em;color:rgba(181,130,26,0.7);text-transform:uppercase;"></div>`;
+    const style=document.createElement('style');
+    style.textContent='@keyframes spin{to{transform:rotate(360deg)}}';
+    document.head.appendChild(style);
+    document.body.appendChild(el);
+  }
+  document.getElementById('fs-loader-msg').textContent=msg||'Chargement...';
+  el.style.display='flex';
+}
+function hideLoader(){const el=document.getElementById('fs-loader');if(el)el.style.display='none';}
+
+// ── Listeners temps réel ───────────────────────────────────
+let unsubWarrants=null, unsubBracelets=null, unsubEvents=null, unsubService=null, unsubConfig=null;
+
+function startListeners(){
+  // Config (users, effectif, manuels, penalCode, online)
+  unsubConfig = COL.config.doc('main').onSnapshot(snap=>{
+    if(snap.exists){
+      const d=snap.data();
+      DB.users    = d.users||{};
+      DB.effectif = d.effectif||[];
+      DB.online   = d.online||{};
+      DB.manuels  = d.manuels||[];
+      DB.penalCode= d.penalCode||[];
+      if(dbReady){
+        renderEffectif();
+        renderPenalGrid();
+        if(document.getElementById('manuels-panel').style.display!=='none') renderManuels();
+      }
+    }
+  });
+
+  // Warrants
+  unsubWarrants = COL.warrants.onSnapshot(snap=>{
+    DB.warrants = snap.docs.map(d=>({_id:d.id,...d.data()}));
+    DB.warrants.sort((a,b)=>(b.ts||0)-(a.ts||0));
+    if(dbReady && document.getElementById('warrants-overlay').classList.contains('open')) renderWarrants();
+    if(dbReady) renderArchives();
+  });
+
+  // Bracelets
+  unsubBracelets = COL.bracelets.onSnapshot(snap=>{
+    DB.bracelets = snap.docs.map(d=>({_id:d.id,...d.data()}));
+    DB.bracelets.sort((a,b)=>(b.ts||0)-(a.ts||0));
+    if(dbReady && document.getElementById('bracelets-overlay').classList.contains('open')) renderBracelets();
+    if(dbReady) renderArchives();
+  });
+
+  // Events
+  unsubEvents = COL.events.onSnapshot(snap=>{
+    DB.events = snap.docs.map(d=>({_id:d.id,...d.data()}));
+    DB.events.sort((a,b)=>a.date.localeCompare(b.date)||(a.heureDebut||'').localeCompare(b.heureDebut||''));
+    if(dbReady){
+      renderUpcomingEvents();
+      if(document.getElementById('calendrier-overlay').classList.contains('open')) renderCalendrierModal();
+    }
+  });
+
+  // Service
+  unsubService = COL.service.onSnapshot(snap=>{
+    DB.service = snap.docs.map(d=>({_id:d.id,...d.data()}));
+    DB.service.sort((a,b)=>(b.ts||0)-(a.ts||0));
+    if(dbReady && document.getElementById('service-overlay').classList.contains('open')){
+      renderRecentService();
+      if(svcCurrentAgentId){
+        const entries=DB.service.filter(s=>s.agentName===svcCurrentAgentId);
+        updateSvcStats(entries,svcChartMode);
+        renderSvcChart(entries,svcChartMode);
+      }
+    }
+  });
+}
+
+function stopListeners(){
+  [unsubWarrants,unsubBracelets,unsubEvents,unsubService,unsubConfig].forEach(u=>{if(u)u();});
+  unsubWarrants=unsubBracelets=unsubEvents=unsubService=unsubConfig=null;
+}
+
+// ── Init ───────────────────────────────────────────────────
+async function initApp(){
+  showLoader('Connexion à Firebase...');
+  try {
+    const snap = await COL.config.doc('main').get();
+    if(!snap.exists){
+      showLoader('Initialisation de la base...');
+      const def = getDefaultConfig();
+      await fsSet('config','main', def);
+      DB.users    = def.users;
+      DB.effectif = def.effectif;
+      DB.manuels  = def.manuels;
+      DB.penalCode= def.penalCode;
+      DB.online   = {};
+    } else {
+      const d = snap.data();
+      DB.users    = d.users||{};
+      DB.effectif = d.effectif||[];
+      DB.manuels  = d.manuels||[];
+      DB.penalCode= d.penalCode||[];
+      DB.online   = d.online||{};
+    }
+    // Load collections snapshot for initial state
+    const [wSnap,bSnap,eSnap,sSnap] = await Promise.all([
+      COL.warrants.get(), COL.bracelets.get(), COL.events.get(), COL.service.get()
+    ]);
+    DB.warrants  = wSnap.docs.map(d=>({_id:d.id,...d.data()}));
+    DB.bracelets = bSnap.docs.map(d=>({_id:d.id,...d.data()}));
+    DB.events    = eSnap.docs.map(d=>({_id:d.id,...d.data()}));
+    DB.events.sort((a,b)=>a.date.localeCompare(b.date));
+    DB.service   = sSnap.docs.map(d=>({_id:d.id,...d.data()}));
+    DB.service.sort((a,b)=>(b.ts||0)-(a.ts||0));
+
+    startListeners();
+    hideLoader();
+    dbReady = true;
+
+    // Try auto-login from session
+    const sess = loadSess();
+    if(sess){ const ok=await doLogin(sess.email,true); if(!ok) clearSess(); }
+
+  } catch(err){
+    console.error('Firebase init error:',err);
+    hideLoader();
+    alert('⚠️ Impossible de se connecter à Firebase.\nVérifiez votre connexion internet.\n\nErreur : '+err.message);
+  }
+}
+
+// ── Touch session ──────────────────────────────────────────
 ['click','keydown','scroll'].forEach(ev=>document.addEventListener(ev,()=>{if(currentEmail)saveSess(currentEmail);},{passive:true}));
 
-// ═══ LOGIN ═══
-function doLogin(email){
-  DB=loadDB()||initDB();
+// ── LOGIN ──────────────────────────────────────────────────
+async function doLogin(email, fromSession=false){
   const u=DB.users[email];
-  if(!u)return false;
-  currentEmail=email;currentUser=u.name;userRole=u.role||'agent';
+  if(!u) return false;
+  currentEmail=email; currentUser=u.name; userRole=u.role||'agent';
+  // Mark online
   DB.online[email]={name:u.name,since:new Date().toISOString()};
-  saveDB(DB);saveSess(email);
+  saveConfig(); // fire-and-forget
+  saveSess(email);
   document.getElementById('nav-username').textContent=currentUser;
   document.getElementById('hero-username').textContent=currentUser;
   const rb=document.getElementById('nav-role-badge');
-  rb.textContent=roleName(userRole);rb.className='nav-role-badge role-'+userRole;
+  rb.textContent=roleName(userRole); rb.className='nav-role-badge role-'+userRole;
   document.getElementById('admin-nav-btn').style.display=isDirection()?'inline-block':'none';
   document.getElementById('service-nav-btn').style.display=isResp()?'inline-block':'none';
   document.getElementById('session-timer').style.display='inline';
-  if(isDirection()){document.getElementById('portal-wrap').classList.add('admin-mode');document.getElementById('penal-edit-btn').style.display='inline-block';document.getElementById('manuels-edit-btn').style.display='inline-block';}
-  else{document.getElementById('penal-edit-btn').style.display='none';document.getElementById('manuels-edit-btn').style.display='none';}
+  if(isDirection()){
+    document.getElementById('portal-wrap').classList.add('admin-mode');
+    document.getElementById('penal-edit-btn').style.display='inline-block';
+    document.getElementById('manuels-edit-btn').style.display='inline-block';
+  } else {
+    document.getElementById('penal-edit-btn').style.display='none';
+    document.getElementById('manuels-edit-btn').style.display='none';
+  }
   document.getElementById('login-page').classList.remove('active');
   document.getElementById('portal-page').classList.add('active');
-  renderEffectif();renderUpcomingEvents();renderPenalGrid();
+  renderEffectif(); renderUpcomingEvents(); renderPenalGrid();
   return true;
 }
-function handleLogin(){
+
+async function handleLogin(){
   const email=document.getElementById('email').value.trim().toLowerCase();
   const pw=document.getElementById('password').value;
-  DB=loadDB()||initDB();
   const u=DB.users[email];
-  if(u&&u.pw===pw){document.getElementById('login-err').classList.remove('show');doLogin(email);window.scrollTo(0,0);}
-  else{document.getElementById('login-err').classList.add('show');document.getElementById('password').value='';}
+  if(u&&u.pw===pw){
+    document.getElementById('login-err').classList.remove('show');
+    await doLogin(email);
+    window.scrollTo(0,0);
+  } else {
+    document.getElementById('login-err').classList.add('show');
+    document.getElementById('password').value='';
+  }
 }
-function handleLogout(){
-  if(currentEmail&&DB.online[currentEmail]){delete DB.online[currentEmail];saveDB(DB);}
-  clearSess();currentEmail=null;currentUser=null;userRole='agent';
+
+async function handleLogout(){
+  if(currentEmail && DB.online[currentEmail]){
+    delete DB.online[currentEmail];
+    await saveConfig();
+  }
+  clearSess(); currentEmail=null; currentUser=null; userRole='agent';
   document.getElementById('portal-page').classList.remove('active');
   document.getElementById('portal-wrap').classList.remove('admin-mode');
   document.getElementById('login-page').classList.add('active');
   document.getElementById('session-timer').style.display='none';
-  document.getElementById('email').value='';document.getElementById('password').value='';
+  document.getElementById('email').value=''; document.getElementById('password').value='';
   document.getElementById('login-err').classList.remove('show');
 }
 
-// ═══ EFFECTIF (with hierarchy sort) ═══
+// ── EFFECTIF ───────────────────────────────────────────────
 function sortGroup(members){
   return members.slice().sort((a,b)=>{
-    if(a.isVacant&&!b.isVacant)return-1;
-    if(!a.isVacant&&b.isVacant)return 1;
-    if(a.isVacant&&b.isVacant)return 0;
-    const ga=getGradeOrder(a),gb=getGradeOrder(b);
-    if(ga!==gb)return gb-ga; // higher grade first
-    // Same grade: oldest promotion first (earlier date = longer service = higher priority)
-    const da=a.datePromo||'9999',db=b.datePromo||'9999';
-    return da<db?-1:da>db?1:0;
+    if(a.isVacant&&!b.isVacant)return-1;if(!a.isVacant&&b.isVacant)return 1;if(a.isVacant&&b.isVacant)return 0;
+    const ga=getGradeOrder(a),gb=getGradeOrder(b);if(ga!==gb)return gb-ga;
+    const da=a.datePromo||'9999',db=b.datePromo||'9999';return da<db?-1:da>db?1:0;
   });
 }
 function renderEffectif(){
-  DB=loadDB()||initDB();
-  const ef=DB.effectif;
+  const ef=DB.effectif||[];
   const direction=sortGroup(ef.filter(m=>m.unit==='Direction'));
   const dd=sortGroup(ef.filter(m=>m.unit==='Det. Division'||m.unit==='S. Plaintes'));
   const scu=sortGroup(ef.filter(m=>m.unit==='S.C.U.'));
   function card(m){
-    const gi=ef.indexOf(m);
-    const vc=m.isVacant?' vacant':'';
-    const cc=(!m.isVacant&&m.isChef)?' chef':'';
+    const gi=ef.indexOf(m);const vc=m.isVacant?' vacant':'';const cc=(!m.isVacant&&m.isChef)?' chef':'';
     return`<div class="agent-card${cc}${vc}">
       <div class="agent-mat">${m.mat}</div>
       <div><div class="agent-name">${m.nom}</div><div class="agent-gbi">${m.gradeBI}</div><div class="agent-glspd">${m.gradeLspd}</div></div>
@@ -1465,9 +1609,9 @@ function renderEffectif(){
     <div><div class="sub-label">Street Crimes Unit (S.C.U.) — Agents de Proximité Banalisée</div><div class="effectif-grid">${scu.map(card).join('')}</div></div>`;
 }
 
-// ═══ WARRANTS ═══
+// ── WARRANTS ───────────────────────────────────────────────
 const badgeMapW={'Risque très élevé':'wb-vhigh','Risque élevé':'wb-high','Risque Moyen':'wb-mid','Risque Faible':'wb-low'};
-function openWarrants(){DB=loadDB()||initDB();renderWarrants();document.getElementById('warrants-overlay').classList.add('open');}
+function openWarrants(){renderWarrants();document.getElementById('warrants-overlay').classList.add('open');}
 function closeWarrants(){document.getElementById('warrants-overlay').classList.remove('open');}
 function renderWarrants(){
   const tbody=document.getElementById('warrants-tbody'),nodata=document.getElementById('warrants-nodata');
@@ -1479,54 +1623,73 @@ function renderWarrants(){
   if(!actifs.length){tbody.innerHTML='';nodata.style.display='block';return;}
   nodata.style.display='none';
   tbody.innerHTML=actifs.map(w=>{
-    const ri=DB.warrants.indexOf(w),bc=badgeMapW[w.danger]||'wb-mid';
-    const tr=w.trello?`<a href="${w.trello}" target="_blank" class="w-link" title="${w.trello}">🔗 Casier</a>`:'<span class="w-na">N/A</span>';
-    const dc=w.discord?`<a href="${w.discord}" target="_blank" class="w-link" title="${w.discord}">🔗 Discord</a>`:'<span class="w-na">N/A</span>';
+    const bc=badgeMapW[w.danger]||'wb-mid';
+    const tr=w.trello?`<a href="${w.trello}" target="_blank" class="w-link">🔗 Casier</a>`:'<span class="w-na">N/A</span>';
+    const dc=w.discord?`<a href="${w.discord}" target="_blank" class="w-link">🔗 Discord</a>`:'<span class="w-na">N/A</span>';
     const dis=canEdit?'':'style="pointer-events:none;opacity:0.5;"';
     const acts=canEdit
-      ?`<button class="ta-btn ta-edit" onclick="openEditWarrant(${ri})">✏</button><button class="ta-btn ta-close" onclick="closeWarrant(${ri})">✓ Clôt.</button>`
+      ?`<button class="ta-btn ta-edit" onclick="openEditWarrant('${w._id}')">✏</button><button class="ta-btn ta-close" onclick="closeWarrantFS('${w._id}')">✓ Clôt.</button>`
       :'<span class="w-na">Lecture</span>';
     return`<tr>
-      <td class="tal lt-id">${w.wid||String(ri+1).padStart(5,'0')}</td>
-      <td class="tal lt-name">${w.nom}</td>
-      <td class="tal lt-prenom">${w.prenom||'—'}</td>
+      <td class="tal lt-id">${w.wid||'—'}</td>
+      <td class="tal lt-name">${w.nom}</td><td class="tal lt-prenom">${w.prenom||'—'}</td>
       <td><span class="wbadge ${bc}">${w.danger}</span></td>
       <td>${tr}</td><td>${dc}</td>
-      <td><label class="w-toggle" onclick="toggleW(event,${ri},'majTrello')" ${dis}><input type="checkbox" ${w.majTrello?'checked':''} readonly><div class="wt-track"></div><div class="wt-thumb"></div><span class="wt-lbl">${w.majTrello?'✓':'—'}</span></label></td>
-      <td><label class="w-toggle" onclick="toggleW(event,${ri},'majTel')" ${dis}><input type="checkbox" ${w.majTel?'checked':''} readonly><div class="wt-track"></div><div class="wt-thumb"></div><span class="wt-lbl">${w.majTel?'✓':'—'}</span></label></td>
+      <td><label class="w-toggle" onclick="toggleW(event,'${w._id}','majTrello')" ${dis}><input type="checkbox" ${w.majTrello?'checked':''} readonly><div class="wt-track"></div><div class="wt-thumb"></div><span class="wt-lbl">${w.majTrello?'✓':'—'}</span></label></td>
+      <td><label class="w-toggle" onclick="toggleW(event,'${w._id}','majTel')" ${dis}><input type="checkbox" ${w.majTel?'checked':''} readonly><div class="wt-track"></div><div class="wt-thumb"></div><span class="wt-lbl">${w.majTel?'✓':'—'}</span></label></td>
       <td><div class="ta-actions">${acts}</div></td>
     </tr>`;
   }).join('');
 }
-function toggleW(e,i,f){e.preventDefault();if(!isResp())return;DB.warrants[i][f]=!DB.warrants[i][f];saveDB(DB);renderWarrants();}
-function addWarrant(){
+async function toggleW(e,id,f){
+  e.preventDefault();if(!isResp())return;
+  const w=DB.warrants.find(x=>x._id===id);if(!w)return;
+  await fsUpdate('warrants',id,{[f]:!w[f]});
+}
+async function addWarrant(){
   if(!isResp()){alert('Accès Responsable / Direction requis.');return;}
   const nom=document.getElementById('w-nom').value.trim().toUpperCase();
   if(!nom){alert('Le NOM est obligatoire.');return;}
-  if(!DB.warrants)DB.warrants=[];
-  DB.warrants.push({wid:document.getElementById('w-id').value.trim()||String(Date.now()).slice(-5),nom,prenom:document.getElementById('w-prenom').value.trim(),danger:document.getElementById('w-danger').value,trello:document.getElementById('w-trello').value.trim(),discord:document.getElementById('w-discord').value.trim(),date:new Date().toLocaleDateString('fr-FR'),emis:currentUser,status:'Actif',majTrello:false,majTel:false});
-  saveDB(DB);['w-id','w-nom','w-prenom','w-trello','w-discord'].forEach(id=>document.getElementById(id).value='');renderWarrants();
+  await fsAdd('warrants',{
+    wid:document.getElementById('w-id').value.trim()||String(Date.now()).slice(-5),
+    nom,prenom:document.getElementById('w-prenom').value.trim(),
+    danger:document.getElementById('w-danger').value,
+    trello:document.getElementById('w-trello').value.trim(),
+    discord:document.getElementById('w-discord').value.trim(),
+    date:new Date().toLocaleDateString('fr-FR'),emis:currentUser,
+    status:'Actif',majTrello:false,majTel:false,ts:Date.now()
+  });
+  ['w-id','w-nom','w-prenom','w-trello','w-discord'].forEach(id=>document.getElementById(id).value='');
 }
-function closeWarrant(i){
+async function closeWarrantFS(id){
   if(!isResp())return;
   if(!confirm('Clôturer cet avis de recherche ?'))return;
-  DB.warrants[i].status='Clôturé';DB.warrants[i].closedBy=currentUser;DB.warrants[i].closedDate=new Date().toLocaleDateString('fr-FR');
-  saveDB(DB);renderWarrants();
+  await fsUpdate('warrants',id,{status:'Clôturé',closedBy:currentUser,closedDate:new Date().toLocaleDateString('fr-FR')});
 }
-function openEditWarrant(i){
-  const w=DB.warrants[i];
-  document.getElementById('ew-idx').value=i;document.getElementById('ew-id').value=w.wid||'';document.getElementById('ew-nom').value=w.nom;document.getElementById('ew-prenom').value=w.prenom||'';document.getElementById('ew-danger').value=w.danger;document.getElementById('ew-trello').value=w.trello||'';document.getElementById('ew-discord').value=w.discord||'';
+function openEditWarrant(id){
+  const w=DB.warrants.find(x=>x._id===id);if(!w)return;
+  document.getElementById('ew-idx').value=id;
+  document.getElementById('ew-id').value=w.wid||'';document.getElementById('ew-nom').value=w.nom;
+  document.getElementById('ew-prenom').value=w.prenom||'';document.getElementById('ew-danger').value=w.danger;
+  document.getElementById('ew-trello').value=w.trello||'';document.getElementById('ew-discord').value=w.discord||'';
   document.getElementById('edit-warrant-overlay').classList.add('open');
 }
 function closeEditWarrant(){document.getElementById('edit-warrant-overlay').classList.remove('open');}
-function saveEditWarrant(){
-  const i=parseInt(document.getElementById('ew-idx').value);
-  DB.warrants[i]={...DB.warrants[i],wid:document.getElementById('ew-id').value.trim(),nom:document.getElementById('ew-nom').value.trim().toUpperCase(),prenom:document.getElementById('ew-prenom').value.trim(),danger:document.getElementById('ew-danger').value,trello:document.getElementById('ew-trello').value.trim(),discord:document.getElementById('ew-discord').value.trim()};
-  saveDB(DB);closeEditWarrant();renderWarrants();
+async function saveEditWarrant(){
+  const id=document.getElementById('ew-idx').value;
+  await fsUpdate('warrants',id,{
+    wid:document.getElementById('ew-id').value.trim(),
+    nom:document.getElementById('ew-nom').value.trim().toUpperCase(),
+    prenom:document.getElementById('ew-prenom').value.trim(),
+    danger:document.getElementById('ew-danger').value,
+    trello:document.getElementById('ew-trello').value.trim(),
+    discord:document.getElementById('ew-discord').value.trim()
+  });
+  closeEditWarrant();
 }
 
-// ═══ BRACELETS ═══
-function openBracelets(){DB=loadDB()||initDB();renderBracelets();document.getElementById('bracelets-overlay').classList.add('open');}
+// ── BRACELETS ──────────────────────────────────────────────
+function openBracelets(){renderBracelets();document.getElementById('bracelets-overlay').classList.add('open');}
 function closeBracelets(){document.getElementById('bracelets-overlay').classList.remove('open');}
 const getStCls=s=>{if(!s)return'';if(s==='Brisé')return'st-brise';if(s==='À convoquer')return'st-conv';if(s==='À pointer')return'st-point';if(s==='À retirer')return'st-ret';return'';};
 const getPtCls=s=>{if(!s)return'';if(s.includes('EN RETARD'))return'sp-retard';if(s.includes('EN COURS'))return'sp-cours';return'';};
@@ -1540,52 +1703,67 @@ function renderBracelets(){
   if(!actifs.length){tbody.innerHTML='';nodata.style.display='block';return;}
   nodata.style.display='none';
   tbody.innerHTML=actifs.map(b=>{
-    const ri=DB.bracelets.indexOf(b);
     const tc=b.type==='Protection'?'tb-prot':'tb-surv';
     const sc=getStCls(b.statut),pc=getPtCls(b.statutPointage);
+    const dis=canEdit?'':'style="pointer-events:none;opacity:0.5;"';
     const acts=canEdit
-      ?`<button class="ta-btn ta-edit" onclick="openEditBrac(${ri})">✏ Modifier</button><button class="ta-btn ta-close" onclick="closeBracelet(${ri})">✓ Clôt.</button>`
-      :`<button class="ta-btn ta-edit" onclick="openEditBrac(${ri})">👁 Voir</button>`;
+      ?`<button class="ta-btn ta-edit" onclick="openEditBrac('${b._id}')">✏</button><button class="ta-btn ta-close" onclick="closeBraceletFS('${b._id}')">✓ Clôt.</button>`
+      :'<span class="w-na">Lecture</span>';
     return`<tr>
-      <td class="tal lt-id">${b.wid||String(ri+1).padStart(5,'0')}</td>
-      <td class="tal lt-name">${b.nom}</td>
-      <td class="tal lt-prenom">${b.prenom||'—'}</td>
-      <td><span class="tbadge ${tc}">${b.type}</span></td>
-      <td style="font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;color:#6a3a9a;">${b.referent||'—'}</td>
-      <td style="font-family:'IBM Plex Mono',monospace;font-size:10px;">${b.datePose||'—'}</td>
-      <td style="font-family:'IBM Plex Mono',monospace;font-size:10px;">${b.dernierPointage||'—'}</td>
-      <td style="font-family:'IBM Plex Mono',monospace;font-size:10px;">${b.pointePar||'—'}</td>
-      <td>${b.statutPointage?`<span class="sp-badge ${pc}">${b.statutPointage}</span>`:'<span class="w-na">—</span>'}</td>
-      <td>${b.statut?`<span class="st-badge ${sc}">${b.statut}</span>`:'<span class="w-na">—</span>'}</td>
-      <td style="font-size:11px;max-width:130px;overflow:hidden;text-overflow:ellipsis;" title="${b.commentaire||''}">${b.commentaire||'—'}</td>
+      <td class="tal lt-id">${b.wid||'—'}</td><td class="tal lt-name">${b.nom}</td><td class="tal lt-prenom">${b.prenom||'—'}</td>
+      <td><span class="tbadge ${tc}">${b.type}</span></td><td>${b.referent||'—'}</td><td>${b.datePose||'—'}</td>
+      <td>${b.dernierPointage||'—'}</td><td>${b.pointePar||'—'}</td>
+      <td>${b.statut?`<span class="st-badge ${sc}">${b.statut}</span>`:'—'}</td>
+      <td>${b.statutPointage?`<span class="sp-badge ${pc}">${b.statutPointage}</span>`:'—'}</td>
+      <td>${b.commentaire||'—'}</td>
       <td><div class="ta-actions">${acts}</div></td>
     </tr>`;
   }).join('');
 }
-function addBracelet(){
+async function addBracelet(){
   if(!isResp()){alert('Accès Responsable / Direction requis.');return;}
   const nom=document.getElementById('b-nom').value.trim().toUpperCase();
   if(!nom){alert('Le NOM est obligatoire.');return;}
-  if(!DB.bracelets)DB.bracelets=[];
-  DB.bracelets.push({wid:document.getElementById('b-id').value.trim()||String(Date.now()).slice(-5),nom,prenom:document.getElementById('b-prenom').value.trim(),type:document.getElementById('b-type').value,referent:document.getElementById('b-referent').value.trim(),datePose:document.getElementById('b-date-pose').value,statut:document.getElementById('b-statut').value,commentaire:document.getElementById('b-comment').value.trim(),dernierPointage:'',pointePar:'',statutPointage:'',addedBy:currentUser,status:'Actif'});
-  saveDB(DB);['b-id','b-nom','b-prenom','b-referent','b-date-pose','b-comment'].forEach(id=>document.getElementById(id).value='');renderBracelets();
+  await fsAdd('bracelets',{
+    wid:document.getElementById('b-id').value.trim(),nom,
+    prenom:document.getElementById('b-prenom').value.trim(),
+    type:document.getElementById('b-type').value,
+    referent:document.getElementById('b-referent').value.trim(),
+    datePose:document.getElementById('b-date-pose').value.trim(),
+    statut:document.getElementById('b-statut').value,
+    commentaire:document.getElementById('b-comment').value.trim(),
+    status:'Actif',ts:Date.now()
+  });
+  ['b-id','b-nom','b-prenom','b-referent','b-date-pose','b-comment'].forEach(id=>document.getElementById(id).value='');
 }
-function closeBracelet(i){
+async function closeBraceletFS(id){
   if(!isResp())return;
-  if(!confirm('Clôturer ce bracelet électronique ?'))return;
-  DB.bracelets[i].status='Clôturé';DB.bracelets[i].closedBy=currentUser;DB.bracelets[i].closedDate=new Date().toLocaleDateString('fr-FR');
-  saveDB(DB);renderBracelets();
+  if(!confirm('Clôturer ce bracelet ?'))return;
+  await fsUpdate('bracelets',id,{status:'Clôturé',closedBy:currentUser,closedDate:new Date().toLocaleDateString('fr-FR')});
 }
-function openEditBrac(i){
-  const b=DB.bracelets[i];
-  document.getElementById('eb-idx').value=i;document.getElementById('eb-id').value=b.wid||'';document.getElementById('eb-nom').value=b.nom;document.getElementById('eb-prenom').value=b.prenom||'';document.getElementById('eb-type').value=b.type||'Surveillance';document.getElementById('eb-referent').value=b.referent||'';document.getElementById('eb-date-pose').value=b.datePose||'';document.getElementById('eb-last-pointer').value=b.dernierPointage||'';document.getElementById('eb-pointed-by').value=b.pointePar||'';document.getElementById('eb-statut-pointage').value=b.statutPointage||'';document.getElementById('eb-statut').value=b.statut||'À pointer';document.getElementById('eb-comment').value=b.commentaire||'';
+function openEditBrac(id){
+  const b=DB.bracelets.find(x=>x._id===id);if(!b)return;
+  document.getElementById('eb-idx').value=id;
+  document.getElementById('eb-id').value=b.wid||'';document.getElementById('eb-nom').value=b.nom;
+  document.getElementById('eb-prenom').value=b.prenom||'';document.getElementById('eb-type').value=b.type||'Surveillance';
+  document.getElementById('eb-referent').value=b.referent||'';document.getElementById('eb-date-pose').value=b.datePose||'';
+  document.getElementById('eb-last-pointer').value=b.dernierPointage||'';document.getElementById('eb-pointed-by').value=b.pointePar||'';
+  document.getElementById('eb-statut-pointage').value=b.statutPointage||'';document.getElementById('eb-statut').value=b.statut||'À pointer';
+  document.getElementById('eb-comment').value=b.commentaire||'';
   document.getElementById('edit-brac-overlay').classList.add('open');
 }
 function closeEditBrac(){document.getElementById('edit-brac-overlay').classList.remove('open');}
-function saveEditBrac(){
-  const i=parseInt(document.getElementById('eb-idx').value);
-  DB.bracelets[i]={...DB.bracelets[i],wid:document.getElementById('eb-id').value.trim(),nom:document.getElementById('eb-nom').value.trim().toUpperCase(),prenom:document.getElementById('eb-prenom').value.trim(),type:document.getElementById('eb-type').value,referent:document.getElementById('eb-referent').value.trim(),datePose:document.getElementById('eb-date-pose').value,dernierPointage:document.getElementById('eb-last-pointer').value,pointePar:document.getElementById('eb-pointed-by').value.trim(),statutPointage:document.getElementById('eb-statut-pointage').value.trim(),statut:document.getElementById('eb-statut').value,commentaire:document.getElementById('eb-comment').value.trim()};
-  saveDB(DB);closeEditBrac();renderBracelets();
+async function saveEditBrac(){
+  const id=document.getElementById('eb-idx').value;
+  await fsUpdate('bracelets',id,{
+    wid:document.getElementById('eb-id').value.trim(),nom:document.getElementById('eb-nom').value.trim().toUpperCase(),
+    prenom:document.getElementById('eb-prenom').value.trim(),type:document.getElementById('eb-type').value,
+    referent:document.getElementById('eb-referent').value.trim(),datePose:document.getElementById('eb-date-pose').value,
+    dernierPointage:document.getElementById('eb-last-pointer').value,pointePar:document.getElementById('eb-pointed-by').value.trim(),
+    statutPointage:document.getElementById('eb-statut-pointage').value.trim(),statut:document.getElementById('eb-statut').value,
+    commentaire:document.getElementById('eb-comment').value.trim()
+  });
+  closeEditBrac();
 }
 function pointerBracelet(){
   const today=new Date().toLocaleDateString('fr-FR');
@@ -1596,7 +1774,7 @@ function pointerBracelet(){
   document.getElementById('eb-statut').value='À pointer';
 }
 
-// ═══ PRISE D'INFO ═══
+// ── PRISE D'INFO ───────────────────────────────────────────
 function openPriseInfo(){document.getElementById('priseinfo-overlay').classList.add('open');}
 function closePriseInfo(){document.getElementById('priseinfo-overlay').classList.remove('open');}
 function analyzeRaw(){
@@ -1633,71 +1811,56 @@ function copyPI(){
   navigator.clipboard.writeText(txt).then(()=>{const b=document.getElementById('pi-copy-btn');const o=b.textContent;b.textContent='✅ Copié!';setTimeout(()=>b.textContent=o,2000);});
 }
 
-// ═══ CALENDRIER ═══
+// ── CALENDRIER ─────────────────────────────────────────────
 let calCurrentDate=new Date();
 const EV_COLORS={'interrogatoire':'#1e40af','perquisition':'#166534','psychologue':'#6b21a8','ag':'#991b1b','autre':'#57534e'};
 const EV_LABELS={'interrogatoire':'Interrogatoire','perquisition':'Perquisition','psychologue':'Psychologue','ag':'Assemblée générale','autre':'Autre'};
 
-function openCalendrier(){DB=loadDB()||initDB();renderCalendrierModal();document.getElementById('calendrier-overlay').classList.add('open');}
+function openCalendrier(){renderCalendrierModal();document.getElementById('calendrier-overlay').classList.add('open');}
 function closeCalendrier(){document.getElementById('calendrier-overlay').classList.remove('open');}
-
 function buildCalHTML(containerId){
   const y=calCurrentDate.getFullYear(),m=calCurrentDate.getMonth();
   const monthNames=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
-  const firstDay=new Date(y,m,1).getDay();
-  const daysInMonth=new Date(y,m+1,0).getDate();
-  const startOffset=firstDay===0?6:firstDay-1;
-  const today=new Date();
-  const isModal=containerId==='cal-modal-inner';
-  let html=`<div class="cal-header">
-    <div class="cal-nav">
-      <button class="cal-nav-btn" onclick="calPrev('${containerId}')">‹</button>
-      <div class="cal-month">${monthNames[m]} ${y}</div>
-      <button class="cal-nav-btn" onclick="calNext('${containerId}')">›</button>
-    </div>
-    <button class="btn btn-p btn-sm" onclick="openEventModal(null)">+ Ajouter un événement</button>
-  </div>
+  const firstDay=new Date(y,m,1).getDay();const daysInMonth=new Date(y,m+1,0).getDate();
+  const startOffset=firstDay===0?6:firstDay-1;const today=new Date();
+  let html=`<div class="cal-header"><div class="cal-nav">
+    <button class="cal-nav-btn" onclick="calPrev('${containerId}')">‹</button>
+    <div class="cal-month">${monthNames[m]} ${y}</div>
+    <button class="cal-nav-btn" onclick="calNext('${containerId}')">›</button>
+  </div><button class="btn btn-p btn-sm" onclick="openEventModal(null)">+ Ajouter un événement</button></div>
   <div class="cal-grid">
-    <div class="cal-dow">Lun</div><div class="cal-dow">Mar</div><div class="cal-dow">Mer</div>
-    <div class="cal-dow">Jeu</div><div class="cal-dow">Ven</div><div class="cal-dow">Sam</div><div class="cal-dow">Dim</div>`;
+  <div class="cal-dow">Lun</div><div class="cal-dow">Mar</div><div class="cal-dow">Mer</div><div class="cal-dow">Jeu</div><div class="cal-dow">Ven</div><div class="cal-dow">Sam</div><div class="cal-dow">Dim</div>`;
   for(let i=0;i<startOffset;i++) html+=`<div class="cal-day other-month"></div>`;
   for(let d=1;d<=daysInMonth;d++){
     const dateStr=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const isToday=today.getFullYear()===y&&today.getMonth()===m&&today.getDate()===d;
     const dayEvents=(DB.events||[]).filter(ev=>ev.date===dateStr).sort((a,b)=>(a.heureDebut||'').localeCompare(b.heureDebut||''));
     let evHtml=dayEvents.map(ev=>{
-      const realIdx=(DB.events||[]).indexOf(ev);
-      const timeStr=ev.heureDebut?ev.heureDebut+(ev.heureFin?'→'+ev.heureFin:''):'' ;
+      const timeStr=ev.heureDebut?ev.heureDebut+(ev.heureFin?'→'+ev.heureFin:''):'';
       const isPast=dateStr<`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
       const col=isPast?'#b0aa9e':(EV_COLORS[ev.type]||'#57534e');
-      return`<div class="cal-event ev-${ev.type}" style="background:${col};${isPast?'opacity:0.6;':''}" onclick="openEventModal(${realIdx},event)" title="${ev.titre}${timeStr?' ('+timeStr+')':''}">${timeStr?timeStr+' ':''}<strong>${ev.titre}</strong></div>`;
+      return`<div class="cal-event ev-${ev.type}" style="background:${col};${isPast?'opacity:0.6;':''}" onclick="openEventModal('${ev._id}',event)" title="${ev.titre}">${timeStr?timeStr+' ':''}<strong>${ev.titre}</strong></div>`;
     }).join('');
     const isPastDay=dateStr<`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
     html+=`<div class="cal-day${isToday?' today':''}${isPastDay?' past-day':''}" onclick="openEventModal(null,event,'${dateStr}')">
-      <div class="cal-day-num" style="${isPastDay?'color:var(--gray-light);opacity:0.6;':''}">${d}</div>${evHtml}
-    </div>`;
+      <div class="cal-day-num" style="${isPastDay?'color:var(--gray-light);opacity:0.6;':''}">${d}</div>${evHtml}</div>`;
   }
   html+='</div>';
-  // Agenda table — upcoming events this month
   const monthEvents=(DB.events||[]).filter(ev=>{const d=new Date(ev.date);return d.getFullYear()===y&&d.getMonth()===m;}).sort((a,b)=>a.date.localeCompare(b.date)||(a.heureDebut||'').localeCompare(b.heureDebut||''));
   if(monthEvents.length){
     html+=`<div class="cal-agenda"><div class="cal-agenda-title">Événements du mois — ${monthNames[m]} ${y}</div>
     <table class="cal-agenda-table"><thead><tr><th>Date</th><th>Type</th><th>Titre</th><th>Horaire</th><th>Lieu</th><th>Créé par</th><th>Description</th></tr></thead><tbody>
     ${monthEvents.map(ev=>{
-      const ri=(DB.events||[]).indexOf(ev);
-      const now2=new Date();
-      const nowStr2=`${now2.getFullYear()}-${String(now2.getMonth()+1).padStart(2,'0')}-${String(now2.getDate()).padStart(2,'0')}`;
-      const isPast=ev.date<nowStr2;
-      const col=isPast?'#b0aa9e':(EV_COLORS[ev.type]||'#57534e');
+      const now2=new Date();const nowStr2=`${now2.getFullYear()}-${String(now2.getMonth()+1).padStart(2,'0')}-${String(now2.getDate()).padStart(2,'0')}`;
+      const isPast=ev.date<nowStr2;const col=isPast?'#b0aa9e':(EV_COLORS[ev.type]||'#57534e');
       const d2=new Date(ev.date);const dd=d2.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
       const hor=ev.heureDebut?(ev.heureDebut+(ev.heureFin?' → '+ev.heureFin:'')):'—';
-      return`<tr onclick="openEventModal(${ri},event)" style="cursor:pointer;${isPast?'opacity:0.5;background:#f8f6f2;':''}">
+      return`<tr onclick="openEventModal('${ev._id}',event)" style="cursor:pointer;${isPast?'opacity:0.5;background:#f8f6f2;':''}">
         <td style="font-family:'IBM Plex Mono',monospace;font-size:10px;white-space:nowrap;">${dd}${isPast?' <span style="color:#b0aa9e;font-size:9px;">(passé)</span>':''}</td>
         <td><span class="cal-event-badge" style="background:${col};">${EV_LABELS[ev.type]||ev.type}</span></td>
         <td style="font-weight:600;${isPast?'text-decoration:line-through;color:#888;':''}">${ev.titre}</td>
         <td style="font-family:'IBM Plex Mono',monospace;font-size:10px;">${hor}</td>
-        <td style="font-size:11px;">${ev.lieu||'—'}</td>
-        <td style="font-size:11px;">${ev.authorName||'—'}</td>
+        <td style="font-size:11px;">${ev.lieu||'—'}</td><td style="font-size:11px;">${ev.authorName||'—'}</td>
         <td style="font-size:11px;max-width:150px;overflow:hidden;text-overflow:ellipsis;" title="${ev.desc||''}">${ev.desc||'—'}</td>
       </tr>`;
     }).join('')}
@@ -1705,46 +1868,31 @@ function buildCalHTML(containerId){
   }
   return html;
 }
-function renderCalendrierModal(){
-  const c=document.getElementById('cal-modal-inner');
-  if(c){c.innerHTML=buildCalHTML('cal-modal-inner');}
-}
-function renderCalendrierPage(){
-  // Section § 03 now shows upcoming events, not the full calendar grid
-  renderUpcomingEvents();
-}
+function renderCalendrierModal(){const c=document.getElementById('cal-modal-inner');if(c)c.innerHTML=buildCalHTML('cal-modal-inner');}
+function renderCalendrierPage(){renderUpcomingEvents();}
 function calPrev(cid){calCurrentDate=new Date(calCurrentDate.getFullYear(),calCurrentDate.getMonth()-1,1);if(cid==='cal-modal-inner')renderCalendrierModal();else renderUpcomingEvents();}
 function calNext(cid){calCurrentDate=new Date(calCurrentDate.getFullYear(),calCurrentDate.getMonth()+1,1);if(cid==='cal-modal-inner')renderCalendrierModal();else renderUpcomingEvents();}
 function calPrevPage(){calCurrentDate=new Date(calCurrentDate.getFullYear(),calCurrentDate.getMonth()-1,1);renderUpcomingEvents();}
 function calNextPage(){calCurrentDate=new Date(calCurrentDate.getFullYear(),calCurrentDate.getMonth()+1,1);renderUpcomingEvents();}
 
-let editingEventIdx=null;
-function openEventModal(idx,e,prefDate){
+let editingEventId=null;
+function openEventModal(id,e,prefDate){
   if(e)e.stopPropagation();
-  editingEventIdx=idx;
+  editingEventId=id;
   const delBtn=document.getElementById('ev-delete-btn');
   const creator=document.getElementById('ev-creator-display');
   const saveBtn=document.querySelector('#event-overlay .btn-p');
-  if(idx!==null&&idx!==undefined&&idx>=0){
-    const ev=DB.events[idx];
+  if(id!==null&&id!==undefined){
+    const ev=DB.events.find(x=>x._id===id);if(!ev)return;
     document.getElementById('event-modal-title').textContent='📅 Événement';
     document.getElementById('ev-date').value=ev.date;
-    document.getElementById('ev-heure-debut').value=ev.heureDebut||'';
-    document.getElementById('ev-heure-fin').value=ev.heureFin||'';
-    document.getElementById('ev-type').value=ev.type;
-    document.getElementById('ev-titre').value=ev.titre;
-    document.getElementById('ev-lieu').value=ev.lieu||'';
-    document.getElementById('ev-desc').value=ev.desc||'';
+    document.getElementById('ev-heure-debut').value=ev.heureDebut||'';document.getElementById('ev-heure-fin').value=ev.heureFin||'';
+    document.getElementById('ev-type').value=ev.type;document.getElementById('ev-titre').value=ev.titre;
+    document.getElementById('ev-lieu').value=ev.lieu||'';document.getElementById('ev-desc').value=ev.desc||'';
     creator.textContent=ev.authorName||'—';
-    // Only author (or resp/direction) can edit or delete
-    const canEdit=isResp()||(ev.author===currentEmail);
-    const canDel=isResp()||(ev.author===currentEmail);
+    const canEdit=isResp()||(ev.author===currentEmail);const canDel=isResp()||(ev.author===currentEmail);
     delBtn.style.display=canDel?'inline-flex':'none';
-    // Lock fields if read-only
-    ['ev-date','ev-heure-debut','ev-heure-fin','ev-type','ev-titre','ev-lieu','ev-desc'].forEach(id=>{
-      const el=document.getElementById(id);
-      if(el)el.disabled=!canEdit;
-    });
+    ['ev-date','ev-heure-debut','ev-heure-fin','ev-type','ev-titre','ev-lieu','ev-desc'].forEach(eid=>{const el=document.getElementById(eid);if(el)el.disabled=!canEdit;});
     if(saveBtn)saveBtn.style.display=canEdit?'inline-block':'none';
   }else{
     document.getElementById('event-modal-title').textContent='📅 Ajouter un événement';
@@ -1752,163 +1900,125 @@ function openEventModal(idx,e,prefDate){
     document.getElementById('ev-heure-debut').value='';document.getElementById('ev-heure-fin').value='';
     document.getElementById('ev-type').value='interrogatoire';document.getElementById('ev-titre').value='';
     document.getElementById('ev-lieu').value='';document.getElementById('ev-desc').value='';
-    creator.textContent=currentUser||'—';
-    delBtn.style.display='none';
-    // Re-enable all fields for new event
-    ['ev-date','ev-heure-debut','ev-heure-fin','ev-type','ev-titre','ev-lieu','ev-desc'].forEach(id=>{
-      const el=document.getElementById(id);if(el)el.disabled=false;
-    });
+    creator.textContent=currentUser||'—';delBtn.style.display='none';
+    ['ev-date','ev-heure-debut','ev-heure-fin','ev-type','ev-titre','ev-lieu','ev-desc'].forEach(eid=>{const el=document.getElementById(eid);if(el)el.disabled=false;});
     if(saveBtn)saveBtn.style.display='inline-block';
   }
   document.getElementById('ev-msg').innerHTML='';
   document.getElementById('event-overlay').classList.add('open');
 }
-function closeEventModal(){document.getElementById('event-overlay').classList.remove('open');editingEventIdx=null;}
-function saveEvent(){
+function closeEventModal(){document.getElementById('event-overlay').classList.remove('open');editingEventId=null;}
+async function saveEvent(){
   const date=document.getElementById('ev-date').value,titre=document.getElementById('ev-titre').value.trim();
   if(!date||!titre){showMsg('ev-msg','La date et le titre sont obligatoires.',false);return;}
-  if(editingEventIdx!==null&&editingEventIdx>=0){
-    const existing=DB.events[editingEventIdx];
-    const canEdit=isResp()||(existing.author===currentEmail);
-    if(!canEdit){showMsg('ev-msg','Vous ne pouvez pas modifier l\'événement d\'un autre agent.',false);return;}
-    // Keep original author intact
-    DB.events[editingEventIdx]={
-      ...existing,
-      date,heureDebut:document.getElementById('ev-heure-debut').value,
-      heureFin:document.getElementById('ev-heure-fin').value,
+  if(editingEventId!==null&&editingEventId!==undefined){
+    const existing=DB.events.find(x=>x._id===editingEventId);
+    const canEdit=isResp()||(existing&&existing.author===currentEmail);
+    if(!canEdit){showMsg('ev-msg','Vous ne pouvez pas modifier cet événement.',false);return;}
+    await fsUpdate('events',editingEventId,{
+      date,heureDebut:document.getElementById('ev-heure-debut').value,heureFin:document.getElementById('ev-heure-fin').value,
       type:document.getElementById('ev-type').value,titre,
-      lieu:document.getElementById('ev-lieu').value.trim(),
-      desc:document.getElementById('ev-desc').value.trim(),
+      lieu:document.getElementById('ev-lieu').value.trim(),desc:document.getElementById('ev-desc').value.trim(),
       lastEditBy:currentUser,lastEditDate:new Date().toLocaleString('fr-FR')
-    };
+    });
   }else{
-    if(!DB.events)DB.events=[];
-    DB.events.push({date,heureDebut:document.getElementById('ev-heure-debut').value,heureFin:document.getElementById('ev-heure-fin').value,type:document.getElementById('ev-type').value,titre,lieu:document.getElementById('ev-lieu').value.trim(),desc:document.getElementById('ev-desc').value.trim(),author:currentEmail,authorName:currentUser,createdAt:new Date().toLocaleString('fr-FR')});
+    await fsAdd('events',{
+      date,heureDebut:document.getElementById('ev-heure-debut').value,heureFin:document.getElementById('ev-heure-fin').value,
+      type:document.getElementById('ev-type').value,titre,
+      lieu:document.getElementById('ev-lieu').value.trim(),desc:document.getElementById('ev-desc').value.trim(),
+      author:currentEmail,authorName:currentUser,createdAt:new Date().toLocaleString('fr-FR'),ts:Date.now()
+    });
   }
-  saveDB(DB);closeEventModal();renderUpcomingEvents();renderCalendrierModal();
+  closeEventModal();
 }
-function deleteEvent(){
-  if(editingEventIdx===null||editingEventIdx<0)return;
-  const ev=DB.events[editingEventIdx];
-  if(!isResp()&&ev.author!==currentEmail){showMsg('ev-msg','Vous ne pouvez pas supprimer l\'événement d\'un autre agent.',false);return;}
+async function deleteEvent(){
+  if(!editingEventId)return;
+  const ev=DB.events.find(x=>x._id===editingEventId);
+  if(!isResp()&&ev&&ev.author!==currentEmail){showMsg('ev-msg','Vous ne pouvez pas supprimer cet événement.',false);return;}
   if(!confirm('Supprimer cet événement ?'))return;
-  DB.events.splice(editingEventIdx,1);saveDB(DB);closeEventModal();renderUpcomingEvents();renderCalendrierModal();
+  await fsDelete('events',editingEventId);
+  closeEventModal();
 }
 
-// ═══ ARCHIVES ═══
-function openArchives(){DB=loadDB()||initDB();renderArchives();document.getElementById('archives-overlay').classList.add('open');}
+// ── ARCHIVES ───────────────────────────────────────────────
+function openArchives(){renderArchives();document.getElementById('archives-overlay').classList.add('open');}
 function closeArchives(){document.getElementById('archives-overlay').classList.remove('open');}
 function switchArchTab(id,el){
   document.querySelectorAll('.arch-tab-content').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.arch-tab').forEach(t=>t.classList.remove('active'));
   document.getElementById(id).classList.add('active');el.classList.add('active');
 }
-function deleteArchiveWarrant(globalIdx){
+async function deleteArchiveWarrant(id){
   if(!isResp()){alert('Accès Responsable / Direction requis.');return;}
   if(!confirm('Supprimer définitivement cet enregistrement des archives ?'))return;
-  DB.warrants.splice(globalIdx,1);saveDB(DB);renderArchives();
+  await fsDelete('warrants',id);
 }
-function deleteArchiveBracelet(globalIdx){
+async function deleteArchiveBracelet(id){
   if(!isResp()){alert('Accès Responsable / Direction requis.');return;}
   if(!confirm('Supprimer définitivement cet enregistrement des archives ?'))return;
-  DB.bracelets.splice(globalIdx,1);saveDB(DB);renderArchives();
+  await fsDelete('bracelets',id);
 }
 function renderArchives(){
-  const closed=(DB.warrants||[]).map((w,i)=>({...w,gi:i})).filter(w=>w.status==='Clôturé');
+  const closed=(DB.warrants||[]).filter(w=>w.status==='Clôturé');
   const wtbody=document.getElementById('arch-warrants-tbody'),wnd=document.getElementById('arch-warrants-nodata');
   if(!closed.length){wtbody.innerHTML='';wnd.style.display='block';}
   else{
     wnd.style.display='none';
-    const bc=w=>badgeMapW[w.danger]||'wb-mid';
     wtbody.innerHTML=closed.map(w=>{
+      const bc=badgeMapW[w.danger]||'wb-mid';
       const tr=w.trello?`<a href="${w.trello}" target="_blank" class="w-link">🔗 Casier</a>`:'<span class="w-na">N/A</span>';
       const dc=w.discord?`<a href="${w.discord}" target="_blank" class="w-link">🔗 Discord</a>`:'<span class="w-na">N/A</span>';
-      return`<tr><td class="tal lt-id">${w.wid||'—'}</td><td class="tal lt-name">${w.nom}</td><td class="tal lt-prenom">${w.prenom||'—'}</td><td><span class="wbadge ${bc(w)}">${w.danger}</span></td><td>${tr}</td><td>${dc}</td><td style="font-size:11px;">${w.closedBy||'—'}</td><td style="font-family:'IBM Plex Mono',monospace;font-size:10px;">${w.closedDate||'—'}</td><td><button class="arch-del-btn" onclick="deleteArchiveWarrant(${w.gi})" title="Supprimer des archives">✕</button></td></tr>`;
+      return`<tr><td class="tal lt-id">${w.wid||'—'}</td><td class="tal lt-name">${w.nom}</td><td class="tal lt-prenom">${w.prenom||'—'}</td><td><span class="wbadge ${bc}">${w.danger}</span></td><td>${tr}</td><td>${dc}</td><td style="font-size:11px;">${w.closedBy||'—'}</td><td style="font-family:'IBM Plex Mono',monospace;font-size:10px;">${w.closedDate||'—'}</td><td><button class="arch-del-btn" onclick="deleteArchiveWarrant('${w._id}')" title="Supprimer">✕</button></td></tr>`;
     }).join('');
   }
-  const closedB=(DB.bracelets||[]).map((b,i)=>({...b,gi:i})).filter(b=>b.status==='Clôturé');
+  const closedB=(DB.bracelets||[]).filter(b=>b.status==='Clôturé');
   const btbody=document.getElementById('arch-bracelets-tbody'),bnd=document.getElementById('arch-bracelets-nodata');
   if(!closedB.length){btbody.innerHTML='';bnd.style.display='block';}
   else{
     bnd.style.display='none';
     btbody.innerHTML=closedB.map(b=>{
-      const tc=b.type==='Protection'?'tb-prot':'tb-surv';
-      const sc=getStCls(b.statut);
-      return`<tr><td class="tal lt-id">${b.wid||'—'}</td><td class="tal lt-name">${b.nom}</td><td class="tal lt-prenom">${b.prenom||'—'}</td><td><span class="tbadge ${tc}">${b.type}</span></td><td style="font-size:11px;">${b.referent||'—'}</td><td style="font-family:'IBM Plex Mono',monospace;font-size:10px;">${b.datePose||'—'}</td><td>${b.statut?`<span class="st-badge ${sc}">${b.statut}</span>`:'—'}</td><td style="font-size:11px;">${b.commentaire||'—'}</td><td style="font-size:11px;">${b.closedBy||'—'}</td><td style="font-family:'IBM Plex Mono',monospace;font-size:10px;">${b.closedDate||'—'}</td><td><button class="arch-del-btn" onclick="deleteArchiveBracelet(${b.gi})" title="Supprimer des archives">✕</button></td></tr>`;
+      const tc=b.type==='Protection'?'tb-prot':'tb-surv';const sc=getStCls(b.statut);
+      return`<tr><td class="tal lt-id">${b.wid||'—'}</td><td class="tal lt-name">${b.nom}</td><td class="tal lt-prenom">${b.prenom||'—'}</td><td><span class="tbadge ${tc}">${b.type}</span></td><td style="font-size:11px;">${b.referent||'—'}</td><td style="font-family:'IBM Plex Mono',monospace;font-size:10px;">${b.datePose||'—'}</td><td>${b.statut?`<span class="st-badge ${sc}">${b.statut}</span>`:'—'}</td><td style="font-size:11px;">${b.commentaire||'—'}</td><td style="font-size:11px;">${b.closedBy||'—'}</td><td style="font-family:'IBM Plex Mono',monospace;font-size:10px;">${b.closedDate||'—'}</td><td><button class="arch-del-btn" onclick="deleteArchiveBracelet('${b._id}')" title="Supprimer">✕</button></td></tr>`;
     }).join('');
   }
 }
 
-// ═══ TEMPS DE SERVICE ═══
+// ── TEMPS DE SERVICE ───────────────────────────────────────
 let svcChartInst=null,svcChartMode='month',svcCurrentAgentId=null;
-function openService(){DB=loadDB()||initDB();populateSvcAgents();renderRecentService();document.getElementById('service-overlay').classList.add('open');}
+function openService(){populateSvcAgents();renderRecentService();document.getElementById('service-overlay').classList.add('open');}
 function closeService(){document.getElementById('service-overlay').classList.remove('open');}
 function switchSvcTab(id,el){document.querySelectorAll('#service-overlay .atab-content').forEach(t=>t.classList.remove('active'));document.querySelectorAll('#service-overlay .atab').forEach(t=>t.classList.remove('active'));document.getElementById(id).classList.add('active');el.classList.add('active');}
 function populateSvcAgents(){
   const sel=document.getElementById('svc-agent');sel.innerHTML='';
-  DB.effectif.filter(m=>!m.isVacant).forEach(m=>{const o=document.createElement('option');o.value=m.id||m.nom;o.textContent=`#${m.mat} — ${m.nom} (${m.gradeBI})`;sel.appendChild(o);});
+  (DB.effectif||[]).filter(m=>!m.isVacant).forEach(m=>{const o=document.createElement('option');o.value=m.id||m.nom;o.textContent=`#${m.mat} — ${m.nom} (${m.gradeBI})`;sel.appendChild(o);});
 }
-
-// ---- Durée helpers : "2h31" <-> decimal hours ----
 function parseDuree(str){
-  // Accepte : "2h31", "2H31", "2h", "2h00", "2:31", "2.5"
-  if(!str)return null;
-  str=str.trim().toLowerCase().replace(',','.');
-  // Format Xh ou XhMM
-  const mh=str.match(/^(\d+)h(\d{0,2})$/);
-  if(mh){const h=parseInt(mh[1]);const m=mh[2]?parseInt(mh[2]):0;if(m>59)return null;return h+(m/60);}
-  // Format X:MM
-  const mc=str.match(/^(\d+):(\d{2})$/);
-  if(mc){const h=parseInt(mc[1]);const m=parseInt(mc[2]);if(m>59)return null;return h+(m/60);}
-  // Decimal / integer
-  const mf=parseFloat(str);
-  if(!isNaN(mf)&&mf>0)return mf;
-  return null;
+  if(!str)return null;str=str.trim().toLowerCase().replace(',','.');
+  const mh=str.match(/^(\d+)h(\d{0,2})$/);if(mh){const h=parseInt(mh[1]);const m=mh[2]?parseInt(mh[2]):0;if(m>59)return null;return h+(m/60);}
+  const mc=str.match(/^(\d+):(\d{2})$/);if(mc){const h=parseInt(mc[1]);const m=parseInt(mc[2]);if(m>59)return null;return h+(m/60);}
+  const mf=parseFloat(str);if(!isNaN(mf)&&mf>0)return mf;return null;
 }
-function formatDuree(decimal){
-  // decimal hours -> "2h31"
-  if(!decimal&&decimal!==0)return'—';
-  const h=Math.floor(decimal);
-  const m=Math.round((decimal-h)*60);
-  if(m===0)return`${h}h00`;
-  return`${h}h${String(m).padStart(2,'0')}`;
-}
-
-// ---- Render full history with edit/delete ----
+function formatDuree(decimal){if(!decimal&&decimal!==0)return'—';const h=Math.floor(decimal);const m=Math.round((decimal-h)*60);if(m===0)return`${h}h00`;return`${h}h${String(m).padStart(2,'0')}`;}
 function renderRecentService(){
-  const all=(DB.service||[]).slice().reverse(); // most recent first
-  const cnt=document.getElementById('svc-history-count');
-  if(cnt)cnt.textContent='('+all.length+' entrée'+(all.length>1?'s':'')+')';
+  const all=(DB.service||[]).slice();
+  const cnt=document.getElementById('svc-history-count');if(cnt)cnt.textContent='('+all.length+' entrée'+(all.length>1?'s':'')+')';
   const el=document.getElementById('svc-recent-list');
-  if(!all.length){
-    el.innerHTML='<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;color:var(--gray-light);padding:0.5rem 0;">Aucune entrée enregistrée.</div>';
-    return;
-  }
-  el.innerHTML=`<table class="a-table"><thead><tr>
-    <th>Agent</th><th>Date</th><th>Durée</th><th>Note</th><th>Par</th><th style="width:80px;text-align:center;">Actions</th>
-  </tr></thead><tbody>
-    ${all.map((s)=>{
-      // Real index in DB.service (reversed, so we need original index)
-      const ri=(DB.service||[]).indexOf(s);
-      return`<tr>
-        <td>${s.agentName} <span style="font-size:9px;color:var(--gray-light);">#${s.mat||'—'}</span></td>
-        <td style="font-family:'IBM Plex Mono',monospace;font-size:10px;">${s.date||'—'}</td>
-        <td style="font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--amber);">${formatDuree(parseFloat(s.duree))}</td>
-        <td style="font-size:11px;">${s.note||'—'}</td>
-        <td style="font-size:10px;color:var(--gray-light);">${s.addedBy||'—'}</td>
-        <td style="text-align:center;">
-          <div style="display:flex;gap:4px;justify-content:center;">
-            <button class="ta-btn ta-edit" onclick="openEditSvc(${ri})" title="Modifier">✏</button>
-            <button class="ta-btn ta-close" onclick="deleteSvc(${ri})" title="Supprimer" style="background:#fde8e8;border-color:#f5a0a0;color:#b00010;">✕</button>
-          </div>
-        </td>
-      </tr>`;
-    }).join('')}
+  if(!all.length){el.innerHTML='<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;color:var(--gray-light);padding:0.5rem 0;">Aucune entrée enregistrée.</div>';return;}
+  el.innerHTML=`<table class="a-table"><thead><tr><th>Agent</th><th>Date</th><th>Durée</th><th>Note</th><th>Par</th><th style="width:80px;text-align:center;">Actions</th></tr></thead><tbody>
+    ${all.map(s=>`<tr>
+      <td>${s.agentName} <span style="font-size:9px;color:var(--gray-light);">#${s.mat||'—'}</span></td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-size:10px;">${s.date||'—'}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--amber);">${formatDuree(parseFloat(s.duree))}</td>
+      <td style="font-size:11px;">${s.note||'—'}</td>
+      <td style="font-size:10px;color:var(--gray-light);">${s.addedBy||'—'}</td>
+      <td style="text-align:center;"><div style="display:flex;gap:4px;justify-content:center;">
+        <button class="ta-btn ta-edit" onclick="openEditSvc('${s._id}')" title="Modifier">✏</button>
+        <button class="ta-btn ta-close" onclick="deleteSvc('${s._id}')" title="Supprimer" style="background:#fde8e8;border-color:#f5a0a0;color:#b00010;">✕</button>
+      </div></td>
+    </tr>`).join('')}
   </tbody></table>`;
 }
-
-// ---- Add ----
-function addService(){
+async function addService(){
   const agentVal=document.getElementById('svc-agent').value;
   const date=document.getElementById('svc-date').value;
   const dureeRaw=document.getElementById('svc-duree').value.trim();
@@ -1916,194 +2026,86 @@ function addService(){
   const duree=parseDuree(dureeRaw);
   if(!agentVal||!date||!duree){showMsg('svc-msg','Remplissez agent, date et durée (ex: 2h31).',false);return;}
   if(duree<=0||duree>24){showMsg('svc-msg','Durée invalide (max 24h).',false);return;}
-  const agent=DB.effectif.find(m=>(m.id&&m.id===agentVal)||m.nom===agentVal);
-  if(!DB.service)DB.service=[];
-  DB.service.push({agentId:agentVal,agentName:agent?agent.nom:agentVal,mat:agent?agent.mat:'',date,duree,note,addedBy:currentUser,ts:Date.now()});
-  saveDB(DB);
+  const agent=(DB.effectif||[]).find(m=>(m.id&&m.id===agentVal)||m.nom===agentVal);
+  await fsAdd('service',{agentId:agentVal,agentName:agent?agent.nom:agentVal,mat:agent?agent.mat:'',date,duree,note,addedBy:currentUser,ts:Date.now()});
   document.getElementById('svc-date').value='';document.getElementById('svc-duree').value='';document.getElementById('svc-note').value='';
-  renderRecentService();
   showMsg('svc-msg','Service enregistré : '+formatDuree(duree)+' pour '+(agent?agent.nom:agentVal)+'.',true);
-  if(svcCurrentAgentId&&svcCurrentAgentId===(agent?agent.nom:agentVal)){
-    const entries=(DB.service||[]).filter(s=>s.agentName===svcCurrentAgentId);
-    updateSvcStats(entries,svcChartMode);
-    renderSvcChart(entries,svcChartMode);
-  }
 }
-
-// ---- Edit ----
-function openEditSvc(i){
-  const s=DB.service[i];
-  document.getElementById('esvc-idx').value=i;
+function openEditSvc(id){
+  const s=DB.service.find(x=>x._id===id);if(!s)return;
+  document.getElementById('esvc-idx').value=id;
   document.getElementById('esvc-agent').value=s.agentName+(s.mat?' (#'+s.mat+')':'');
   document.getElementById('esvc-date').value=s.date||'';
-  // Show formatted duration (2h31) in edit field
   document.getElementById('esvc-duree').value=s.duree?formatDuree(parseFloat(s.duree)):'';
   document.getElementById('esvc-note').value=s.note||'';
   document.getElementById('edit-svc-overlay').classList.add('open');
 }
 function closeEditSvc(){document.getElementById('edit-svc-overlay').classList.remove('open');}
-function saveEditSvc(){
-  const i=parseInt(document.getElementById('esvc-idx').value);
+async function saveEditSvc(){
+  const id=document.getElementById('esvc-idx').value;
   const date=document.getElementById('esvc-date').value;
   const dureeRaw=document.getElementById('esvc-duree').value.trim();
   const note=document.getElementById('esvc-note').value.trim();
   const duree=parseDuree(dureeRaw);
   if(!date||!duree||duree<=0){alert('Date et durée obligatoires (format : 2h31).');return;}
-  DB.service[i]={...DB.service[i],date,duree,note,editedBy:currentUser,editedAt:new Date().toLocaleString('fr-FR')};
-  saveDB(DB);closeEditSvc();renderRecentService();
-  if(svcCurrentAgentId){
-    const entries=(DB.service||[]).filter(s=>s.agentName===svcCurrentAgentId);
-    updateSvcStats(entries,svcChartMode);
-    renderSvcChart(entries,svcChartMode);
-  }
+  await fsUpdate('service',id,{date,duree,note,editedBy:currentUser,editedAt:new Date().toLocaleString('fr-FR')});
+  closeEditSvc();
 }
-
-// ---- Delete ----
-function deleteSvc(i){
-  const s=DB.service[i];
+async function deleteSvc(id){
+  const s=DB.service.find(x=>x._id===id);if(!s)return;
   if(!confirm('Supprimer cette entrée ?\n'+s.agentName+' — '+s.date+' — '+formatDuree(parseFloat(s.duree))))return;
-  DB.service.splice(i,1);saveDB(DB);renderRecentService();
-  if(svcCurrentAgentId){
-    const entries=(DB.service||[]).filter(s=>s.agentName===svcCurrentAgentId);
-    if(!entries.length){resetSvcDisplay();return;}
-    updateSvcStats(entries,svcChartMode);
-    renderSvcChart(entries,svcChartMode);
-  }
+  await fsDelete('service',id);
 }
-
-// ---- Search ----
 function searchService(){
   const q=document.getElementById('svc-search').value.trim().toLowerCase();
   if(!q){resetSvcDisplay();return;}
   const allSvc=DB.service||[];
   const agentMap={};
-  allSvc.forEach(s=>{
-    const key=s.agentName+'||'+(s.mat||'');
-    if(!agentMap[key])agentMap[key]={agentName:s.agentName,mat:s.mat||''};
-  });
-  const matching=Object.values(agentMap).filter(a=>
-    a.agentName.toLowerCase().includes(q)||(a.mat&&a.mat.toLowerCase().includes(q))
-  );
+  allSvc.forEach(s=>{const key=s.agentName+'||'+(s.mat||'');if(!agentMap[key])agentMap[key]={agentName:s.agentName,mat:s.mat||''};});
+  const matching=Object.values(agentMap).filter(a=>a.agentName.toLowerCase().includes(q)||(a.mat&&a.mat.toLowerCase().includes(q)));
   if(!matching.length){resetSvcDisplay();document.getElementById('svc-nodata').style.display='block';return;}
-  const best=matching[0];
-  svcCurrentAgentId=best.agentName;
+  const best=matching[0];svcCurrentAgentId=best.agentName;
   const entries=allSvc.filter(s=>s.agentName===best.agentName);
   if(!entries.length){resetSvcDisplay();document.getElementById('svc-nodata').style.display='block';return;}
   document.getElementById('svc-result-name').textContent=best.agentName+(best.mat&&best.mat!=='—'?' (#'+best.mat+')':'');
   document.getElementById('svc-result-name').style.display='block';
-  document.getElementById('svc-stats').style.display='grid';
-  document.getElementById('chart-controls').style.display='flex';
-  document.getElementById('chart-wrap').style.display='block';
-  document.getElementById('svc-nodata').style.display='none';
+  document.getElementById('svc-stats').style.display='grid';document.getElementById('chart-controls').style.display='flex';
+  document.getElementById('chart-wrap').style.display='block';document.getElementById('svc-nodata').style.display='none';
   document.querySelectorAll('.chart-btn').forEach(b=>b.classList.remove('active'));
-  const activeBtn=document.getElementById('chart-btn-'+svcChartMode);
-  if(activeBtn)activeBtn.classList.add('active');
-  updateSvcStats(entries,svcChartMode);
-  renderSvcChart(entries,svcChartMode);
+  const activeBtn=document.getElementById('chart-btn-'+svcChartMode);if(activeBtn)activeBtn.classList.add('active');
+  updateSvcStats(entries,svcChartMode);renderSvcChart(entries,svcChartMode);
 }
-
-// ---- Update stats for given period ----
 function updateSvcStats(entries,mode){
-  const now=new Date();
-  let periodEntries=entries;
-  let lbl='Total heures';
-  if(mode==='week'){
-    const weekStart=new Date(now.getFullYear(),now.getMonth(),now.getDate()-6);
-    const wsStr=`${weekStart.getFullYear()}-${String(weekStart.getMonth()+1).padStart(2,'0')}-${String(weekStart.getDate()).padStart(2,'0')}`;
-    periodEntries=entries.filter(e=>e.date>=wsStr);
-    lbl='Total semaine';
-  }else if(mode==='month'){
-    const mStr=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-    periodEntries=entries.filter(e=>e.date&&e.date.startsWith(mStr));
-    lbl='Total mois';
-  }else if(mode==='year'){
-    const yStr=String(now.getFullYear());
-    periodEntries=entries.filter(e=>e.date&&e.date.startsWith(yStr));
-    lbl='Total année';
-  }
-  const total=periodEntries.reduce((a,b)=>a+(parseFloat(b.duree)||0),0);
-  const sessions=periodEntries.length;
+  const now=new Date();let periodEntries=entries;let lbl='Total heures';
+  if(mode==='week'){const weekStart=new Date(now.getFullYear(),now.getMonth(),now.getDate()-6);const wsStr=`${weekStart.getFullYear()}-${String(weekStart.getMonth()+1).padStart(2,'0')}-${String(weekStart.getDate()).padStart(2,'0')}`;periodEntries=entries.filter(e=>e.date>=wsStr);lbl='Total semaine';}
+  else if(mode==='month'){const mStr=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;periodEntries=entries.filter(e=>e.date&&e.date.startsWith(mStr));lbl='Total mois';}
+  else if(mode==='year'){const yStr=String(now.getFullYear());periodEntries=entries.filter(e=>e.date&&e.date.startsWith(yStr));lbl='Total année';}
+  const total=periodEntries.reduce((a,b)=>a+(parseFloat(b.duree)||0),0);const sessions=periodEntries.length;
   document.getElementById('svc-total-h').textContent=formatDuree(total);
   document.getElementById('svc-sessions').textContent=sessions;
   document.getElementById('svc-avg').textContent=sessions>0?formatDuree(total/sessions):'0h00';
-  const lblEl=document.getElementById('svc-total-lbl');
-  if(lblEl)lblEl.textContent=lbl;
+  const lblEl=document.getElementById('svc-total-lbl');if(lblEl)lblEl.textContent=lbl;
 }
-
-function resetSvcDisplay(){
-  ['svc-result-name','svc-stats','chart-controls','chart-wrap','svc-nodata'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.display='none';});
-  svcCurrentAgentId=null;
-}
+function resetSvcDisplay(){['svc-result-name','svc-stats','chart-controls','chart-wrap','svc-nodata'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.display='none';});svcCurrentAgentId=null;}
 function switchChart(mode,el){
-  svcChartMode=mode;
-  document.querySelectorAll('.chart-btn').forEach(b=>b.classList.remove('active'));
-  el.classList.add('active');
-  if(svcCurrentAgentId){
-    const entries=(DB.service||[]).filter(s=>s.agentName===svcCurrentAgentId);
-    updateSvcStats(entries,mode);
-    renderSvcChart(entries,mode);
-  }
+  svcChartMode=mode;document.querySelectorAll('.chart-btn').forEach(b=>b.classList.remove('active'));el.classList.add('active');
+  if(svcCurrentAgentId){const entries=(DB.service||[]).filter(s=>s.agentName===svcCurrentAgentId);updateSvcStats(entries,mode);renderSvcChart(entries,mode);}
 }
 function renderSvcChart(entries,mode){
   if(svcChartInst){svcChartInst.destroy();svcChartInst=null;}
-  const canvas=document.getElementById('svc-chart');
-  if(!canvas)return;
-  const parent=canvas.parentNode;
-  const newCanvas=document.createElement('canvas');
-  newCanvas.id='svc-chart';
-  parent.replaceChild(newCanvas,canvas);
-  const ctx=newCanvas.getContext('2d');
-  const now=new Date();
-  let labels=[],data=[];
-  // Helper: local date string YYYY-MM-DD without timezone shift
+  const canvas=document.getElementById('svc-chart');if(!canvas)return;
+  const parent=canvas.parentNode;const newCanvas=document.createElement('canvas');newCanvas.id='svc-chart';parent.replaceChild(newCanvas,canvas);
+  const ctx=newCanvas.getContext('2d');const now=new Date();let labels=[],data=[];
   const toLocalDS=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-  // Helper: sum durations for a given date string
   const sumFor=ds=>entries.filter(e=>e.date===ds).reduce((a,b)=>a+(parseFloat(b.duree)||0),0);
-  if(mode==='week'){
-    for(let i=6;i>=0;i--){
-      const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()-i);
-      const ds=toLocalDS(d);
-      labels.push(d.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric'}));
-      data.push(sumFor(ds));
-    }
-  }else if(mode==='month'){
-    const dim=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
-    for(let d=1;d<=dim;d++){
-      const ds=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      labels.push(String(d));
-      data.push(sumFor(ds));
-    }
-  }else{
-    const months=['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
-    for(let mo=0;mo<12;mo++){
-      labels.push(months[mo]);
-      // entries have date as YYYY-MM-DD
-      const total=entries.filter(e=>{
-        if(!e.date)return false;
-        const parts=e.date.split('-');
-        return parseInt(parts[0])===now.getFullYear()&&parseInt(parts[1])-1===mo;
-      }).reduce((a,b)=>a+(parseFloat(b.duree)||0),0);
-      data.push(total);
-    }
-  }
-  try{
-    svcChartInst=new Chart(ctx,{
-      type:'bar',
-      data:{labels,datasets:[{label:'Heures de service',data,backgroundColor:'rgba(181,130,26,0.55)',borderColor:'rgba(181,130,26,1)',borderWidth:2,borderRadius:5,borderSkipped:false}]},
-      options:{
-        responsive:true,
-        plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${formatDuree(c.parsed.y)}`}}},
-        scales:{
-          y:{beginAtZero:true,title:{display:true,text:'Heures',font:{family:'IBM Plex Mono',size:11}},ticks:{callback:v=>formatDuree(v)}},
-          x:{ticks:{font:{family:'IBM Plex Mono',size:10},maxRotation:45}}
-        }
-      }
-    });
-  }catch(e){console.error('Chart error:',e);}
+  if(mode==='week'){for(let i=6;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()-i);const ds=toLocalDS(d);labels.push(d.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric'}));data.push(sumFor(ds));}}
+  else if(mode==='month'){const dim=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();for(let d=1;d<=dim;d++){const ds=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;labels.push(String(d));data.push(sumFor(ds));}}
+  else{const months=['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];for(let mo=0;mo<12;mo++){labels.push(months[mo]);const total=entries.filter(e=>{if(!e.date)return false;const parts=e.date.split('-');return parseInt(parts[0])===now.getFullYear()&&parseInt(parts[1])-1===mo;}).reduce((a,b)=>a+(parseFloat(b.duree)||0),0);data.push(total);}}
+  try{svcChartInst=new Chart(ctx,{type:'bar',data:{labels,datasets:[{label:'Heures de service',data,backgroundColor:'rgba(181,130,26,0.55)',borderColor:'rgba(181,130,26,1)',borderWidth:2,borderRadius:5,borderSkipped:false}]},options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${formatDuree(c.parsed.y)}`}}},scales:{y:{beginAtZero:true,title:{display:true,text:'Heures',font:{family:'IBM Plex Mono',size:11}},ticks:{callback:v=>formatDuree(v)}},x:{ticks:{font:{family:'IBM Plex Mono',size:10},maxRotation:45}}}}});}catch(err){console.error('Chart error:',err);}
 }
 
-// ═══ ADMIN ═══
-function openAdmin(){if(!isDirection())return;DB=loadDB()||initDB();refreshOnline();renderAccounts();renderAdminEf();document.getElementById('admin-overlay').classList.add('open');}
+// ── ADMIN ──────────────────────────────────────────────────
+function openAdmin(){if(!isDirection())return;refreshOnline();renderAccounts();renderAdminEf();document.getElementById('admin-overlay').classList.add('open');}
 function closeAdmin(){document.getElementById('admin-overlay').classList.remove('open');}
 function switchAdminTab(id,el){
   document.querySelectorAll('#admin-overlay .atab-content').forEach(t=>t.classList.remove('active'));
@@ -2112,17 +2114,14 @@ function switchAdminTab(id,el){
   if(id==='t-online')refreshOnline();if(id==='t-accounts')renderAccounts();if(id==='t-effectif')renderAdminEf();
 }
 function refreshOnline(){
-  DB=loadDB()||initDB();const now=new Date();
-  document.getElementById('online-time').textContent=now.toLocaleTimeString('fr-FR');
-  const entries=Object.entries(DB.online||{});
-  const el=document.getElementById('online-list');
+  const now=new Date();document.getElementById('online-time').textContent=now.toLocaleTimeString('fr-FR');
+  const entries=Object.entries(DB.online||{});const el=document.getElementById('online-list');
   if(!entries.length){el.innerHTML='<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;color:var(--gray-light);padding:0.6rem 0;">Aucune session active.</div>';return;}
   el.innerHTML=`<table class="a-table"><thead><tr><th>Agent</th><th>E-mail</th><th>Depuis</th><th>Statut</th></tr></thead><tbody>
     ${entries.map(([e,i])=>{const s=new Date(i.since);const diff=Math.floor((now-s)/60000);return`<tr><td><span class="odot odot-on"></span>${i.name}</td><td style="font-size:10px;">${e}</td><td style="font-size:10px;">${s.toLocaleTimeString('fr-FR')} (${diff<60?diff+'min':Math.floor(diff/60)+'h'+diff%60+'min'})</td><td><span class="badge-on">● En ligne</span></td></tr>`;}).join('')}
   </tbody></table>`;
 }
 function renderAccounts(){
-  DB=loadDB()||initDB();
   document.getElementById('accounts-list').innerHTML=`<table class="a-table"><thead><tr><th>Nom</th><th>E-mail</th><th>Mot de passe</th><th>Rôle</th><th>Action</th></tr></thead><tbody>
     ${Object.entries(DB.users).map(([e,u])=>`<tr>
       <td>${u.name}</td><td style="font-size:10px;">${e}</td>
@@ -2136,34 +2135,35 @@ function renderAccounts(){
     </tr>`).join('')}
   </tbody></table>`;
 }
-function updatePw(e,v){if(!v.trim())return;DB.users[e].pw=v.trim();saveDB(DB);showMsg('acc-msg','Mot de passe mis à jour.',true);}
-function updateRole(e,v){DB.users[e].role=v;saveDB(DB);showMsg('acc-msg','Rôle mis à jour : '+v,true);}
-function addAccount(){
+async function updatePw(e,v){if(!v.trim())return;DB.users[e].pw=v.trim();await saveConfig();showMsg('acc-msg','Mot de passe mis à jour.',true);}
+async function updateRole(e,v){DB.users[e].role=v;await saveConfig();showMsg('acc-msg','Rôle mis à jour : '+v,true);}
+async function addAccount(){
   const n=document.getElementById('nu-name').value.trim(),e=document.getElementById('nu-email').value.trim().toLowerCase(),p=document.getElementById('nu-pw').value.trim()||DEF_PW,r=document.getElementById('nu-role').value;
   if(!n||!e){showMsg('acc-msg','Nom et e-mail obligatoires.',false);return;}
   if(DB.users[e]){showMsg('acc-msg','Ce compte existe déjà.',false);return;}
-  DB.users[e]={name:n,pw:p,role:r};saveDB(DB);
+  DB.users[e]={name:n,pw:p,role:r};await saveConfig();
   document.getElementById('nu-name').value='';document.getElementById('nu-email').value='';document.getElementById('nu-pw').value=DEF_PW;
   renderAccounts();showMsg('acc-msg','Compte créé : '+n,true);
 }
-function removeAccount(e){if(!confirm('Supprimer le compte de '+DB.users[e].name+'?'))return;delete DB.users[e];if(DB.online&&DB.online[e])delete DB.online[e];saveDB(DB);renderAccounts();}
+async function removeAccount(e){
+  if(!confirm('Supprimer le compte de '+DB.users[e].name+'?'))return;
+  delete DB.users[e];if(DB.online&&DB.online[e])delete DB.online[e];
+  await saveConfig();renderAccounts();
+}
 function renderAdminEf(){
-  DB=loadDB()||initDB();
   document.getElementById('admin-ef-list').innerHTML=`<table class="a-table"><thead><tr><th>Mat.</th><th>Nom</th><th>Grade B.I.</th><th>Unité</th><th>Rang</th><th>Promo</th><th></th></tr></thead><tbody>
-    ${DB.effectif.map((m,i)=>`<tr><td>${m.mat}</td><td>${m.nom}</td><td style="font-size:10px;">${m.gradeBI}</td><td><span class="agent-unit" style="font-size:9px;">${m.unit}</span></td><td style="font-family:'IBM Plex Mono',monospace;font-size:10px;">${m.gradeHier||'—'}</td><td style="font-family:'IBM Plex Mono',monospace;font-size:10px;">${m.datePromo||'—'}</td><td><button style="background:none;border:1px solid var(--amber-dim);color:var(--amber-dim);font-family:'IBM Plex Mono',monospace;font-size:9px;padding:2px 7px;cursor:pointer;" onclick="openEfFromAdmin(${i})">✏</button></td></tr>`).join('')}
+    ${(DB.effectif||[]).map((m,i)=>`<tr><td>${m.mat}</td><td>${m.nom}</td><td style="font-size:10px;">${m.gradeBI}</td><td><span class="agent-unit" style="font-size:9px;">${m.unit}</span></td><td style="font-family:'IBM Plex Mono',monospace;font-size:10px;">${m.gradeHier||'—'}</td><td style="font-family:'IBM Plex Mono',monospace;font-size:10px;">${m.datePromo||'—'}</td><td><button style="background:none;border:1px solid var(--amber-dim);color:var(--amber-dim);font-family:'IBM Plex Mono',monospace;font-size:9px;padding:2px 7px;cursor:pointer;" onclick="openEfFromAdmin(${i})">✏</button></td></tr>`).join('')}
   </tbody></table>`;
 }
-function addMember(){
-  const nom=document.getElementById('ef-nom').value.trim();
-  if(!nom){showMsg('ef-msg','Nom obligatoire.',false);return;}
-  const gl=document.getElementById('ef-glspd').value.trim();
-  const gh=parseInt(document.getElementById('ef-grade-hier').value)||60;
+async function addMember(){
+  const nom=document.getElementById('ef-nom').value.trim();if(!nom){showMsg('ef-msg','Nom obligatoire.',false);return;}
+  const gl=document.getElementById('ef-glspd').value.trim();const gh=parseInt(document.getElementById('ef-grade-hier').value)||60;
   DB.effectif.push({mat:document.getElementById('ef-mat').value.trim(),nom,gradeLspd:gl?(gl.includes('L.S.P.D.')?gl:gl+' — L.S.P.D.'):'',gradeBI:document.getElementById('ef-gbi').value.trim(),unit:document.getElementById('ef-unit').value,id:document.getElementById('ef-id').value.trim(),datePromo:document.getElementById('ef-date-promo').value,gradeHier:gh,isVacant:false,isChef:false});
-  saveDB(DB);['ef-mat','ef-nom','ef-glspd','ef-gbi','ef-id'].forEach(id=>document.getElementById(id).value='');renderEffectif();renderAdminEf();showMsg('ef-msg',nom+' ajouté.',true);
+  await saveConfig();['ef-mat','ef-nom','ef-glspd','ef-gbi','ef-id'].forEach(id=>document.getElementById(id).value='');renderEffectif();renderAdminEf();showMsg('ef-msg',nom+' ajouté.',true);
 }
 function openEfFromAdmin(i){closeAdmin();openEditMember(i);}
 function openEditMember(i){
-  DB=loadDB()||initDB();const m=DB.effectif[i];
+  const m=(DB.effectif||[])[i];if(!m)return;
   document.getElementById('em-idx').value=i;document.getElementById('em-mat').value=m.mat;document.getElementById('em-nom').value=m.nom;
   document.getElementById('em-glspd').value=m.gradeLspd.replace(' — L.S.P.D.','').replace(' — L.S.P.D','');
   document.getElementById('em-gbi').value=m.gradeBI;document.getElementById('em-unit').value=m.unit;document.getElementById('em-id').value=m.id||'';
@@ -2171,85 +2171,61 @@ function openEditMember(i){
   document.getElementById('em-msg').innerHTML='';document.getElementById('edit-member-overlay').classList.add('open');
 }
 function closeEditMember(){document.getElementById('edit-member-overlay').classList.remove('open');}
-function saveMember(){
+async function saveMember(){
   const i=parseInt(document.getElementById('em-idx').value);
   const nom=document.getElementById('em-nom').value.trim()||'[Poste vacant]';
-  const gl=document.getElementById('em-glspd').value.trim();
-  const gh=parseInt(document.getElementById('em-grade-hier').value)||60;
+  const gl=document.getElementById('em-glspd').value.trim();const gh=parseInt(document.getElementById('em-grade-hier').value)||60;
   DB.effectif[i]={...DB.effectif[i],mat:document.getElementById('em-mat').value.trim(),nom,gradeLspd:gl?(gl.includes('L.S.P.D.')?gl:gl+' — L.S.P.D.'):'',gradeBI:document.getElementById('em-gbi').value.trim(),unit:document.getElementById('em-unit').value,id:document.getElementById('em-id').value.trim(),datePromo:document.getElementById('em-date-promo').value,gradeHier:gh,isVacant:(nom==='[Poste vacant]'||nom==='')};
-  saveDB(DB);renderEffectif();closeEditMember();if(isDirection())renderAdminEf();
+  await saveConfig();renderEffectif();closeEditMember();if(isDirection())renderAdminEf();
 }
-function deleteMember(){
-  const i=parseInt(document.getElementById('em-idx').value);
-  const m=DB.effectif[i];
+async function deleteMember(){
+  const i=parseInt(document.getElementById('em-idx').value);const m=DB.effectif[i];
   if(!confirm('Supprimer '+m.nom+' du registre ? Cette action est irréversible.'))return;
-  // Find matching user account to clean service records (optional — keep data but mark as deleted)
-  const name=m.nom;
-  // Mark service entries as belonging to a deleted agent (don't erase historical data)
-  if(DB.service){
-    DB.service.forEach(s=>{if(s.agentName===name)s.deleted=true;});
-  }
-  DB.effectif.splice(i,1);
-  saveDB(DB);
-  renderEffectif();
-  closeEditMember();
-  if(isDirection())renderAdminEf();
-  // Refresh notes sidebar if notes modal open
+  DB.effectif.splice(i,1);await saveConfig();renderEffectif();closeEditMember();if(isDirection())renderAdminEf();
   const notesOverlay=document.getElementById('notes-overlay');
   if(notesOverlay&&notesOverlay.classList.contains('open'))buildNotesSidebar();
 }
 
-// ═══ CHANGE PW ═══
+// ── CHANGE PW ──────────────────────────────────────────────
 function openChangePw(){document.getElementById('changepw-overlay').classList.add('open');}
 function closeChangePw(){document.getElementById('changepw-overlay').classList.remove('open');}
-function changePassword(){
+async function changePassword(){
   const c=document.getElementById('pw-cur').value,n=document.getElementById('pw-new').value,cf=document.getElementById('pw-conf').value;
   if(!c||!n||!cf){showMsg('pw-msg','Remplissez tous les champs.',false);return;}
   if(DB.users[currentEmail].pw!==c){showMsg('pw-msg','Mot de passe actuel incorrect.',false);return;}
   if(n!==cf){showMsg('pw-msg','Les mots de passe ne correspondent pas.',false);return;}
   if(n.length<6){showMsg('pw-msg','Minimum 6 caractères.',false);return;}
-  DB.users[currentEmail].pw=n;saveDB(DB);
+  DB.users[currentEmail].pw=n;await saveConfig();
   ['pw-cur','pw-new','pw-conf'].forEach(id=>document.getElementById(id).value='');
   showMsg('pw-msg','Mot de passe modifié ✓',true);setTimeout(closeChangePw,1500);
 }
 
-// ═══ UTILS ═══
+// ── UTILS ──────────────────────────────────────────────────
 function showMsg(id,txt,ok){const el=document.getElementById(id);if(!el)return;el.innerHTML=`<div class="alert ${ok?'alert-ok':'alert-err'}">${txt}</div>`;setTimeout(()=>{if(el)el.innerHTML='';},3000);}
+
+// ── MANUELS ────────────────────────────────────────────────
 function renderManuels(){
-  DB=loadDB()||initDB();
-  const grid=document.getElementById('manuels-dynamic-grid');
-  const manuels=DB.manuels||[];
+  const grid=document.getElementById('manuels-dynamic-grid');const manuels=DB.manuels||[];
   if(!manuels.length){grid.innerHTML='<div style="padding:1.5rem;font-family:\'IBM Plex Mono\',monospace;font-size:11px;color:var(--gray-light);text-align:center;">— Aucun manuel disponible —</div>';return;}
   grid.innerHTML=manuels.map((m,i)=>`<a href="${m.url}" target="_blank" class="ml${m.classified?' classified':''}"><span style="font-size:20px;">${m.emoji||'📄'}</span><div><div class="ml-title">${m.title}</div><div class="ml-sub">${m.sub}</div></div></a>`).join('');
 }
 function showManuels(){const p=document.getElementById('manuels-panel');renderManuels();p.style.display='block';p.scrollIntoView({behavior:'smooth',block:'nearest'});}
 function hideManuels(){document.getElementById('manuels-panel').style.display='none';}
-
-// ═══ MANUELS EDITOR ═══
-function openManuelsEditor(){
-  if(!isDirection())return;
-  DB=loadDB()||initDB();
-  renderManAdminList();
-  document.getElementById('manuels-editor-overlay').classList.add('open');
-}
+function openManuelsEditor(){if(!isDirection())return;renderManAdminList();document.getElementById('manuels-editor-overlay').classList.add('open');}
 function closeManuelsEditor(){document.getElementById('manuels-editor-overlay').classList.remove('open');renderManuels();}
 function renderManAdminList(){
-  const list=document.getElementById('man-list-admin');
-  const manuels=DB.manuels||[];
+  const list=document.getElementById('man-list-admin');const manuels=DB.manuels||[];
   if(!manuels.length){list.innerHTML='<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;color:var(--gray-light);padding:0.8rem 0;">— Aucun manuel —</div>';return;}
   list.innerHTML=manuels.map((m,i)=>`
     <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--divider);">
       <span style="font-size:18px;width:28px;text-align:center;">${m.emoji||'📄'}</span>
-      <div style="flex:1;">
-        <div style="font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;text-transform:uppercase;color:var(--ink);" id="man-title-display-${i}">${m.title}</div>
-        <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--amber-dim);">${m.sub}${m.classified?' · 🔴 Confidentiel':''}</div>
-      </div>
+      <div style="flex:1;"><div style="font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;text-transform:uppercase;color:var(--ink);">${m.title}</div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--amber-dim);">${m.sub}${m.classified?' · 🔴 Confidentiel':''}</div></div>
       <button onclick="editManuel(${i})" style="background:none;border:1px solid var(--divider);color:var(--gray-ink);font-family:'IBM Plex Mono',monospace;font-size:9px;padding:3px 8px;cursor:pointer;border-radius:2px;">✏ Renommer</button>
       <button onclick="deleteManuel(${i})" style="background:none;border:1px solid rgba(139,26,26,0.3);color:var(--red-stamp);font-family:'IBM Plex Mono',monospace;font-size:9px;padding:3px 8px;cursor:pointer;border-radius:2px;">🗑</button>
     </div>`).join('');
 }
-function addManuel(){
-  DB=loadDB()||initDB();
+async function addManuel(){
   const emoji=document.getElementById('man-emoji').value.trim()||'📄';
   const title=document.getElementById('man-title').value.trim();
   const sub=document.getElementById('man-sub').value.trim();
@@ -2257,33 +2233,181 @@ function addManuel(){
   const classified=document.getElementById('man-classified').checked;
   const msg=document.getElementById('man-msg');
   if(!title||!url){msg.innerHTML='<span style="color:var(--red-stamp);font-family:\'IBM Plex Mono\',monospace;font-size:11px;">⚠ Titre et lien obligatoires.</span>';return;}
-  if(!DB.manuels)DB.manuels=[];
   DB.manuels.push({emoji,title,sub,url,classified});
-  saveDB(DB);
+  await saveConfig();
   ['man-emoji','man-title','man-sub','man-url'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('man-classified').checked=false;
   msg.innerHTML='<span style="color:var(--green-stamp);font-family:\'IBM Plex Mono\',monospace;font-size:11px;">✓ Manuel ajouté.</span>';
-  setTimeout(()=>msg.innerHTML='',2000);
-  renderManAdminList();
+  setTimeout(()=>msg.innerHTML='',2000);renderManAdminList();
 }
-function deleteManuel(i){
+async function deleteManuel(i){
   if(!confirm('Supprimer ce manuel ?'))return;
-  DB=loadDB()||initDB();
-  DB.manuels.splice(i,1);
-  saveDB(DB);renderManAdminList();
+  DB.manuels.splice(i,1);await saveConfig();renderManAdminList();
 }
-function editManuel(i){
-  DB=loadDB()||initDB();
+async function editManuel(i){
   const m=DB.manuels[i];
-  const newTitle=prompt('Nouveau titre :',m.title);
-  if(newTitle===null)return;
-  const newSub=prompt('Nouveau sous-titre :',m.sub);
-  if(newSub===null)return;
-  const newEmoji=prompt('Emoji :',m.emoji||'📄');
-  if(newEmoji===null)return;
+  const newTitle=prompt('Nouveau titre :',m.title);if(newTitle===null)return;
+  const newSub=prompt('Nouveau sous-titre :',m.sub);if(newSub===null)return;
+  const newEmoji=prompt('Emoji :',m.emoji||'📄');if(newEmoji===null)return;
   DB.manuels[i]={...m,title:newTitle.trim()||m.title,sub:newSub.trim(),emoji:newEmoji.trim()||m.emoji};
-  saveDB(DB);renderManAdminList();
+  await saveConfig();renderManAdminList();
 }
+
+// ── CODE PÉNAL ─────────────────────────────────────────────
+const RISK_LABELS={'r0':'Aucun','r1':'Faible','r2':'Moyen','r3':'Élevé','r4':'Très élevé'};
+function renderPenalGrid(){
+  const grid=document.getElementById('penal-grid-container');const chapters=DB.penalCode||[];
+  if(!chapters.length){grid.innerHTML='<div style="padding:2rem;color:rgba(242,234,216,0.4);font-family:\'IBM Plex Mono\',monospace;font-size:11px;grid-column:1/-1;text-align:center;">— Aucun article —</div>';return;}
+  grid.innerHTML=chapters.map(ch=>`<div class="pchap"><div class="pchap-title">${ch.title}</div>${(ch.articles||[]).map(a=>`<div class="prow"><span class="part">${a.text}</span><span class="risk ${a.risk}">${RISK_LABELS[a.risk]||a.risk}</span></div>`).join('')}</div>`).join('');
+}
+let penalCurrentChap=null;
+function openPenalEditor(){if(!isDirection())return;penalCurrentChap=null;renderPenalSidebar();document.getElementById('penal-edit-panel').innerHTML='<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;color:var(--gray-light);text-align:center;margin-top:3rem;">← Sélectionnez un chapitre pour l\'éditer</div>';document.getElementById('penal-editor-overlay').classList.add('open');}
+function closePenalEditor(){document.getElementById('penal-editor-overlay').classList.remove('open');renderPenalGrid();}
+function renderPenalSidebar(){
+  const chapters=DB.penalCode||[];const list=document.getElementById('penal-chap-list');
+  list.innerHTML=chapters.map((ch,i)=>`<button onclick="selectPenalChap(${i})" style="width:100%;text-align:left;background:${penalCurrentChap===i?'rgba(181,130,26,0.2)':'none'};border:none;border-left:3px solid ${penalCurrentChap===i?'var(--amber)':'transparent'};color:${penalCurrentChap===i?'var(--amber-light)':'rgba(242,234,216,0.6)'};font-family:'IBM Plex Mono',monospace;font-size:9px;padding:8px 12px;cursor:pointer;line-height:1.4;">${ch.title}<br><span style="color:rgba(242,234,216,0.3);font-size:8px;">${(ch.articles||[]).length} article(s)</span></button>`).join('');
+}
+function selectPenalChap(i){penalCurrentChap=i;renderPenalSidebar();renderPenalChapEditor(i);}
+function renderPenalChapEditor(i){
+  const ch=DB.penalCode[i];const panel=document.getElementById('penal-edit-panel');const riskOpts=['r0','r1','r2','r3','r4'].map(r=>`<option value="${r}">${RISK_LABELS[r]}</option>`).join('');
+  panel.innerHTML=`<div style="margin-bottom:1.2rem;padding-bottom:1rem;border-bottom:2px solid var(--divider);">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--amber-dim);margin-bottom:4px;">Titre du chapitre</div>
+    <div style="display:flex;gap:8px;"><input id="pchap-title-input" value="${ch.title.replace(/"/g,'&quot;')}" style="flex:1;background:var(--paper-mid);border:1px solid var(--divider);border-bottom:2px solid var(--amber-dim);padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink);outline:none;">
+    <button onclick="savePenalChapTitle(${i})" style="background:var(--ink);color:var(--amber-light);border:none;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:7px 12px;cursor:pointer;">✓ Sauv.</button>
+    <button onclick="deletePenalChap(${i})" style="background:var(--red-stamp);color:#fff;border:none;font-family:'IBM Plex Mono',monospace;font-size:9px;padding:7px 10px;cursor:pointer;">🗑</button></div></div>
+    <div style="margin-bottom:1rem;"><div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--amber-dim);margin-bottom:8px;">Articles (${(ch.articles||[]).length})</div>
+    <div id="penal-articles-list">${(ch.articles||[]).map((a,ai)=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px dotted var(--divider);">
+      <input value="${a.text.replace(/"/g,'&quot;')}" id="part-text-${i}-${ai}" style="flex:1;background:var(--paper-mid);border:1px solid var(--divider);border-bottom:1px solid var(--amber-dim);padding:5px 8px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink);outline:none;">
+      <select id="part-risk-${i}-${ai}" style="background:var(--paper-mid);border:1px solid var(--divider);border-bottom:1px solid var(--amber-dim);padding:5px 6px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink);outline:none;">${['r0','r1','r2','r3','r4'].map(r=>`<option value="${r}"${a.risk===r?' selected':''}>${RISK_LABELS[r]}</option>`).join('')}</select>
+      <button onclick="savePenalArticle(${i},${ai})" style="background:var(--green-stamp);color:#fff;border:none;font-family:'IBM Plex Mono',monospace;font-size:9px;padding:5px 8px;cursor:pointer;">✓</button>
+      <button onclick="deletePenalArticle(${i},${ai})" style="background:none;border:1px solid rgba(139,26,26,0.4);color:var(--red-stamp);font-family:'IBM Plex Mono',monospace;font-size:11px;width:24px;height:24px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;">×</button>
+    </div>`).join('')}</div></div>
+    <div style="display:flex;gap:8px;align-items:center;padding-top:0.5rem;">
+      <input id="new-article-text" placeholder="Art. XXX — Nouvel article..." style="flex:1;background:var(--paper-mid);border:1px solid var(--divider);border-bottom:2px solid var(--amber-dim);padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink);outline:none;">
+      <select id="new-article-risk" style="background:var(--paper-mid);border:1px solid var(--divider);border-bottom:2px solid var(--amber-dim);padding:7px 6px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink);outline:none;">${riskOpts}</select>
+      <button onclick="addPenalArticle(${i})" style="background:var(--ink);color:var(--amber-light);border:none;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;padding:7px 12px;cursor:pointer;white-space:nowrap;">+ Ajouter</button>
+    </div>`;
+}
+async function savePenalChapTitle(i){DB.penalCode[i].title=document.getElementById('pchap-title-input').value.trim()||DB.penalCode[i].title;await saveConfig();renderPenalSidebar();}
+async function deletePenalChap(i){
+  if(!confirm('Supprimer ce chapitre et tous ses articles ?'))return;
+  DB.penalCode.splice(i,1);await saveConfig();penalCurrentChap=null;renderPenalSidebar();
+  document.getElementById('penal-edit-panel').innerHTML='<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;color:var(--gray-light);text-align:center;margin-top:3rem;">← Sélectionnez un chapitre</div>';
+}
+async function savePenalArticle(ci,ai){
+  DB.penalCode[ci].articles[ai].text=document.getElementById(`part-text-${ci}-${ai}`).value.trim()||DB.penalCode[ci].articles[ai].text;
+  DB.penalCode[ci].articles[ai].risk=document.getElementById(`part-risk-${ci}-${ai}`).value;
+  await saveConfig();renderPenalChapEditor(ci);renderPenalSidebar();
+}
+async function deletePenalArticle(ci,ai){
+  if(!confirm('Supprimer cet article ?'))return;
+  DB.penalCode[ci].articles.splice(ai,1);await saveConfig();renderPenalChapEditor(ci);renderPenalSidebar();
+}
+async function addPenalArticle(ci){
+  const text=document.getElementById('new-article-text').value.trim();
+  const risk=document.getElementById('new-article-risk').value;
+  if(!text){alert('Le texte de l\'article est obligatoire.');return;}
+  if(!DB.penalCode[ci].articles)DB.penalCode[ci].articles=[];
+  DB.penalCode[ci].articles.push({text,risk});
+  await saveConfig();renderPenalChapEditor(ci);renderPenalSidebar();
+}
+async function addPenalChapter(){
+  const title=prompt('Titre du nouveau chapitre :','Titre — Nouveau Chapitre');if(!title)return;
+  if(!DB.penalCode)DB.penalCode=[];
+  DB.penalCode.push({title:title.trim(),articles:[]});await saveConfig();
+  const newIdx=DB.penalCode.length-1;penalCurrentChap=newIdx;renderPenalSidebar();renderPenalChapEditor(newIdx);
+  const sl=document.getElementById('penal-chap-list');if(sl)sl.scrollTop=sl.scrollHeight;
+}
+
+// ── NOTES (Firebase) ───────────────────────────────────────
+let currentNoteKey=null;
+function noteKey(email){return'note_'+email.replace(/[^a-z0-9]/gi,'_');}
+async function openNotes(){buildNotesSidebar();await selectNote('me');document.getElementById('notes-overlay').classList.add('open');}
+function closeNotes(){document.getElementById('notes-overlay').classList.remove('open');}
+function buildNotesSidebar(){
+  const agentsList=document.getElementById('notes-agents-list');
+  if(isResp()){
+    agentsList.style.display='block';
+    const others=Object.entries(DB.users).filter(([e])=>e!==currentEmail).sort((a,b)=>a[1].name.localeCompare(b[1].name));
+    agentsList.innerHTML=`<div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:#9fa8da;margin:0.8rem 0 0.4rem;padding-top:0.8rem;border-top:1px solid rgba(255,255,255,0.1);">Notes des agents</div>`
+      +others.map(([email,u])=>`<button class="notes-agent-btn" id="note-btn-${noteKey(email)}" onclick="selectNote('${email}')">• ${u.name}</button>`).join('');
+  }else{agentsList.style.display='none';}
+}
+async function selectNote(target){
+  document.querySelectorAll('.notes-my-note-btn,.notes-agent-btn').forEach(b=>b.classList.remove('active'));
+  const isMe=target==='me';const email=isMe?currentEmail:target;
+  currentNoteKey=noteKey(email);
+  const userName=isMe?currentUser:(DB.users[email]?DB.users[email].name:email);
+  const canEdit=isMe;
+  if(isMe){document.getElementById('notes-my-btn').classList.add('active');}
+  else{const b=document.getElementById('note-btn-'+currentNoteKey);if(b)b.classList.add('active');}
+  const ta=document.getElementById('notes-textarea');
+  const titleEl=document.getElementById('notes-editor-title');
+  const meta=document.getElementById('notes-editor-meta');
+  const roLabel=document.getElementById('notes-readonly-badge');
+  const saveBtn=document.getElementById('notes-save-btn');
+  titleEl.textContent=isMe?'Ma note personnelle':'Note de '+userName;
+  ta.value='...'; ta.disabled=true;
+  meta.textContent='Chargement...';
+  try {
+    const snap=await COL.notes.doc(currentNoteKey).get();
+    const noteData=snap.exists?snap.data():{content:'',lastEdit:''};
+    ta.value=noteData.content||'';
+    meta.textContent=noteData.lastEdit?'Dernière modification : '+noteData.lastEdit:'Aucune modification enregistrée';
+  } catch(err){ ta.value=''; meta.textContent='Erreur de chargement'; }
+  ta.disabled=!canEdit;
+  roLabel.style.display=canEdit?'none':'inline-block';
+  saveBtn.disabled=!canEdit;
+  document.getElementById('notes-saved-badge').style.display='none';
+}
+async function saveNote(){
+  if(!currentNoteKey)return;
+  const content=document.getElementById('notes-textarea').value;
+  const now=new Date().toLocaleString('fr-FR');
+  await fsSet('notes',currentNoteKey,{content,lastEdit:now,savedBy:currentUser});
+  document.getElementById('notes-editor-meta').textContent='Dernière modification : '+now;
+  const badge=document.getElementById('notes-saved-badge');badge.style.display='inline';setTimeout(()=>badge.style.display='none',2500);
+}
+
+// ── UPCOMING EVENTS ────────────────────────────────────────
+function renderUpcomingEvents(){
+  const container=document.getElementById('upcoming-events-container');if(!container)return;
+  const now=new Date();const nowStr=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+  const past=(DB.events||[]).filter(ev=>ev.date<nowStr).sort((a,b)=>b.date.localeCompare(a.date)||(b.heureDebut||'').localeCompare(a.heureDebut||'')).slice(0,3).reverse();
+  const future=(DB.events||[]).filter(ev=>ev.date>=nowStr).sort((a,b)=>a.date.localeCompare(b.date)||(a.heureDebut||'').localeCompare(b.heureDebut||'')).slice(0,8);
+  const all=[...past,...future];
+  if(!all.length){container.innerHTML='<div class="upcoming-empty">— Aucun événement planifié —<br><span style="font-size:10px;margin-top:4px;display:block;">Utilisez le calendrier complet pour en ajouter</span></div>';return;}
+  const monthsFr=['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+  container.innerHTML=`<div class="upcoming-list">${all.map(ev=>{
+    const d=new Date(ev.date+'T12:00:00');const isPast=ev.date<nowStr;const isToday=ev.date===nowStr;
+    const col=isPast?'#b0aa9e':(EV_COLORS[ev.type]||'#57534e');const lbl=EV_LABELS[ev.type]||ev.type;
+    const hor=ev.heureDebut?(ev.heureDebut+(ev.heureFin?' → '+ev.heureFin:'')):'';
+    const pastStyle=isPast?'opacity:0.55;filter:grayscale(0.6);':'';
+    const todayStyle=isToday?'box-shadow:0 0 0 2px '+(EV_COLORS[ev.type]||'#57534e')+';':'';
+    return`<div class="upcoming-item" onclick="openEventModal('${ev._id}',event)" style="${pastStyle}${todayStyle}">
+      <div class="upcoming-stripe" style="background:${col};"></div>
+      <div class="upcoming-body">
+        <div class="upcoming-date-box" style="${isToday?'background:'+col+'22;border:1px solid '+col+'66;':''}${isPast?'background:#f0ece8;':''}">
+          <div class="upcoming-date-day" style="color:${isToday?col:(isPast?'#b0aa9e':'var(--ink)')}">${d.getDate()}</div>
+          <div class="upcoming-date-month" style="${isPast?'color:#b0aa9e;':''}">${monthsFr[d.getMonth()]}</div>
+        </div>
+        <div class="upcoming-info">
+          <div class="upcoming-title" style="${isPast?'color:#888;text-decoration:line-through;text-decoration-color:#ccc;':''}">${ev.titre}</div>
+          <div class="upcoming-meta">
+            ${isPast?'<span style="color:#b0aa9e;font-style:italic;">Événement passé</span>':''}
+            ${!isPast&&hor?`<span>🕐 ${hor}</span>`:''}
+            ${!isPast&&ev.lieu?`<span>📍 ${ev.lieu}</span>`:''}
+            ${!isPast&&ev.desc?`<span style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${ev.desc}">📄 ${ev.desc}</span>`:''}
+          </div>
+        </div>
+        <div class="upcoming-right"><div class="upcoming-type-badge" style="background:${col};">${lbl}</div><div class="upcoming-author">Par ${ev.authorName||'—'}</div></div>
+      </div>
+    </div>`;
+  }).join('')}</div>
+  ${(DB.events||[]).filter(ev=>ev.date>=nowStr).length>8?`<div class="upcoming-show-more"><button class="btn btn-p btn-sm" onclick="openCalendrier()">Voir tous les événements →</button></div>`:''}`;
+}
+
+// ── EVENT LISTENERS ────────────────────────────────────────
 document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
 document.getElementById('password').addEventListener('keydown',e=>{if(e.key==='Enter')handleLogin();});
 document.getElementById('email').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('password').focus();});
@@ -2292,255 +2416,17 @@ window.addEventListener('scroll',()=>{const b=document.getElementById('scrollTop
 // Session timer
 setInterval(()=>{
   if(!currentEmail)return;
-  const sess=loadSess();
-  if(!sess){handleLogout();return;}
-  const rem=SESS_MS-(Date.now()-sess.ts);
-  if(rem<=0){handleLogout();return;}
+  const sess=loadSess();if(!sess){handleLogout();return;}
+  const rem=SESS_MS-(Date.now()-sess.ts);if(rem<=0){handleLogout();return;}
   const mins=Math.floor(rem/60000),secs=Math.floor((rem%60000)/1000);
   const tv=document.getElementById('timer-val'),tw=document.getElementById('session-timer');
   if(tv)tv.textContent=String(mins).padStart(2,'0')+':'+String(secs).padStart(2,'0');
   if(tw)tw.style.color=rem<120000?'rgba(220,80,80,0.85)':'rgba(181,130,26,0.65)';
 },1000);
 
-// ═══ UPCOMING EVENTS (page section) ═══
-function renderUpcomingEvents(){
-  const container=document.getElementById('upcoming-events-container');
-  if(!container)return;
-  const now=new Date();
-  const nowStr=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-  // Show upcoming + today's events; also show last 3 past events greyed out for context
-  const past=(DB.events||[]).filter(ev=>ev.date<nowStr).sort((a,b)=>b.date.localeCompare(a.date)||(b.heureDebut||'').localeCompare(a.heureDebut||'')).slice(0,3).reverse();
-  const future=(DB.events||[]).filter(ev=>ev.date>=nowStr).sort((a,b)=>a.date.localeCompare(b.date)||(a.heureDebut||'').localeCompare(b.heureDebut||'')).slice(0,8);
-  const all=[...past,...future];
-  if(!all.length){
-    container.innerHTML='<div class="upcoming-empty">— Aucun événement planifié —<br><span style="font-size:10px;margin-top:4px;display:block;">Utilisez le calendrier complet pour en ajouter</span></div>';
-    return;
-  }
-  const monthsFr=['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
-  const html=`<div class="upcoming-list">
-    ${all.map(ev=>{
-      const ri=(DB.events||[]).indexOf(ev);
-      const d=new Date(ev.date+'T12:00:00');
-      const isPast=ev.date<nowStr;
-      const isToday=ev.date===nowStr;
-      const col=isPast?'#b0aa9e':(EV_COLORS[ev.type]||'#57534e');
-      const lbl=EV_LABELS[ev.type]||ev.type;
-      const hor=ev.heureDebut?(ev.heureDebut+(ev.heureFin?' → '+ev.heureFin:'')):'';
-      const pastStyle=isPast?'opacity:0.55;filter:grayscale(0.6);':'';
-      const todayStyle=isToday?'box-shadow:0 0 0 2px '+(EV_COLORS[ev.type]||'#57534e')+';':'';
-      return`<div class="upcoming-item" onclick="openEventModal(${ri},event)" style="${pastStyle}${todayStyle}">
-        <div class="upcoming-stripe" style="background:${col};"></div>
-        <div class="upcoming-body">
-          <div class="upcoming-date-box" style="${isToday?'background:'+col+'22;border:1px solid '+col+'66;':''}${isPast?'background:#f0ece8;':''}">
-            <div class="upcoming-date-day" style="color:${isToday?col:(isPast?'#b0aa9e':'var(--ink)')}">${d.getDate()}</div>
-            <div class="upcoming-date-month" style="${isPast?'color:#b0aa9e;':''}">${monthsFr[d.getMonth()]}</div>
-          </div>
-          <div class="upcoming-info">
-            <div class="upcoming-title" style="${isPast?'color:#888;text-decoration:line-through;text-decoration-color:#ccc;':''}">${ev.titre}</div>
-            <div class="upcoming-meta">
-              ${isPast?'<span style="color:#b0aa9e;font-style:italic;">Événement passé</span>':''}
-              ${!isPast&&hor?`<span>🕐 ${hor}</span>`:''}
-              ${!isPast&&ev.lieu?`<span>📍 ${ev.lieu}</span>`:''}
-              ${!isPast&&ev.desc?`<span style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${ev.desc}">📄 ${ev.desc}</span>`:''}
-            </div>
-          </div>
-          <div class="upcoming-right">
-            <div class="upcoming-type-badge" style="background:${col};">${lbl}</div>
-            <div class="upcoming-author">Par ${ev.authorName||'—'}</div>
-          </div>
-        </div>
-      </div>`;
-    }).join('')}
-  </div>
-  ${(DB.events||[]).filter(ev=>ev.date>=nowStr).length>8?`<div class="upcoming-show-more"><button class="btn btn-p btn-sm" onclick="openCalendrier()">Voir tous les événements →</button></div>`:''}`;
-  container.innerHTML=html;
-}
+// ── BOOT ───────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', initApp);
 
-// ═══ CODE PÉNAL — RENDER & EDITOR ═══
-const RISK_LABELS={'r0':'Aucun','r1':'Faible','r2':'Moyen','r3':'Élevé','r4':'Très élevé'};
-function renderPenalGrid(){
-  DB=loadDB()||initDB();
-  if(!DB.penalCode||!DB.penalCode.length)DB.penalCode=getPenalCodeDefault();
-  const grid=document.getElementById('penal-grid-container');
-  const chapters=DB.penalCode||[];
-  if(!chapters.length){grid.innerHTML='<div style="padding:2rem;color:rgba(242,234,216,0.4);font-family:\'IBM Plex Mono\',monospace;font-size:11px;grid-column:1/-1;text-align:center;">— Aucun article —</div>';return;}
-  grid.innerHTML=chapters.map((ch,ci)=>`
-    <div class="pchap">
-      <div class="pchap-title">${ch.title}</div>
-      ${(ch.articles||[]).map((a,ai)=>`
-        <div class="prow">
-          <span class="part">${a.text}</span>
-          <span class="risk ${a.risk}">${RISK_LABELS[a.risk]||a.risk}</span>
-        </div>`).join('')}
-    </div>`).join('');
-}
-
-let penalCurrentChap=null;
-function openPenalEditor(){
-  if(!isDirection())return;
-  DB=loadDB()||initDB();
-  penalCurrentChap=null;
-  renderPenalSidebar();
-  document.getElementById('penal-edit-panel').innerHTML='<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;color:var(--gray-light);text-align:center;margin-top:3rem;">← Sélectionnez un chapitre pour l\'éditer</div>';
-  document.getElementById('penal-editor-overlay').classList.add('open');
-}
-function closePenalEditor(){document.getElementById('penal-editor-overlay').classList.remove('open');renderPenalGrid();}
-function renderPenalSidebar(){
-  const chapters=DB.penalCode||[];
-  const list=document.getElementById('penal-chap-list');
-  list.innerHTML=chapters.map((ch,i)=>`
-    <button onclick="selectPenalChap(${i})" id="penal-chap-btn-${i}" style="width:100%;text-align:left;background:${penalCurrentChap===i?'rgba(181,130,26,0.2)':'none'};border:none;border-left:3px solid ${penalCurrentChap===i?'var(--amber)':'transparent'};color:${penalCurrentChap===i?'var(--amber-light)':'rgba(242,234,216,0.6)'};font-family:'IBM Plex Mono',monospace;font-size:9px;padding:8px 12px;cursor:pointer;line-height:1.4;transition:all 0.15s;">
-      ${ch.title}<br><span style="color:rgba(242,234,216,0.3);font-size:8px;">${(ch.articles||[]).length} article(s)</span>
-    </button>`).join('');
-}
-function selectPenalChap(i){
-  penalCurrentChap=i;
-  renderPenalSidebar();
-  renderPenalChapEditor(i);
-}
-function renderPenalChapEditor(i){
-  const ch=DB.penalCode[i];
-  const panel=document.getElementById('penal-edit-panel');
-  const riskOpts=['r0','r1','r2','r3','r4'].map(r=>`<option value="${r}">${RISK_LABELS[r]}</option>`).join('');
-  panel.innerHTML=`
-    <div style="margin-bottom:1.2rem;padding-bottom:1rem;border-bottom:2px solid var(--divider);">
-      <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--amber-dim);margin-bottom:4px;">Titre du chapitre</div>
-      <div style="display:flex;gap:8px;">
-        <input id="pchap-title-input" value="${ch.title.replace(/"/g,'&quot;')}" style="flex:1;background:var(--paper-mid);border:1px solid var(--divider);border-bottom:2px solid var(--amber-dim);padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink);outline:none;">
-        <button onclick="savePenalChapTitle(${i})" style="background:var(--ink);color:var(--amber-light);border:none;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:7px 12px;cursor:pointer;">✓ Sauv.</button>
-        <button onclick="deletePenalChap(${i})" style="background:var(--red-stamp);color:#fff;border:none;font-family:'IBM Plex Mono',monospace;font-size:9px;padding:7px 10px;cursor:pointer;">🗑</button>
-      </div>
-    </div>
-    <div style="margin-bottom:1rem;">
-      <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--amber-dim);margin-bottom:8px;">Articles (${(ch.articles||[]).length})</div>
-      <div id="penal-articles-list">
-        ${(ch.articles||[]).map((a,ai)=>`
-          <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px dotted var(--divider);">
-            <input value="${a.text.replace(/"/g,'&quot;')}" id="part-text-${i}-${ai}" style="flex:1;background:var(--paper-mid);border:1px solid var(--divider);border-bottom:1px solid var(--amber-dim);padding:5px 8px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink);outline:none;">
-            <select id="part-risk-${i}-${ai}" style="background:var(--paper-mid);border:1px solid var(--divider);border-bottom:1px solid var(--amber-dim);padding:5px 6px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink);outline:none;">
-              ${['r0','r1','r2','r3','r4'].map(r=>`<option value="${r}"${a.risk===r?' selected':''}>${RISK_LABELS[r]}</option>`).join('')}
-            </select>
-            <button onclick="savePenalArticle(${i},${ai})" style="background:var(--green-stamp);color:#fff;border:none;font-family:'IBM Plex Mono',monospace;font-size:9px;padding:5px 8px;cursor:pointer;">✓</button>
-            <button onclick="deletePenalArticle(${i},${ai})" style="background:none;border:1px solid rgba(139,26,26,0.4);color:var(--red-stamp);font-family:'IBM Plex Mono',monospace;font-size:11px;width:24px;height:24px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;">×</button>
-          </div>`).join('')}
-      </div>
-    </div>
-    <div style="display:flex;gap:8px;align-items:center;padding-top:0.5rem;">
-      <input id="new-article-text" placeholder="Art. XXX — Nouvel article..." style="flex:1;background:var(--paper-mid);border:1px solid var(--divider);border-bottom:2px solid var(--amber-dim);padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink);outline:none;">
-      <select id="new-article-risk" style="background:var(--paper-mid);border:1px solid var(--divider);border-bottom:2px solid var(--amber-dim);padding:7px 6px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink);outline:none;">${riskOpts}</select>
-      <button onclick="addPenalArticle(${i})" style="background:var(--ink);color:var(--amber-light);border:none;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;padding:7px 12px;cursor:pointer;white-space:nowrap;">+ Ajouter</button>
-    </div>`;
-}
-function savePenalChapTitle(i){
-  DB.penalCode[i].title=document.getElementById('pchap-title-input').value.trim()||DB.penalCode[i].title;
-  saveDB(DB);renderPenalSidebar();
-}
-function deletePenalChap(i){
-  if(!confirm('Supprimer ce chapitre et tous ses articles ?'))return;
-  DB.penalCode.splice(i,1);
-  saveDB(DB);penalCurrentChap=null;
-  renderPenalSidebar();
-  document.getElementById('penal-edit-panel').innerHTML='<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;color:var(--gray-light);text-align:center;margin-top:3rem;">← Sélectionnez un chapitre</div>';
-}
-function savePenalArticle(ci,ai){
-  DB.penalCode[ci].articles[ai].text=document.getElementById(`part-text-${ci}-${ai}`).value.trim()||DB.penalCode[ci].articles[ai].text;
-  DB.penalCode[ci].articles[ai].risk=document.getElementById(`part-risk-${ci}-${ai}`).value;
-  saveDB(DB);renderPenalChapEditor(ci);renderPenalSidebar();
-}
-function deletePenalArticle(ci,ai){
-  if(!confirm('Supprimer cet article ?'))return;
-  DB.penalCode[ci].articles.splice(ai,1);
-  saveDB(DB);renderPenalChapEditor(ci);renderPenalSidebar();
-}
-function addPenalArticle(ci){
-  const text=document.getElementById('new-article-text').value.trim();
-  const risk=document.getElementById('new-article-risk').value;
-  if(!text){alert('Le texte de l\'article est obligatoire.');return;}
-  if(!DB.penalCode[ci].articles)DB.penalCode[ci].articles=[];
-  DB.penalCode[ci].articles.push({text,risk});
-  saveDB(DB);renderPenalChapEditor(ci);renderPenalSidebar();
-}
-function addPenalChapter(){
-  const title=prompt('Titre du nouveau chapitre :','Titre — Nouveau Chapitre');
-  if(!title)return;
-  if(!DB.penalCode)DB.penalCode=[];
-  DB.penalCode.push({title:title.trim(),articles:[]});
-  saveDB(DB);
-  const newIdx=DB.penalCode.length-1;
-  penalCurrentChap=newIdx;
-  renderPenalSidebar();
-  renderPenalChapEditor(newIdx);
-  // Scroll sidebar to bottom
-  const sl=document.getElementById('penal-chap-list');
-  if(sl)sl.scrollTop=sl.scrollHeight;
-}
-
-// ═══ NOTES ═══
-let currentNoteKey=null;
-function noteKey(email){return'note_'+email.replace(/[^a-z0-9]/gi,'_');}
-function openNotes(){
-  DB=loadDB()||initDB();
-  buildNotesSidebar();
-  selectNote('me');
-  document.getElementById('notes-overlay').classList.add('open');
-}
-function closeNotes(){document.getElementById('notes-overlay').classList.remove('open');}
-function buildNotesSidebar(){
-  const agentsList=document.getElementById('notes-agents-list');
-  if(isResp()){
-    agentsList.style.display='block';
-    const others=Object.entries(DB.users).filter(([e])=>e!==currentEmail).sort((a,b)=>a[1].name.localeCompare(b[1].name));
-    const roleLabel=()=>'•';
-    agentsList.innerHTML=`<div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:#9fa8da;margin:0.8rem 0 0.4rem;padding-top:0.8rem;border-top:1px solid rgba(255,255,255,0.1);">Notes des agents</div>`
-      +others.map(([email,u])=>`<button class="notes-agent-btn" id="note-btn-${noteKey(email)}" onclick="selectNote('${email}')">• ${u.name}</button>`).join('');
-  }else{
-    agentsList.style.display='none';
-  }
-}
-function selectNote(target){
-  // Deactivate all sidebar buttons
-  document.querySelectorAll('.notes-my-note-btn,.notes-agent-btn').forEach(b=>b.classList.remove('active'));
-  const isMe=target==='me';
-  const email=isMe?currentEmail:target;
-  currentNoteKey=noteKey(email);
-  const userName=isMe?currentUser:(DB.users[email]?DB.users[email].name:email);
-  const canEdit=isMe;
-  // Activate correct button
-  if(isMe){document.getElementById('notes-my-btn').classList.add('active');}
-  else{const b=document.getElementById('note-btn-'+currentNoteKey);if(b)b.classList.add('active');}
-  // Load note content
-  const stored=localStorage.getItem('lspd_note_'+currentNoteKey);
-  let noteData={content:'',lastEdit:''};
-  if(stored){try{noteData=JSON.parse(stored);}catch{noteData={content:stored,lastEdit:''};}}
-  const ta=document.getElementById('notes-textarea');
-  const title=document.getElementById('notes-editor-title');
-  const meta=document.getElementById('notes-editor-meta');
-  const roLabel=document.getElementById('notes-readonly-badge');
-  const saveBtn=document.getElementById('notes-save-btn');
-  ta.value=noteData.content||'';
-  ta.disabled=!canEdit;
-  title.textContent=isMe?'Ma note personnelle':'Note de '+userName;
-  meta.textContent=noteData.lastEdit?'Dernière modification : '+noteData.lastEdit:'Aucune modification enregistrée';
-  roLabel.style.display=canEdit?'none':'inline-block';
-  saveBtn.disabled=!canEdit;
-  document.getElementById('notes-saved-badge').style.display='none';
-}
-function saveNote(){
-  if(!currentNoteKey)return;
-  const content=document.getElementById('notes-textarea').value;
-  const now=new Date().toLocaleString('fr-FR');
-  const data={content,lastEdit:now,savedBy:currentUser};
-  localStorage.setItem('lspd_note_'+currentNoteKey,JSON.stringify(data));
-  document.getElementById('notes-editor-meta').textContent='Dernière modification : '+now;
-  const badge=document.getElementById('notes-saved-badge');
-  badge.style.display='inline';
-  setTimeout(()=>badge.style.display='none',2500);
-}
-document.addEventListener('DOMContentLoaded',()=>{
-  DB=initDB();
-  const sess=loadSess();
-  if(sess){const ok=doLogin(sess.email);if(!ok)clearSess();}
-});
 </script>
 </body>
 </html>
