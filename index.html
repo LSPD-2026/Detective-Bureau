@@ -48,7 +48,7 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 .login-foot{padding:1rem 2.5rem 1.5rem;border-top:1px solid var(--divider);font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--gray-light);letter-spacing:0.08em;text-align:center;}
 
 /* ═══ NAV ═══ */
-#portal-page{background:#1a1610;}
+#portal-page{background:var(--paper);}
 .pwrap{background:var(--paper);min-height:100vh;}
 nav{background:var(--ink);padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:58px;position:sticky;top:0;z-index:200;border-bottom:3px solid var(--amber);}
 .nav-brand{display:flex;align-items:center;gap:12px;}
@@ -76,7 +76,7 @@ nav{background:var(--ink);padding:0 2rem;display:flex;align-items:center;justify
 .bsep{opacity:0.35;}
 
 /* ═══ HERO ═══ */
-.portal-hero{padding:4rem 3rem 3rem;display:grid;grid-template-columns:auto 1fr;gap:4rem;align-items:start;max-width:1200px;margin:0 auto;border-bottom:2px solid var(--divider);}
+.portal-hero{padding:4rem 3rem 3rem;display:grid;grid-template-columns:auto 1fr;gap:4rem;align-items:start;max-width:1200px;margin:0 auto;border-bottom:2px solid var(--divider);background:var(--paper);}
 .hero-emb{display:flex;flex-direction:column;align-items:center;gap:1rem;padding-top:0.5rem;}
 .emb-svg{width:130px;height:130px;filter:drop-shadow(2px 3px 0 rgba(0,0,0,0.12));}
 .emb-sub{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.15em;color:var(--gray-ink);text-transform:uppercase;text-align:center;line-height:1.5;}
@@ -95,8 +95,8 @@ nav{background:var(--ink);padding:0 2rem;display:flex;align-items:center;justify
 
 /* ═══ SECTIONS ═══ */
 .section-bg{background:var(--paper-mid);border-top:1px solid var(--divider);border-bottom:1px solid var(--divider);padding:4rem 0;}
-.section-bg>section{padding-top:0;padding-bottom:0;}
-section{padding:4rem 3rem;max-width:1200px;margin:0 auto;}
+.section-bg>section{padding-top:0;padding-bottom:0;background:var(--paper-mid);}
+section{padding:4rem 3rem;max-width:1200px;margin:0 auto;background:var(--paper);}
 .sec-head{display:flex;align-items:baseline;gap:1.5rem;margin-bottom:2.5rem;border-bottom:1px solid var(--divider);padding-bottom:1rem;}
 .sec-num{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--amber-dim);letter-spacing:0.15em;flex-shrink:0;}
 .sec-title{font-family:'Special Elite',cursive;font-size:clamp(20px,3vw,32px);color:var(--ink);line-height:1;}
@@ -109,7 +109,7 @@ section{padding:4rem 3rem;max-width:1200px;margin:0 auto;}
 .sub-label{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--amber-dim);padding:0.5rem 0;border-bottom:2px solid var(--amber-dim);margin-bottom:1rem;}
 
 /* ═══ GATEWAY ═══ */
-.gway-section{padding:3rem 3rem 4rem;max-width:1200px;margin:0 auto;}
+.gway-section{padding:3rem 3rem 4rem;max-width:1200px;margin:0 auto;background:var(--paper);}
 .gway-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
 .gcard{background:var(--paper-mid);border:1px solid var(--divider);border-top:4px solid var(--amber-dim);padding:1.8rem 1.6rem 1.6rem;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:0.7rem;transition:all 0.2s;cursor:pointer;position:relative;overflow:hidden;}
 .gcard::after{content:'→';position:absolute;bottom:1.2rem;right:1.4rem;font-family:'IBM Plex Mono',monospace;font-size:15px;color:var(--amber-dim);transition:all 0.2s;}
@@ -148,10 +148,8 @@ section{padding:4rem 3rem;max-width:1200px;margin:0 auto;}
 .effectif-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
 .agent-card{background:var(--paper-mid);border:1px solid var(--divider);border-left:4px solid var(--amber-dim);padding:1rem 1.3rem;display:grid;grid-template-columns:auto 1fr auto;gap:1rem;align-items:center;transition:all 0.2s;position:relative;}
 .agent-card:hover{border-left-color:var(--amber);background:var(--paper-dark);}
-.agent-card.chef{border-left-color:var(--amber);background:rgba(181,130,26,0.06);}
-.agent-card.chef-direction{border-left-color:var(--direction-color);background:rgba(181,130,26,0.08);}
-.agent-card.chef-direction .agent-gbi{color:var(--direction-color);}
-.agent-card.chef-direction .agent-unit{color:var(--direction-color);border-color:rgba(181,130,26,0.35);background:rgba(181,130,26,0.12);}
+.agent-card.chef{border-left-color:var(--amber);background:var(--paper-mid);}
+.agent-card.chef-direction{background:var(--paper-mid);}
 .agent-card.vacant{border-left-color:var(--red-stamp)!important;background:rgba(139,26,26,0.05)!important;}
 .agent-mat{font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:300;color:var(--amber-dim);width:38px;text-align:center;line-height:1;}
 .agent-card.vacant .agent-mat{color:var(--red-stamp);}
@@ -488,10 +486,6 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
 /* ═══ CALENDAR event color picker ═══ */
 #cal-cat-list input[type=color]{border-radius:3px;}
 </style>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"
-  onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-app-compat.min.js'"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"
-  onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-firestore-compat.min.js'"></script>
 </head>
 <body>
 
@@ -508,7 +502,7 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
   <div class="login-bg-lines"></div>
   <div class="login-card">
     <div class="login-header">
-      <img src="ciu_logo.png" alt="DB Logo" style="width:56px;height:56px;object-fit:contain;filter:drop-shadow(0 2px 8px rgba(181,130,26,0.4));" onerror="this.style.display='none'">
+      <img src="db_logo.png" alt="DB Logo" style="width:56px;height:56px;object-fit:contain;filter:drop-shadow(0 2px 8px rgba(181,130,26,0.4));" onerror="this.style.display='none'">
       <div>
         <div class="login-hd">Los Santos Police Department</div>
         <div class="login-ht">Criminal Investigation<br>Union</div>
@@ -532,7 +526,7 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
 
 <nav>
   <div class="nav-brand">
-    <img src="ciu_logo.png" alt="DB" class="nav-logo" style="width:34px;height:34px;object-fit:contain;" onerror="this.style.display='none'">
+    <img src="db_logo.png" alt="DB" class="nav-logo" style="width:34px;height:34px;object-fit:contain;" onerror="this.style.display='none'">
     <span class="nav-title">L.S.P.D. — <span>Criminal Investigation Union</span></span>
   </div>
   <div class="nav-right">
@@ -556,7 +550,7 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
 <!-- HERO -->
 <div class="portal-hero">
   <div class="hero-emb">
-    <img src="ciu_logo.png" alt="DB Logo" class="emb-svg" style="width:150px;height:150px;object-fit:contain;filter:drop-shadow(3px 4px 12px rgba(0,0,0,0.18));" onerror="this.style.display='none'">
+    <img src="db_logo.png" alt="DB Logo" class="emb-svg" style="width:150px;height:150px;object-fit:contain;filter:drop-shadow(3px 4px 12px rgba(0,0,0,0.18));" onerror="this.style.display='none'">
     <div style="display:flex;align-items:center;gap:10px;margin-top:0.5rem;">
       <img src="dd_logo.png" alt="DD Logo" style="width:38px;height:38px;border-radius:50%;border:2px solid var(--amber);object-fit:cover;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.15));" onerror="this.style.display='none'">
       <div class="emb-sub" style="text-align:left;">C.I.U. — Insigne Officiel<br>Det. Bureau · Los Santos</div>
@@ -601,7 +595,7 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
 </section></div>
 
 <!-- § 02 EFFECTIF -->
-<section id="effectif">
+<section id="effectif" style="background:var(--paper);">
   <div class="sec-head"><span class="sec-num">§ 02</span><h2 class="sec-title">Registre du Personnel — C.I.U.</h2><div class="sec-rule"></div></div>
   <div class="info-box" id="effectif-infobox-wrap"><p id="effectif-infobox-text">Registre officiel des agents affectés au Criminal Investigation Union. La hiérarchie au sein du C.I.U. est la suivante : <strong>Directeur → Directeur Adjoint → Responsable → Inspecteur / Officier Principal → Inspecteur / Agent de P.B. → Enquêteur / Recrue</strong>. À grade égal, l'ancienneté prime. Document interne — ne pas divulguer.</p><button id="effectif-infobox-btn" onclick="openInfoboxEditor()" style="display:none;margin-top:6px;background:rgba(181,130,26,0.15);border:1px solid var(--amber-dim);color:var(--amber-dim);font-family:'IBM Plex Mono',monospace;font-size:9px;padding:3px 10px;cursor:pointer;text-transform:uppercase;letter-spacing:0.1em;">✏ Modifier</button></div>
   <div id="effectif-container"></div>
@@ -691,20 +685,16 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
 <!-- § 05 CHARTE -->
 <div class="dark-wrap" style="border-top:1px solid rgba(255,255,255,0.06);">
 <div class="dark-inner" id="charte">
-  <div class="sec-head"><span class="sec-num">§ 05</span><h2 class="sec-title">Charte du Criminal Investigation Union</h2><div class="sec-rule"></div></div>
-  <div class="charte-grid">
-    <div class="charte-card"><div class="charte-icon">⚖</div><div class="charte-title">Intégrité & Impartialité</div><p class="charte-text">Chaque agent conduit ses enquêtes sans préjugé. Toute compromission doit être signalée immédiatement.</p></div>
-    <div class="charte-card"><div class="charte-icon">🔒</div><div class="charte-title">Confidentialité absolue</div><p class="charte-text">Les informations relatives aux dossiers et opérations de surveillance sont strictement confidentielles.</p></div>
-    <div class="charte-card"><div class="charte-icon">📋</div><div class="charte-title">Rigueur procédurale</div><p class="charte-text">Chaque acte d'enquête doit être documenté avec précision. Un dossier mal instruit est un dossier perdu.</p></div>
-    <div class="charte-card"><div class="charte-icon">🤝</div><div class="charte-title">Coordination inter-services</div><p class="charte-text">Le C.I.U. opère en liaison permanente avec les patrouilles générales, le S.W.A.T. et le D.O.J.</p></div>
-    <div class="charte-card"><div class="charte-icon">⚡</div><div class="charte-title">Discrétion opérationnelle</div><p class="charte-text">La couverture Echo implique l'absence de tout marquage susceptible de trahir l'identité des agents.</p></div>
-    <div class="charte-card"><div class="charte-icon">🎯</div><div class="charte-title">Proportionnalité de la force</div><p class="charte-text">L'usage de la force est soumis au principe de stricte proportionnalité. Rapport écrit sous 24h.</p></div>
+  <div class="sec-head"><span class="sec-num">§ 05</span><h2 class="sec-title">Charte du Criminal Investigation Union</h2><div class="sec-rule"></div>
+    <button id="charte-edit-btn" onclick="openCharteEditor()" style="display:none;background:rgba(181,130,26,0.2);border:1px solid var(--amber-dim);color:var(--amber-light);font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:5px 12px;cursor:pointer;flex-shrink:0;white-space:nowrap;">✏ Modifier</button>
   </div>
+  <div class="charte-grid" id="charte-grid-container"></div>
 </div></div>
 
 <footer><div class="footer-in">
   <span class="fcopy">© L.S.P.D. — Criminal Investigation Union (D.D. & S.C.U.) — Document interne — Los Santos, San Andreas</span>
   <span class="fcopy" style="font-style:italic;opacity:0.5;">C.I.U. — Bureau des Inspecteurs</span>
+  <span class="fcopy" style="opacity:0.4;">Développé par <strong style="color:rgba(242,234,216,0.5);">Douglas Walker</strong> · Discord : <strong style="color:rgba(212,168,50,0.5);">Ander.345</strong></span>
 </div></footer>
 </div>
 </div>
@@ -1060,7 +1050,6 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
         <button class="atab" onclick="switchAdminTab('t-effectif',this)">Registre</button>
         <button class="atab" onclick="switchAdminTab('t-grades',this)">Grades</button>
         <button class="atab" onclick="switchAdminTab('t-rolenames',this)">Noms Rôles</button>
-        <button class="atab" onclick="switchAdminTab('t-dircolor',this)">Couleur Direction</button>
       </div>
       <div class="atab-content active" id="t-online">
         <div class="msec">Agents connectés</div>
@@ -1124,7 +1113,8 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
 
       <!-- TAB: GRADES -->
       <div class="atab-content" id="t-grades">
-        <div class="msec">Grades du registre (hiérarchie)</div>
+        <div class="msec">Grades du registre — Hiérarchie & Couleur de barrette</div>
+        <p style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--gray-light);margin-bottom:0.8rem;">La couleur de chaque grade s'applique sur la barrette latérale gauche des cartes du registre du personnel.</p>
         <div id="grades-list-admin"></div>
         <div class="msec" style="margin-top:1rem;">Ajouter un grade</div>
         <div class="frow">
@@ -1138,6 +1128,9 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
               <option value="">Toutes</option>
             </select>
           </div>
+          <div class="ff" style="max-width:80px;"><label class="fl">Couleur</label>
+            <input type="color" id="ng-color" value="#b5821a" style="width:100%;height:36px;padding:2px;border:1px solid var(--divider);cursor:pointer;">
+          </div>
         </div>
         <button class="btn btn-p" onclick="addGrade()">+ Ajouter le grade</button>
         <div id="grades-msg" style="margin-top:0.5rem;"></div>
@@ -1146,7 +1139,7 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
       <!-- TAB: NOMS DES RÔLES -->
       <div class="atab-content" id="t-rolenames">
         <div class="msec">Nommer les rôles du portail</div>
-        <p style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--gray-light);margin-bottom:1rem;">Seuls Direction et le développeur peuvent modifier les noms de rôle.</p>
+        <p style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--gray-light);margin-bottom:1rem;">Seuls Direction et le développeur peuvent modifier les noms de rôle. Les changements s'appliquent immédiatement.</p>
         <div class="frow">
           <div class="ff"><label class="fl">Nom affiché pour "Direction"</label><input class="fi" id="rn-direction" placeholder="Direction"></div>
           <div class="ff"><label class="fl">Nom affiché pour "Responsable"</label><input class="fi" id="rn-responsable" placeholder="Responsable"></div>
@@ -1159,23 +1152,6 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
         <div id="rolenames-msg" style="margin-top:0.5rem;"></div>
       </div>
 
-      <!-- TAB: COULEUR DIRECTION -->
-      <div class="atab-content" id="t-dircolor">
-        <div class="msec">Couleur de la barrette Direction</div>
-        <p style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--gray-light);margin-bottom:1rem;">Choisissez la couleur de la bordure latérale des cartes de la Direction dans le registre du personnel.</p>
-        <div class="frow">
-          <div class="ff"><label class="fl">Couleur Direction</label>
-            <input type="color" id="dir-color-picker" value="#b5821a" style="width:80px;height:40px;padding:2px;border:1px solid var(--divider);background:var(--paper-mid);cursor:pointer;">
-          </div>
-          <div class="ff" style="align-self:flex-end;">
-            <button class="btn btn-p" onclick="saveDirColor()">💾 Appliquer</button>
-          </div>
-        </div>
-        <div id="dircolor-msg" style="margin-top:0.5rem;"></div>
-        <div style="margin-top:1rem;padding:0.5rem 1rem;border-left:4px solid var(--direction-color);background:rgba(181,130,26,0.06);font-family:'IBM Plex Mono',monospace;font-size:11px;">
-          Aperçu de la couleur actuelle
-        </div>
-      </div>
     </div>
   </div>
 </div>
@@ -1267,21 +1243,16 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
 </div>
 
 
-<!-- ════════ SCRIPT ════════ -->
+<!-- ════════ FIREBASE (synchrone) + SCRIPT PRINCIPAL ════════ -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script>
 // ═══════════════════════════════════════════════════════════
 //  C.I.U. PORTAL — Firebase Firestore Edition
 // ═══════════════════════════════════════════════════════════
 
 // ── Firebase SDK (CDN compat) ──────────────────────────────
-// Loaded via <script> tags above
-
-// Vérification que Firebase est bien chargé
-if(typeof firebase === 'undefined'){
-  console.error('Firebase SDK non chargé — vérifiez la connexion internet');
-  document.getElementById('fb-err').style.display='flex';
-  throw new Error('Firebase not loaded');
-}
+// Scripts chargés juste avant ce bloc (synchrones → disponibles ici)
 
 const firebaseConfig = {
   apiKey: "AIzaSyDjFtSaDCRnBh2rqQezLOAFyvBA6aV2Mds",
@@ -1291,18 +1262,24 @@ const firebaseConfig = {
   messagingSenderId: "1072590977967",
   appId: "1:1072590977967:web:4d1b0b8b3a6bdcfb208d5a"
 };
-firebase.initializeApp(firebaseConfig);
-const fdb = firebase.firestore();
-
-// ── Collections Firestore ──────────────────────────────────
-const COL = {
-  config:    fdb.collection('config'),      // doc 'main' : users, effectif, online, manuels, penalCode
-  warrants:  fdb.collection('warrants'),    // un doc par warrant
-  bracelets: fdb.collection('bracelets'),   // un doc par bracelet
-  events:    fdb.collection('events'),      // un doc par event
-  service:   fdb.collection('service'),     // un doc par entrée
-  notes:     fdb.collection('notes'),       // doc par agent (noteKey)
-};
+let fdb, COL;
+function initFirebase(){
+  if(typeof firebase==='undefined'){
+    console.error('Firebase non chargé');
+    const el=document.getElementById('fb-err');if(el)el.style.display='flex';
+    return false;
+  }
+  try{
+    if(!firebase.apps.length)firebase.initializeApp(firebaseConfig);
+    fdb=firebase.firestore();
+    COL={
+      config:fdb.collection('config'),warrants:fdb.collection('warrants'),
+      bracelets:fdb.collection('bracelets'),events:fdb.collection('events'),
+      service:fdb.collection('service'),notes:fdb.collection('notes')
+    };
+    return true;
+  }catch(e){console.error('Firebase init error:',e);return false;}
+}
 
 // ── Session (localStorage uniquement) ─────────────────────
 const SSK='ciu_sess_v2', SESS_MS=15*60*1000;
@@ -1381,7 +1358,8 @@ async function saveConfig(){
     fpConfig: DB.fpConfig||null,
     effectifInfobox: DB.effectifInfobox||'',
     grades: DB.grades||[],
-    roleNames: DB.roleNames||{}
+    roleNames: DB.roleNames||{},
+    charte: DB.charte||[]
   });
 }
 
@@ -1465,7 +1443,7 @@ const GRADE_MAP={
   'Directeur D.D.':100,'Directeur Adjoint':100,'Directeur':100,
   'Responsable D.D.':90,'Responsable S.C.U.':90,'Responsable':90,
   'Inspecteur Principal':80,'Officier Principal':80,
-  'Inspecteur':70,'Chef de Brigade':75,
+  'Inspecteur':70,
   'Enquêteur':60,'Enquêtrice':60,
   'Agent de P.B.':55,'Recrue':50
 };
@@ -1509,6 +1487,7 @@ function startListeners(){
       DB.effectifInfobox= d.effectifInfobox||'';
       DB.grades         = d.grades||null;
       DB.roleNames      = d.roleNames||{};
+      DB.charte         = d.charte||null;
       ensureExtendedDefaults(DB);
       if(dbReady){
         renderEffectif();
@@ -1519,6 +1498,8 @@ function startListeners(){
         renderEffectifInfobox();
         buildEvTypeOptions();
         checkEnCours();
+        renderCharte();
+        applyGradeColors();
         if(document.getElementById('manuels-panel').style.display!=='none') renderManuels();
       }
     }
@@ -1572,6 +1553,7 @@ function stopListeners(){
 
 // ── Init ───────────────────────────────────────────────────
 async function initApp(){
+  if(!initFirebase()){alert('⚠️ Firebase non chargé. Vérifiez la connexion internet.');return;}
   showLoader('Connexion à Firebase...');
   try {
     const snap = await COL.config.doc('main').get();
@@ -1606,6 +1588,7 @@ async function initApp(){
       DB.effectifInfobox= d.effectifInfobox||'';
       DB.grades         = d.grades||null;
       DB.roleNames      = d.roleNames||{};
+      DB.charte         = d.charte||null;
       ensureExtendedDefaults(DB);
     }
     // Load collections snapshot for initial state
@@ -1682,6 +1665,10 @@ async function doLogin(email, fromSession=false){
   renderEffectif(); renderUpcomingEvents(); renderPenalGrid();
   renderModulesGrid(); renderMissionsGrid(); renderCalLegend();
   renderEffectifInfobox(); buildEvTypeOptions(); checkEnCours();
+  renderCharte(); applyGradeColors();
+  // Afficher le bouton édition charte pour Direction
+  const charteBtn=document.getElementById('charte-edit-btn');
+  if(charteBtn)charteBtn.style.display=isDirection()?'inline-block':'none';
   return true;
 }
 
@@ -1733,14 +1720,13 @@ function renderEffectif(){
   const scu=sortGroup(ef.filter(m=>m.unit==='S.C.U.'));
   function card(m){
     const gi=ef.indexOf(m);const vc=m.isVacant?' vacant':'';
-    // Chef-direction uniquement pour l'unité Direction
-    // Inspecteur Principal (DD) et Officier Principal (SCU) → ne sont PAS chef (couleur normale)
     const isChefDir=(!m.isVacant&&m.isChef&&m.unit==='Direction');
     const isChefOther=(!m.isVacant&&m.isChef&&m.unit!=='Direction');
     const cc=isChefDir?' chef-direction':isChefOther?' chef':'';
-    // Couleur de la barrette latérale : direction → --direction-color, sinon ambre ou neutre
-    const barColor=isChefDir?'var(--direction-color)':isChefOther?'var(--amber)':'var(--amber-dim)';
-    return`<div class="agent-card${cc}${vc}" style="${isChefDir?'border-left-color:var(--direction-color);':''}">
+    // Couleur de barrette : priorité à la couleur du grade, sinon fallback direction-color/amber/amber-dim
+    const gradeCol=getGradeColor(m);
+    const barColor=m.isVacant?'var(--red-stamp)':gradeCol?gradeCol:(isChefDir?'var(--direction-color)':isChefOther?'var(--amber)':'var(--amber-dim)');
+    return`<div class="agent-card${cc}${vc}" style="border-left-color:${barColor};">
       <div class="agent-mat">${m.mat}</div>
       <div><div class="agent-name">${m.nom}</div><div class="agent-gbi">${m.gradeBI}</div><div class="agent-glspd">${m.gradeLspd}</div></div>
       <div class="agent-meta">${m.id?`<span class="agent-id">ID ${m.id}</span>`:''}<span class="agent-unit">${m.unit}</span></div>
@@ -2275,13 +2261,16 @@ function refreshOnline(){
   </tbody></table>`;
 }
 function renderAccounts(){
-  // Vérification : seul Root et Dev peuvent voir/modifier tous les comptes
-  const canManage=isDev()||currentEmail===ROOT;
-  document.getElementById('accounts-list').innerHTML=`<table class="a-table"><thead><tr><th>Nom</th><th>E-mail</th><th>Nouveau MDP</th><th>Rôle</th><th>Action</th></tr></thead><tbody>
+  const canManage=isDirection()||isDev()||currentEmail===ROOT;
+  const canSeePasswords=isDirection()||isDev();
+  document.getElementById('accounts-list').innerHTML=`<table class="a-table"><thead><tr><th>Nom</th><th>Identifiant</th><th>Mot de passe / Reset</th><th>Rôle</th><th>Action</th></tr></thead><tbody>
     ${Object.entries(DB.users).map(([e,u])=>`<tr>
-      <td>${u.name}</td><td style="font-size:10px;">${e}</td>
-      <td><div style="display:flex;gap:4px;"><input type="password" placeholder="Nouveau MDP..." id="adm-pw-${e.replace(/[^a-z0-9]/gi,'_')}" style="background:var(--paper-mid);border:1px solid var(--divider);padding:2px 7px;font-family:'IBM Plex Mono',monospace;font-size:10px;width:110px;" ${isProtected(e)&&!canManage?'disabled':''}>
-      <button onclick="adminChangePw('${e}')" style="background:var(--ink);color:var(--amber-light);border:none;font-family:'IBM Plex Mono',monospace;font-size:8px;padding:2px 6px;cursor:pointer;" ${isProtected(e)&&!canManage?'disabled':''}>✓</button></div></td>
+      <td style="font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;">${u.name}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--gray-light);">${e}</td>
+      <td><div style="display:flex;gap:4px;align-items:center;">
+        <input type="password" placeholder="Nouveau MDP..." id="adm-pw-${e.replace(/[^a-z0-9]/gi,'_')}" style="background:var(--paper-mid);border:1px solid var(--divider);padding:2px 7px;font-family:'IBM Plex Mono',monospace;font-size:10px;width:100px;" ${isProtected(e)&&!canManage?'disabled':''}>
+        <button onclick="adminChangePw('${e}')" style="background:var(--ink);color:var(--amber-light);border:none;font-family:'IBM Plex Mono',monospace;font-size:8px;padding:2px 6px;cursor:pointer;" ${isProtected(e)&&!canManage?'disabled':''}>✓</button>
+      </div></td>
       <td><select style="background:var(--paper-mid);border:1px solid var(--divider);padding:1px 5px;font-family:'IBM Plex Mono',monospace;font-size:10px;cursor:pointer;" onchange="updateRole('${e}',this.value)" ${(isProtected(e)&&!canManage)?'disabled':''}>
         <option value="agent" ${u.role==='agent'?'selected':''}>Agent</option>
         <option value="responsable" ${u.role==='responsable'?'selected':''}>Responsable</option>
@@ -2370,6 +2359,65 @@ async function changePassword(){
 
 // ── UTILS ──────────────────────────────────────────────────
 function showMsg(id,txt,ok){const el=document.getElementById(id);if(!el)return;el.innerHTML=`<div class="alert ${ok?'alert-ok':'alert-err'}">${txt}</div>`;setTimeout(()=>{if(el)el.innerHTML='';},3000);}
+
+// ── CHARTE § 05 ────────────────────────────────────────────
+function getDefaultCharte(){return[
+  {icon:'⚖',title:'Intégrité & Impartialité',text:'Chaque agent conduit ses enquêtes sans préjugé. Toute compromission doit être signalée immédiatement.'},
+  {icon:'🔒',title:'Confidentialité absolue',text:'Les informations relatives aux dossiers et opérations de surveillance sont strictement confidentielles.'},
+  {icon:'📋',title:'Rigueur procédurale',text:'Chaque acte d\'enquête doit être documenté avec précision. Un dossier mal instruit est un dossier perdu.'},
+  {icon:'🤝',title:'Coordination inter-services',text:'Le C.I.U. opère en liaison permanente avec les patrouilles générales, le S.W.A.T. et le D.O.J.'},
+  {icon:'⚡',title:'Discrétion opérationnelle',text:'La couverture Echo implique l\'absence de tout marquage susceptible de trahir l\'identité des agents.'},
+  {icon:'🎯',title:'Proportionnalité de la force',text:'L\'usage de la force est soumis au principe de stricte proportionnalité. Rapport écrit sous 24h.'},
+];}
+function renderCharte(){
+  const grid=document.getElementById('charte-grid-container');if(!grid)return;
+  const items=DB.charte||getDefaultCharte();
+  grid.innerHTML=items.map(c=>`<div class="charte-card"><div class="charte-icon">${c.icon}</div><div class="charte-title">${c.title}</div><p class="charte-text">${c.text}</p></div>`).join('');
+}
+function openCharteEditor(){
+  if(!isDirection())return;
+  renderCharteAdminList();
+  document.getElementById('charte-editor-overlay').classList.add('open');
+}
+function closeCharteEditor(){document.getElementById('charte-editor-overlay').classList.remove('open');}
+function renderCharteAdminList(){
+  const items=DB.charte||getDefaultCharte();
+  const list=document.getElementById('charte-items-admin');
+  list.innerHTML=items.map((c,i)=>`<div style="display:flex;gap:8px;align-items:start;padding:10px 0;border-bottom:1px solid var(--divider);">
+    <span style="font-size:20px;width:30px;text-align:center;flex-shrink:0;">${c.icon}</span>
+    <div style="flex:1;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;text-transform:uppercase;color:var(--ink);">${c.title}</div>
+      <div style="font-size:11px;color:var(--gray-ink);margin-top:2px;">${c.text}</div>
+    </div>
+    <button onclick="editCharteItem(${i})" style="background:none;border:1px solid var(--divider);color:var(--gray-ink);font-family:'IBM Plex Mono',monospace;font-size:9px;padding:3px 8px;cursor:pointer;border-radius:2px;flex-shrink:0;">✏</button>
+    <button onclick="deleteCharteItem(${i})" style="background:none;border:1px solid rgba(139,26,26,0.3);color:var(--red-stamp);font-family:'IBM Plex Mono',monospace;font-size:9px;padding:3px 8px;cursor:pointer;border-radius:2px;flex-shrink:0;">🗑</button>
+  </div>`).join('');
+}
+async function addCharteItem(){
+  const icon=document.getElementById('charte-new-icon').value.trim()||'📌';
+  const title=document.getElementById('charte-new-title').value.trim();
+  const text=document.getElementById('charte-new-text').value.trim();
+  if(!title||!text){showMsg('charte-msg','Titre et texte obligatoires.',false);return;}
+  if(!DB.charte)DB.charte=getDefaultCharte();
+  DB.charte.push({icon,title,text});
+  await saveConfig();renderCharteAdminList();renderCharte();
+  document.getElementById('charte-new-icon').value='';document.getElementById('charte-new-title').value='';document.getElementById('charte-new-text').value='';
+  showMsg('charte-msg','Article ajouté.',true);
+}
+async function deleteCharteItem(i){
+  if(!confirm('Supprimer cet article de la charte ?'))return;
+  if(!DB.charte)DB.charte=getDefaultCharte();
+  DB.charte.splice(i,1);await saveConfig();renderCharteAdminList();renderCharte();
+}
+function editCharteItem(i){
+  if(!DB.charte)DB.charte=getDefaultCharte();
+  const c=DB.charte[i];
+  const nIcon=prompt('Emoji :',c.icon);if(nIcon===null)return;
+  const nTitle=prompt('Titre :',c.title);if(nTitle===null)return;
+  const nText=prompt('Texte :',c.text);if(nText===null)return;
+  DB.charte[i]={icon:nIcon.trim()||c.icon,title:nTitle.trim()||c.title,text:nText.trim()||c.text};
+  saveConfig();renderCharteAdminList();renderCharte();
+}
 
 // ── MANUELS ────────────────────────────────────────────────
 function renderManuels(){
@@ -2543,9 +2591,16 @@ async function saveNote(){
 // ── UPCOMING EVENTS ────────────────────────────────────────
 function renderUpcomingEvents(){if(typeof checkEnCours==='function')checkEnCours();
   const container=document.getElementById('upcoming-events-container');if(!container)return;
-  const now=new Date();const nowStr=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-  // Résumé : seulement les événements à venir (≥ aujourd'hui)
-  const future=(DB.events||[]).filter(ev=>ev.date>=nowStr).sort((a,b)=>a.date.localeCompare(b.date)||(a.heureDebut||'').localeCompare(b.heureDebut||'')).slice(0,8);
+  const now=new Date();
+  const nowStr=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+  const nowTime=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  // Exclure passés + événements d'aujourd'hui dont l'heure de fin est dépassée
+  const future=(DB.events||[]).filter(ev=>{
+    if(ev.date>nowStr) return true;
+    if(ev.date<nowStr) return false;
+    if(ev.heureFin && nowTime>ev.heureFin) return false;
+    return true;
+  }).sort((a,b)=>a.date.localeCompare(b.date)||(a.heureDebut||'').localeCompare(b.heureDebut||'')).slice(0,8);
   if(!future.length){container.innerHTML='<div class="upcoming-empty">— Aucun événement planifié à venir —<br><span style="font-size:10px;margin-top:4px;display:block;">Utilisez le calendrier complet pour en ajouter</span></div>';return;}
   const monthsFr=['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
   container.innerHTML=`<div class="upcoming-list">${future.map(ev=>{
@@ -2574,7 +2629,7 @@ function renderUpcomingEvents(){if(typeof checkEnCours==='function')checkEnCours
       </div>
     </div>`;
   }).join('')}</div>
-  ${(DB.events||[]).filter(ev=>ev.date>=nowStr).length>8?`<div class="upcoming-show-more"><button class="btn btn-p btn-sm" onclick="openCalendrier()">Voir tous les événements →</button></div>`:''}`;
+  ${future.length>=8?`<div class="upcoming-show-more"><button class="btn btn-p btn-sm" onclick="openCalendrier()">Voir tous les événements →</button></div>`:''}`;
 }
 
 // ── EVENT LISTENERS ────────────────────────────────────────
@@ -2654,23 +2709,24 @@ function ensureExtendedDefaults(cfg){
   if(!cfg.effectifInfobox)cfg.effectifInfobox=getDefaultEffectifInfobox();
   if(!cfg.grades)cfg.grades=getDefaultGrades();
   if(!cfg.roleNames)cfg.roleNames={};
+  if(!cfg.charte)cfg.charte=getDefaultCharte();
   return cfg;
 }
 
 function getDefaultGrades(){return[
-  {label:'Directeur D.D.',hier:100,unit:'Direction'},
-  {label:'Directeur Adjoint',hier:100,unit:'Direction'},
-  {label:'Responsable D.D.',hier:90,unit:'Det. Division'},
-  {label:'Responsable S.C.U.',hier:90,unit:'S.C.U.'},
-  {label:'Inspecteur Principal',hier:80,unit:'Det. Division'},
-  {label:'Officier Principal',hier:80,unit:'S.C.U.'},
-  {label:'Inspecteur',hier:70,unit:'Det. Division'},
-  {label:'Inspectrice',hier:70,unit:'Det. Division'},
-  {label:'Chef de Brigade',hier:75,unit:'Det. Division'},
-  {label:'Enquêteur',hier:60,unit:'Det. Division'},
-  {label:'Enquêtrice',hier:60,unit:'Det. Division'},
-  {label:'Agent de P.B.',hier:55,unit:'S.C.U.'},
-  {label:'Recrue',hier:50,unit:'S.C.U.'},
+  {label:'Directeur D.D.',hier:100,unit:'Direction',color:'#b5821a'},
+  {label:'Directeur Adjoint',hier:100,unit:'Direction',color:'#b5821a'},
+  {label:'Responsable D.D.',hier:90,unit:'Det. Division',color:'#7a5610'},
+  {label:'Responsable S.C.U.',hier:90,unit:'S.C.U.',color:'#7a5610'},
+  {label:'Inspecteur Principal',hier:80,unit:'Det. Division',color:'#5a7a30'},
+  {label:'Officier Principal',hier:80,unit:'S.C.U.',color:'#5a7a30'},
+  {label:'Inspecteur',hier:70,unit:'Det. Division',color:'#4a7050'},
+  {label:'Inspectrice',hier:70,unit:'Det. Division',color:'#4a7050'},
+  {label:'Enquêteur',hier:60,unit:'Det. Division',color:'#3a5a70'},
+  {label:'Enquêtrice',hier:60,unit:'Det. Division',color:'#3a5a70'},
+  {label:'Agent de P.B.',hier:55,unit:'S.C.U.',color:'#4a4a7a'},
+  {label:'Recrue',hier:50,unit:'S.C.U.',color:'#6a6a6a'},
+  {label:'Bureau du Procureur',hier:30,unit:'',color:'#1a2a4a'},
 ];}
 
 // ══ MODULES ACCÈS RAPIDES ═══════════════════════════════════
@@ -3150,44 +3206,93 @@ function renderGradesAdmin(){
   const list=document.getElementById('grades-list-admin');
   const grades=DB.grades||getDefaultGrades();
   if(!grades.length){list.innerHTML='<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;color:var(--gray-light);padding:0.8rem 0;">— Aucun grade —</div>';return;}
-  list.innerHTML=`<table class="a-table"><thead><tr><th>Grade</th><th>Rang hier.</th><th>Unité</th><th></th></tr></thead><tbody>
+  list.innerHTML=`<table class="a-table"><thead><tr>
+    <th>Grade</th><th>Rang</th><th>Unité</th><th>Couleur barrette</th><th>Actions</th>
+  </tr></thead><tbody>
     ${grades.map((g,i)=>`<tr>
-      <td style="font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;">${g.label}</td>
-      <td style="font-family:'IBM Plex Mono',monospace;font-size:11px;">${g.hier}</td>
-      <td><span class="agent-unit" style="font-size:9px;">${g.unit||'Toutes'}</span></td>
-      <td><button onclick="deleteGrade(${i})" style="background:none;border:1px solid rgba(139,26,26,0.3);color:var(--red-stamp);font-family:'IBM Plex Mono',monospace;font-size:9px;padding:2px 7px;cursor:pointer;">🗑</button></td>
+      <td><input value="${(g.label||'').replace(/"/g,'&quot;')}" id="gr-lbl-${i}" style="background:var(--paper-mid);border:1px solid var(--divider);padding:3px 7px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;width:150px;color:var(--ink);"></td>
+      <td><input type="number" value="${g.hier||60}" id="gr-hier-${i}" min="0" max="100" style="background:var(--paper-mid);border:1px solid var(--divider);padding:3px 5px;font-family:'IBM Plex Mono',monospace;font-size:11px;width:52px;color:var(--ink);"></td>
+      <td><select id="gr-unit-${i}" style="background:var(--paper-mid);border:1px solid var(--divider);padding:3px 4px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink);">
+        <option value="Direction" ${g.unit==='Direction'?'selected':''}>Direction</option>
+        <option value="Det. Division" ${g.unit==='Det. Division'?'selected':''}>D.D.</option>
+        <option value="S.C.U." ${g.unit==='S.C.U.'?'selected':''}>S.C.U.</option>
+        <option value="" ${!g.unit?'selected':''}>Toutes</option>
+      </select></td>
+      <td style="text-align:center;">
+        <input type="color" value="${g.color||'#b5821a'}" id="gr-col-${i}" style="width:38px;height:28px;padding:1px;border:1px solid var(--divider);cursor:pointer;" title="Couleur de la barrette">
+      </td>
+      <td><div style="display:flex;gap:4px;">
+        <button onclick="saveGrade(${i})" style="background:var(--green-stamp);color:#fff;border:none;font-family:'IBM Plex Mono',monospace;font-size:9px;padding:3px 8px;cursor:pointer;border-radius:2px;">✓ Sauv.</button>
+        <button onclick="deleteGrade(${i})" style="background:none;border:1px solid rgba(139,26,26,0.3);color:var(--red-stamp);font-family:'IBM Plex Mono',monospace;font-size:9px;padding:3px 7px;cursor:pointer;border-radius:2px;">🗑</button>
+      </div></td>
     </tr>`).join('')}
   </tbody></table>`;
+  // Rafraîchir l'aperçu des couleurs dans l'onglet Couleur
+  renderGradeColorsPreview();
+}
+async function saveGrade(i){
+  if(!DB.grades)DB.grades=getDefaultGrades();
+  const g=DB.grades[i];
+  g.label=document.getElementById(`gr-lbl-${i}`).value.trim()||g.label;
+  g.hier=parseInt(document.getElementById(`gr-hier-${i}`).value)||g.hier;
+  g.unit=document.getElementById(`gr-unit-${i}`).value;
+  g.color=document.getElementById(`gr-col-${i}`).value;
+  await saveConfig();
+  renderGradesAdmin();refreshGradeSelect();applyGradeColors();
+  showMsg('grades-msg','Grade "'+g.label+'" mis à jour.',true);
 }
 async function addGrade(){
   const label=document.getElementById('ng-label').value.trim();
   const hier=parseInt(document.getElementById('ng-hier').value)||60;
   const unit=document.getElementById('ng-unit').value;
-  const msg=document.getElementById('grades-msg');
+  const color=document.getElementById('ng-color')?document.getElementById('ng-color').value:'#b5821a';
   if(!label){showMsg('grades-msg','Libellé obligatoire.',false);return;}
   if(!DB.grades)DB.grades=getDefaultGrades();
-  DB.grades.push({label,hier,unit});
+  DB.grades.push({label,hier,unit,color});
   await saveConfig();
   document.getElementById('ng-label').value='';document.getElementById('ng-hier').value='';
   showMsg('grades-msg','Grade ajouté : '+label,true);
-  renderGradesAdmin();
-  // Mettre à jour le sélecteur de grade hiérarchique
-  refreshGradeSelect();
+  renderGradesAdmin();refreshGradeSelect();applyGradeColors();
 }
 async function deleteGrade(i){
   if(!confirm('Supprimer ce grade ?'))return;
   if(!DB.grades)DB.grades=getDefaultGrades();
-  DB.grades.splice(i,1);await saveConfig();renderGradesAdmin();refreshGradeSelect();
+  DB.grades.splice(i,1);await saveConfig();renderGradesAdmin();refreshGradeSelect();applyGradeColors();
 }
 function refreshGradeSelect(){
   const grades=DB.grades||getDefaultGrades();
   ['ef-grade-hier','em-grade-hier'].forEach(selId=>{
     const sel=document.getElementById(selId);if(!sel)return;
-    // Rebuild si c'est un select (pour ef-grade-hier qui est un <select>)
     if(sel.tagName==='SELECT'){
       sel.innerHTML=grades.slice().sort((a,b)=>b.hier-a.hier).map(g=>`<option value="${g.hier}">${g.label}</option>`).join('');
     }
   });
+}
+// Appliquer les couleurs de grade sur les CSS vars + re-render
+function applyGradeColors(){
+  const grades=DB.grades||getDefaultGrades();
+  grades.forEach(g=>{
+    if(g.color&&g.label){
+      const safe=g.label.replace(/[^a-zA-Z0-9]/g,'-').toLowerCase();
+      document.documentElement.style.setProperty('--gc-'+safe,g.color);
+    }
+  });
+  renderEffectif();
+}
+// Trouver la couleur d'un membre selon son grade BI
+function getGradeColor(m){
+  const grades=DB.grades||getDefaultGrades();
+  const g=grades.find(gr=>gr.label===m.gradeBI);
+  return (g&&g.color)?g.color:null;
+}
+function renderGradeColorsPreview(){
+  const el=document.getElementById('grade-colors-preview');if(!el)return;
+  const grades=DB.grades||getDefaultGrades();
+  el.innerHTML=`<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:0.5rem;">${grades.map(g=>`
+    <div style="display:flex;align-items:center;gap:6px;padding:4px 10px 4px 6px;background:var(--paper-mid);border:1px solid var(--divider);border-left:4px solid ${g.color||'#b5821a'};">
+      <span style="font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;color:var(--ink);">${g.label}</span>
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--gray-light);">${g.unit||'Toutes'}</span>
+    </div>`).join('')}</div>`;
 }
 
 // ── NOMS DE RÔLES ADMIN ───────────────────────────────────
@@ -3199,34 +3304,31 @@ function loadRoleNamesForm(){
   });
 }
 async function saveRoleNames(){
-  if(!isDev()&&currentEmail!==ROOT){showMsg('rolenames-msg','Accès réservé à la Direction.',false);return;}
+  if(!isDirection()&&!isDev()){showMsg('rolenames-msg','Accès réservé à la Direction.',false);return;}
   const rn={};
   ['direction','responsable','agent','procureur'].forEach(r=>{
-    const v=document.getElementById('rn-'+r).value.trim();
-    if(v)rn[r]=v;
+    const v=document.getElementById('rn-'+r);
+    if(v&&v.value.trim())rn[r]=v.value.trim();
   });
   DB.roleNames=rn;await saveConfig();
-  // Mettre à jour le badge de rôle de l'utilisateur actuel
+  // Mettre à jour le badge nav ET les éléments affichant le rôle
   const rb=document.getElementById('nav-role-badge');
-  if(rb)rb.textContent=roleName(userRole);
-  showMsg('rolenames-msg','Noms de rôles mis à jour.',true);
+  if(rb){rb.textContent=roleName(userRole);}
+  // Forcer re-render si admin ouvert
+  if(document.getElementById('t-accounts').classList.contains('active'))renderAccounts();
+  showMsg('rolenames-msg','Noms de rôles mis à jour et appliqués ✓',true);
 }
 
 // ── COULEUR DIRECTION ─────────────────────────────────────
 async function saveDirColor(){
   const color=document.getElementById('dir-color-picker').value;
   document.documentElement.style.setProperty('--direction-color',color);
-  // Sauvegarder dans Firestore config
   if(!DB.settings)DB.settings={};
   DB.settings.directionColor=color;
-  // Sauvegarder dans main config
-  await fdb.collection('config').doc('main').update({'settings.directionColor':color});
-  showMsg('dircolor-msg','Couleur appliquée.',true);
-  // Rerendre l'aperçu
-  document.querySelector('#t-dircolor div[style*="border-left"]').style.borderLeftColor=color;
+  try{await fdb.collection('config').doc('main').update({'settings.directionColor':color});}catch(e){}
+  showMsg('dircolor-msg','Couleur Direction appliquée ✓',true);
   renderEffectif();
 }
-// Charger la couleur direction au démarrage
 async function loadDirColor(){
   try{
     const snap=await fdb.collection('config').doc('main').get();
@@ -3262,158 +3364,164 @@ function switchPdfTab(id,el){
   document.getElementById(id).classList.add('active');el.classList.add('active');
 }
 
+function parseDuration(str){
+  if(!str&&str!==0)return 0;
+  if(typeof str==='number')return Math.round(str*60);
+  var s=String(str).trim().toLowerCase();
+  var mh=s.match(/^(\d+)h(\d{0,2})$/);if(mh){return parseInt(mh[1])*60+(mh[2]?parseInt(mh[2]):0);}
+  var mc=s.match(/^(\d+):(\d{2})$/);if(mc)return parseInt(mc[1])*60+parseInt(mc[2]);
+  var mf=parseFloat(s);if(!isNaN(mf))return Math.round(mf*60);
+  return 0;
+}
+function fmtMin(min){var h=Math.floor(min/60),m=min%60;return h+'h'+String(m).padStart(2,'0');}
+function fmtDate(ds){return new Date(ds+'T12:00:00').toLocaleDateString('fr-FR');}
+function getWeekNum(d){var jan=new Date(d.getFullYear(),0,1);return Math.ceil(((d-jan)/86400000+jan.getDay()+1)/7);}
+
+function getPdfCfg(unit){
+  if(unit==='Det. Division')return{logo:'dd_logo.png',name:'DETECTIVE DIVISION',sub:'TRUTH IS OUR MISSION',hBg:'#b5821a',hTx:'#fff',acc:'#b5821a',accTx:'#1a1208',thBg:'#2c1a00',thTx:'#f0d080',rowEven:'#faf7f1'};
+  if(unit==='S.C.U.')return{logo:'scu_logo.png',name:'STREET CRIME UNIT',sub:'SILENT, SWIFT, STRONG',hBg:'#111',hTx:'#fff',acc:'#333',accTx:'#fff',thBg:'#111',thTx:'#fff',rowEven:'#f5f5f5'};
+  return{logo:'ciu_logo.png',name:'CRIMINAL INVESTIGATION UNION',sub:'DETECTIVE DIVISION & STREET CRIMES UNIT',hBg:'#b5821a',hTx:'#fff',acc:'#b5821a',accTx:'#1a1208',thBg:'#2c1a00',thTx:'#f0d080',rowEven:'#faf7f1'};
+}
+
+function openPdfWin(cfg,headHtml,bodyHtml,footHtml,chartJs){
+  var w=window.open('','_blank');if(!w)return;
+  var d=w.document;
+  var SC='<'+'script',EC='<'+'/'+'script>';
+  d.write('<!DOCTYPE html><html><head><meta charset="UTF-8">');
+  d.write('<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;600;700;900&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">');
+  d.write(SC+' src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js">'+EC);
+  d.write('<style>');
+  d.write('*{box-sizing:border-box;margin:0;padding:0;}body{font-family:"Barlow",sans-serif;background:#fff;color:#1a1208;font-size:13px;}');
+  d.write('.doc-header{background:'+cfg.hBg+';color:'+cfg.hTx+';display:flex;align-items:center;gap:18px;padding:14px 28px;}');
+  d.write('.doc-header img{width:50px;height:50px;object-fit:contain;}');
+  d.write('.unit{font-family:"Barlow Condensed",sans-serif;font-size:15px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;}');
+  d.write('.usub{font-family:"Barlow Condensed",sans-serif;font-size:10px;letter-spacing:.22em;text-transform:uppercase;opacity:.75;margin-top:2px;}');
+  d.write('.doc-title{text-align:center;padding:28px 40px 8px;}');
+  d.write('.doc-title h1{font-family:"Barlow Condensed",sans-serif;font-size:38px;font-weight:900;letter-spacing:.04em;text-transform:uppercase;line-height:1;}');
+  d.write('.doc-title .period{font-family:"Barlow Condensed",sans-serif;font-style:italic;font-size:17px;color:#888;margin-top:6px;}');
+  d.write('.doc-title .bar{width:180px;height:1.5px;background:'+cfg.acc+';margin:10px auto 0;}');
+  d.write('.stats{display:flex;margin:14px 40px;gap:10px;}');
+  d.write('.sbox{flex:1;padding:12px 16px;text-align:center;}');
+  d.write('.sbox.dark{background:'+cfg.acc+';color:'+cfg.accTx+';}');
+  d.write('.sbox.light{background:#f5f0e8;color:#1a1208;}');
+  d.write('.sbox .val{font-family:"Barlow Condensed",sans-serif;font-size:34px;font-weight:900;letter-spacing:.04em;line-height:1;}');
+  d.write('.sbox.light .val{color:'+cfg.acc+';}');
+  d.write('.sbox .lbl{font-family:"Barlow Condensed",sans-serif;font-size:9px;letter-spacing:.18em;text-transform:uppercase;opacity:.8;margin-top:3px;}');
+  d.write('.chart-area{padding:10px 40px 4px;}');
+  d.write('.table-wrap{padding:12px 40px 0;}');
+  d.write('table{width:100%;border-collapse:collapse;}');
+  d.write('.th-row th{background:'+cfg.thBg+';color:'+cfg.thTx+';font-family:"Barlow Condensed",sans-serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:8px 12px;text-align:left;font-weight:600;}');
+  d.write('td{padding:6px 12px;border-bottom:1px solid #ede8dc;vertical-align:middle;font-size:12px;}');
+  d.write('tbody tr:nth-child(even){background:'+cfg.rowEven+';}');
+  d.write('.agh{background:#f0ece4;border-left:4px solid '+cfg.acc+';}');
+  d.write('.agh td{font-family:"Barlow Condensed",sans-serif;font-size:14px;font-weight:700;padding:7px 12px;color:#1a1208;}');
+  d.write('.agh .tot{color:'+cfg.acc+';font-size:16px;}');
+  d.write('.agh .grd{font-family:"Barlow Condensed",sans-serif;font-size:10px;font-weight:400;color:#999;letter-spacing:.1em;text-transform:uppercase;}');
+  d.write('.nodata{text-align:center;font-size:11px;color:#bbb;padding:8px 12px;font-style:italic;}');
+  d.write('.dur{font-family:"Courier New",monospace;font-weight:700;color:'+cfg.acc+';text-align:center;}');
+  d.write('.dt{font-family:"Courier New",monospace;font-size:11px;color:#666;}');
+  d.write('.nt{font-size:11px;color:#888;}');
+  d.write('.mt{font-family:"Courier New",monospace;font-size:10px;color:#bbb;}');
+  d.write('.doc-footer{text-align:center;font-family:"Courier New",monospace;font-size:9px;color:#ccc;padding:12px 40px;margin-top:16px;border-top:1px solid #ede8dc;}');
+  d.write('@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}@page{margin:12mm 10mm;}}');
+  d.write('</style></head><body>');
+  d.write(headHtml+bodyHtml+footHtml);
+  d.write(SC+'>'+chartJs+'</'+' script>');
+  d.write('</body></html>');
+  d.close();
+}
 
 function openServicePdf(){
   document.getElementById('service-pdf-overlay').classList.add('open');
-  // Remplir les agents disponibles
-  const agents=Object.values(DB.users).map(u=>u.name).sort();
-  const sel=document.getElementById('pdf-agent-select');
-  if(sel){sel.innerHTML='<option value="">— Sélectionner —</option>'+agents.map(n=>`<option value="${n}">${n}</option>`).join('');}
-  // Dates par défaut
-  const today=new Date().toISOString().split('T')[0];
-  const monthAgo=new Date(Date.now()-30*24*3600*1000).toISOString().split('T')[0];
-  ['pdf-date-start','pdf2-date-start'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=monthAgo;});
-  ['pdf-date-end','pdf2-date-end'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=today;});
+  var agents=(DB.effectif||[]).filter(function(m){return !m.isVacant;}).sort(function(a,b){return a.nom.localeCompare(b.nom);});
+  var sel=document.getElementById('pdf-agent-select');
+  if(sel){
+    sel.innerHTML='<option value="">— Sélectionner un agent —</option>';
+    agents.forEach(function(m){var o=document.createElement('option');o.value=m.nom;o.textContent='#'+m.mat+' — '+m.nom+' ('+m.gradeBI+')';sel.appendChild(o);});
+  }
+  var today=new Date().toISOString().split('T')[0];
+  var monthAgo=new Date(Date.now()-30*24*3600*1000).toISOString().split('T')[0];
+  ['pdf-date-start','pdf2-date-start'].forEach(function(id){var el=document.getElementById(id);if(el)el.value=monthAgo;});
+  ['pdf-date-end','pdf2-date-end'].forEach(function(id){var el=document.getElementById(id);if(el)el.value=today;});
 }
 function closeServicePdf(){document.getElementById('service-pdf-overlay').classList.remove('open');}
 
 function generateServicePdf1(){
-  // Rapport unité sur période
-  const unit=document.getElementById('pdf-unit-select').value;
-  const dateStart=document.getElementById('pdf-date-start').value;
-  const dateEnd=document.getElementById('pdf-date-end').value;
-  if(!dateStart||!dateEnd){alert('Veuillez choisir les dates.');return;}
-
-  // Filtrer les agents selon l'unité
-  let agentNames;
-  if(unit==='all'){
-    agentNames=new Set((DB.effectif||[]).filter(m=>m.unit==='Det. Division'||m.unit==='S.C.U.').map(m=>m.nom));
-  } else {
-    agentNames=new Set((DB.effectif||[]).filter(m=>m.unit===unit).map(m=>m.nom));
-  }
-
-  // Filtrer les services dans la période
-  const entries=(DB.service||[]).filter(s=>{
-    if(!agentNames.has(s.agentName))return false;
-    if(!s.date)return false;
-    return s.date>=dateStart&&s.date<=dateEnd;
+  var unit=document.getElementById('pdf-unit-select').value;
+  var dateStart=document.getElementById('pdf-date-start').value;
+  var dateEnd=document.getElementById('pdf-date-end').value;
+  if(!dateStart||!dateEnd){alert('Choisissez les dates.');return;}
+  var cfg=getPdfCfg(unit);
+  var periodStr=fmtDate(dateStart)+' \u2014 '+fmtDate(dateEnd);
+  var effectif=(DB.effectif||[]).filter(function(m){
+    if(m.isVacant)return false;
+    if(unit==='all')return true;
+    return m.unit===unit;
+  }).sort(function(a,b){return a.nom.localeCompare(b.nom);});
+  var byAgent={};
+  effectif.forEach(function(m){byAgent[m.nom]={ef:m,entries:[],totalMin:0};});
+  (DB.service||[]).forEach(function(s){
+    if(!s.date||s.date<dateStart||s.date>dateEnd)return;
+    if(byAgent[s.agentName]){byAgent[s.agentName].entries.push(s);byAgent[s.agentName].totalMin+=parseDuration(s.duree||'0');}
   });
-
-  // Grouper par agent
-  const byAgent={};
-  entries.forEach(s=>{
-    if(!byAgent[s.agentName])byAgent[s.agentName]={name:s.agentName,entries:[],totalMin:0};
-    const min=parseDuration(s.duree||'0h00');
-    byAgent[s.agentName].entries.push(s);
-    byAgent[s.agentName].totalMin+=min;
+  var agents=Object.values(byAgent).sort(function(a,b){return b.totalMin-a.totalMin;});
+  var grandTotal=agents.reduce(function(s,a){return s+a.totalMin;},0);
+  var actifs=agents.filter(function(a){return a.totalMin>0;});
+  var statsHtml='<div class="stats">';
+  statsHtml+='<div class="sbox dark"><div class="val">'+fmtMin(grandTotal)+'</div><div class="lbl">Temps total</div></div>';
+  statsHtml+='<div class="sbox light"><div class="val">'+agents.length+'</div><div class="lbl">Agents</div></div>';
+  statsHtml+='<div class="sbox light"><div class="val">'+actifs.length+'</div><div class="lbl">Actifs</div></div>';
+  statsHtml+='<div class="sbox light"><div class="val">'+(actifs.length>0?fmtMin(Math.round(grandTotal/actifs.length)):'—')+'</div><div class="lbl">Moy./agent</div></div>';
+  statsHtml+='</div>';
+  var chartAgents=actifs.slice(0,15);
+  var cL=JSON.stringify(chartAgents.map(function(a){return a.ef.nom.split(' ')[0];}));
+  var cD=JSON.stringify(chartAgents.map(function(a){return +(a.totalMin/60).toFixed(2);}));
+  var tableRows='';
+  agents.forEach(function(ag){
+    tableRows+='<tr class="agh"><td colspan="4"><span style="color:#aaa;margin-right:8px;">#'+ag.ef.mat+'</span><strong>'+ag.ef.nom+'</strong> <span class="grd">'+ag.ef.gradeBI+'</span>&ensp;&mdash;&ensp;<span class="tot">'+fmtMin(ag.totalMin)+'</span>'+(ag.totalMin===0?' <span style="font-size:10px;color:#ccc;font-weight:400;">(aucun service)</span>':'')+'</td></tr>';
+    ag.entries.sort(function(a,b){return a.date.localeCompare(b.date);}).forEach(function(e){
+      tableRows+='<tr><td class="mt">#'+ag.ef.mat+'</td><td class="dt">'+fmtDate(e.date)+'</td><td class="dur">'+(e.duree||'—')+'</td><td class="nt">'+(e.note||'—')+'</td></tr>';
+    });
   });
-
-  printPdf1(byAgent, dateStart, dateEnd, unit);
+  var headHtml='<div class="doc-header"><img src="'+cfg.logo+'" onerror="this.style.display=\'none\'"><div><div class="unit">'+cfg.name+'</div><div class="usub">'+cfg.sub+'</div></div></div>';
+  headHtml+='<div class="doc-title"><h1>Registre des Patrouilles</h1><div class="period">'+periodStr+'</div><div class="bar"></div></div>';
+  headHtml+=statsHtml+'<div class="chart-area"><canvas id="c1" height="75"></canvas></div>';
+  var bodyHtml='<div class="table-wrap"><table><thead class="th-row"><tr><th>Mat.</th><th>Date</th><th>Dur\u00e9e</th><th>Note</th></tr></thead><tbody>'+tableRows+'</tbody></table></div>';
+  var footHtml='<div class="doc-footer">&copy; L.S.P.D. &mdash; Criminal Investigation Union &mdash; Document confidentiel &mdash; '+new Date().toLocaleDateString('fr-FR')+'</div>';
+  var chartJs='var el=document.getElementById(\'c1\');if(el&&'+JSON.stringify(chartAgents.length)+'>0){var ctx=el.getContext(\'2d\');new Chart(ctx,{type:\'bar\',data:{labels:'+cL+',datasets:[{data:'+cD+',backgroundColor:\''+cfg.acc+'\',borderRadius:3}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:function(v){return v+\'h\';}}},x:{ticks:{font:{size:10},maxRotation:30}}}}})}setTimeout(function(){window.print();},1100);';
+  openPdfWin(cfg,headHtml,bodyHtml,footHtml,chartJs);
 }
 
 function generateServicePdf2(){
-  const agentName=document.getElementById('pdf-agent-select').value;
-  const dateStart=document.getElementById('pdf2-date-start').value;
-  const dateEnd=document.getElementById('pdf2-date-end').value;
-  if(!agentName){alert('Veuillez sélectionner un agent.');return;}
-  if(!dateStart||!dateEnd){alert('Veuillez choisir les dates.');return;}
-
-  const entries=(DB.service||[]).filter(s=>{
-    if(s.agentName!==agentName)return false;
-    if(!s.date)return false;
-    return s.date>=dateStart&&s.date<=dateEnd;
-  }).sort((a,b)=>a.date.localeCompare(b.date));
-
-  let totalMin=0;
-  entries.forEach(s=>{totalMin+=parseDuration(s.duree||'0h00');});
-
-  printPdf2(agentName, entries, totalMin, dateStart, dateEnd);
+  var agentName=document.getElementById('pdf-agent-select').value;
+  var dateStart=document.getElementById('pdf2-date-start').value;
+  var dateEnd=document.getElementById('pdf2-date-end').value;
+  if(!agentName){alert('Sélectionnez un agent.');return;}
+  if(!dateStart||!dateEnd){alert('Choisissez les dates.');return;}
+  var agEf=(DB.effectif||[]).find(function(m){return m.nom===agentName;})||{mat:'—',gradeBI:'—',unit:'—'};
+  var unit=agEf.unit==='Det. Division'?'Det. Division':agEf.unit==='S.C.U.'?'S.C.U.':'all';
+  var cfg=getPdfCfg(unit);
+  var periodStr=fmtDate(dateStart)+' \u2014 '+fmtDate(dateEnd);
+  var entries=(DB.service||[]).filter(function(s){return s.agentName===agentName&&s.date&&s.date>=dateStart&&s.date<=dateEnd;}).sort(function(a,b){return a.date.localeCompare(b.date);});
+  var totalMin=entries.reduce(function(s,e){return s+parseDuration(e.duree||'0');},0);
+  var weekMap={};
+  entries.forEach(function(e){var wk='S'+getWeekNum(new Date(e.date+'T12:00:00'));if(!weekMap[wk])weekMap[wk]=0;weekMap[wk]+=parseDuration(e.duree||'0')/60;});
+  var wL=JSON.stringify(Object.keys(weekMap));
+  var wD=JSON.stringify(Object.values(weekMap).map(function(v){return +v.toFixed(2);}));
+  var rows='';
+  entries.forEach(function(e,i){rows+='<tr><td style="text-align:center;color:#bbb;font-size:10px;">'+(i+1)+'</td><td class="dt">'+fmtDate(e.date)+'</td><td class="dur">'+(e.duree||'—')+'</td><td class="nt">'+(e.note||'—')+'</td><td style="font-size:10px;color:#bbb;">'+(e.addedBy||'—')+'</td></tr>';});
+  if(!rows)rows='<tr><td colspan="5" class="nodata">Aucune session enregistrée sur cette période</td></tr>';
+  var statsHtml='<div class="stats"><div class="sbox dark"><div class="val">'+fmtMin(totalMin)+'</div><div class="lbl">Temps total</div></div><div class="sbox light"><div class="val">'+entries.length+'</div><div class="lbl">Sessions</div></div><div class="sbox light"><div class="val">'+(entries.length>0?fmtMin(Math.round(totalMin/entries.length)):'—')+'</div><div class="lbl">Moy./session</div></div></div>';
+  var headHtml='<div class="doc-header"><img src="'+cfg.logo+'" onerror="this.style.display=\'none\'"><div><div class="unit">'+cfg.name+'</div><div class="usub">'+cfg.sub+'</div></div></div>';
+  headHtml+='<div class="doc-title"><h1>Registre de Patrouille</h1><div class="period">#'+agEf.mat+' '+agentName+' &mdash; '+periodStr+'</div><div class="bar"></div></div>';
+  headHtml+=statsHtml+'<div class="chart-area"><canvas id="c2" height="75"></canvas></div>';
+  var bodyHtml='<div class="table-wrap"><table><thead class="th-row"><tr><th>#</th><th>Date</th><th>Dur\u00e9e</th><th>Note</th><th>Enregistr\u00e9 par</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+  var footHtml='<div class="doc-footer">&copy; L.S.P.D. &mdash; Criminal Investigation Union &mdash; Document confidentiel &mdash; '+new Date().toLocaleDateString('fr-FR')+'</div>';
+  var wKeys=Object.keys(weekMap).length;
+  var chartJs='var el=document.getElementById(\'c2\');if(el&&'+wKeys+'>0){new Chart(el.getContext(\'2d\'),{type:\'bar\',data:{labels:'+wL+',datasets:[{data:'+wD+',backgroundColor:\''+cfg.acc+'\',borderRadius:3}]},options:{responsive:true,plugins:{legend:{display:false}},scores:{y:{beginAtZero:true,ticks:{callback:function(v){return v+\'h\';}}},x:{ticks:{font:{size:11}}}}}})}setTimeout(function(){window.print();},1100);';
+  openPdfWin(cfg,headHtml,bodyHtml,footHtml,chartJs);
 }
 
-function parseDuration(str){
-  // Gère les formats : décimal (ex: 2.5), heure:min (ex: 2h31), ou minutes seules
-  if(!str&&str!==0)return 0;
-  if(typeof str==='number')return Math.round(str*60);
-  const s=String(str).trim().toLowerCase();
-  const mh=s.match(/^(\d+)h(\d{0,2})$/);if(mh){const h=parseInt(mh[1]);const m=mh[2]?parseInt(mh[2]):0;return h*60+m;}
-  const mc=s.match(/^(\d+):(\d{2})$/);if(mc)return parseInt(mc[1])*60+parseInt(mc[2]);
-  const mf=parseFloat(s);if(!isNaN(mf))return Math.round(mf*60);
-  return 0;
-}
-function fmtMin(min){const h=Math.floor(min/60),m=min%60;return `${h}h${String(m).padStart(2,'0')}`;}
-
-function printPdf1(byAgent, dateStart, dateEnd, unit){
-  const unitLabel=unit==='all'?'D.D. & S.C.U.':unit;
-  const now=new Date().toLocaleDateString('fr-FR');
-  let rows='';
-  Object.values(byAgent).sort((a,b)=>b.totalMin-a.totalMin).forEach(ag=>{
-    rows+=`<tr class="agent-row"><td colspan="3" style="background:#f5f2ea;font-weight:700;font-family:'Barlow Condensed',sans-serif;font-size:14px;letter-spacing:0.04em;padding:6px 10px;">${ag.name} — Total : ${fmtMin(ag.totalMin)}</td></tr>`;
-    ag.entries.sort((a,b)=>a.date.localeCompare(b.date)).forEach(e=>{
-      rows+=`<tr><td style="font-family:'IBM Plex Mono',monospace;font-size:10px;padding:4px 10px;">${new Date(e.date+'T12:00:00').toLocaleDateString('fr-FR')}</td><td style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;text-align:center;">${e.duree||'—'}</td><td style="font-size:11px;color:#666;">${e.note||'—'}</td></tr>`;
-    });
-  });
-  const html=`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Registre Patrouille — ${unitLabel}</title>
-  <style>
-    body{font-family:Arial,sans-serif;background:#fff;color:#111;margin:0;padding:0;}
-    .header{background:#1a1208;color:#f0d080;padding:1.5rem 2rem;border-bottom:4px solid #b5821a;}
-    .header h1{font-size:22px;margin:0 0 4px;font-family:Georgia,serif;}
-    .header p{font-size:11px;margin:0;opacity:0.7;letter-spacing:0.1em;text-transform:uppercase;}
-    .meta{padding:0.8rem 2rem;background:#f9f6ef;border-bottom:1px solid #e0d8c0;font-size:11px;font-family:'Courier New',monospace;}
-    table{width:100%;border-collapse:collapse;}
-    th{background:#2c2100;color:#f0d080;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:8px 10px;text-align:left;}
-    tr:nth-child(even):not(.agent-row){background:#faf7f1;}
-    tr:hover:not(.agent-row){background:#fff8e0;}
-    td{padding:5px 10px;border-bottom:1px solid #eee8dc;}
-    .footer{margin-top:2rem;padding:0.8rem 2rem;font-size:9px;color:#aaa;border-top:1px solid #eee;text-align:center;}
-    @media print{body{-webkit-print-color-adjust:exact;}}
-  </style></head><body>
-  <div class="header">
-    <h1>Registre des Temps de Patrouille — C.I.U.</h1>
-    <p>Unité : ${unitLabel} &nbsp;|&nbsp; Période : ${new Date(dateStart+'T12:00:00').toLocaleDateString('fr-FR')} → ${new Date(dateEnd+'T12:00:00').toLocaleDateString('fr-FR')}</p>
-  </div>
-  <div class="meta">Document généré le ${now} &nbsp;|&nbsp; Criminal Investigation Union — L.S.P.D. &nbsp;|&nbsp; Document confidentiel — usage interne</div>
-  <table><thead><tr><th>Date</th><th style="text-align:center;">Durée</th><th>Note</th></tr></thead><tbody>${rows}</tbody></table>
-  <div class="footer">© L.S.P.D. — Criminal Investigation Union — Document interne — Ne pas divulguer</div>
-  '+'<scr'+'ipt>window.print();<\/scr'+'ipt>'+'</body></html>`;
-  const w=window.open('','_blank');if(w){w.document.write(html);w.document.close();}
-}
-
-function printPdf2(agentName, entries, totalMin, dateStart, dateEnd){
-  const now=new Date().toLocaleDateString('fr-FR');
-  const rows=entries.map(e=>`<tr>
-    <td style="font-family:'IBM Plex Mono',monospace;font-size:10px;">${new Date(e.date+'T12:00:00').toLocaleDateString('fr-FR')}</td>
-    <td style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:700;text-align:center;">${e.duree||'—'}</td>
-    <td style="font-size:11px;color:#555;">${e.note||'—'}</td>
-  </tr>`).join('');
-  const html=`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Registre Patrouille — ${agentName}</title>
-  <style>
-    body{font-family:Arial,sans-serif;background:#fff;color:#111;margin:0;padding:0;}
-    .header{background:#1a1208;color:#f0d080;padding:1.5rem 2rem;border-bottom:4px solid #b5821a;}
-    .header h1{font-size:22px;margin:0 0 4px;font-family:Georgia,serif;}
-    .header p{font-size:11px;margin:0;opacity:0.7;letter-spacing:0.1em;text-transform:uppercase;}
-    .meta{padding:0.8rem 2rem;background:#f9f6ef;border-bottom:1px solid #e0d8c0;font-size:11px;font-family:'Courier New',monospace;}
-    .total-box{margin:1.5rem 2rem;padding:1rem;border:2px solid #b5821a;background:#fffbf0;display:inline-block;}
-    .total-val{font-size:28px;font-weight:700;color:#7a5610;font-family:Georgia,serif;}
-    .total-lbl{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.1em;}
-    table{width:100%;border-collapse:collapse;}
-    th{background:#2c2100;color:#f0d080;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:8px 10px;text-align:left;}
-    tr:nth-child(even){background:#faf7f1;}
-    tr:hover{background:#fff8e0;}
-    td{padding:5px 10px;border-bottom:1px solid #eee8dc;}
-    .footer{margin-top:2rem;padding:0.8rem 2rem;font-size:9px;color:#aaa;border-top:1px solid #eee;text-align:center;}
-    @media print{body{-webkit-print-color-adjust:exact;}}
-  </style></head><body>
-  <div class="header">
-    <h1>Registre de Patrouille — ${agentName}</h1>
-    <p>Période : ${new Date(dateStart+'T12:00:00').toLocaleDateString('fr-FR')} → ${new Date(dateEnd+'T12:00:00').toLocaleDateString('fr-FR')}</p>
-  </div>
-  <div class="meta">Document généré le ${now} &nbsp;|&nbsp; Criminal Investigation Union — L.S.P.D. &nbsp;|&nbsp; Document confidentiel</div>
-  <div class="total-box"><div class="total-val">${fmtMin(totalMin)}</div><div class="total-lbl">Temps total de patrouille · ${entries.length} session(s)</div></div>
-  <table><thead><tr><th>Date</th><th style="text-align:center;">Durée</th><th>Note</th></tr></thead><tbody>${rows}</tbody></table>
-  <div class="footer">© L.S.P.D. — Criminal Investigation Union — Document interne — Ne pas divulguer</div>
-  '+'<scr'+'ipt>window.print();<\/scr'+'ipt>'+'</body></html>`;
-  const w=window.open('','_blank');if(w){w.document.write(html);w.document.close();}
-}
 
 
 
@@ -3658,6 +3766,27 @@ function printPdf2(agentName, entries, totalMin, dateStart, dateEnd){
         </div>
         <button class="btn btn-p" onclick="generateServicePdf2()">📄 Générer et imprimer le PDF</button>
       </div>
+    </div>
+  </div>
+</div>
+<!-- ══════ MODAL: ÉDITEUR CHARTE § 05 ══════ -->
+<div class="overlay" id="charte-editor-overlay">
+  <div class="modal" style="max-width:700px;">
+    <div class="mh" style="border-bottom-color:var(--amber-light);">
+      <span class="mh-title">✏ Éditeur — § 05 Charte C.I.U.</span>
+      <button class="mh-close" onclick="closeCharteEditor()">✕ Fermer</button>
+    </div>
+    <div class="mb">
+      <div class="msec">Articles actuels</div>
+      <div id="charte-items-admin"></div>
+      <div class="msec" style="margin-top:1.2rem;">Ajouter un article</div>
+      <div class="frow">
+        <div class="ff" style="max-width:70px;"><label class="fl">Emoji</label><input class="fi" id="charte-new-icon" placeholder="⚖" style="text-align:center;font-size:18px;"></div>
+        <div class="ff"><label class="fl">Titre</label><input class="fi" id="charte-new-title" placeholder="Ex: Intégrité & Impartialité"></div>
+      </div>
+      <div class="ff" style="margin-bottom:1rem;"><label class="fl">Texte</label><textarea class="fi" id="charte-new-text" placeholder="Description de l'article..." style="min-height:60px;resize:vertical;font-family:'Barlow',sans-serif;font-size:13px;"></textarea></div>
+      <button class="btn btn-p" onclick="addCharteItem()">+ Ajouter l'article</button>
+      <div id="charte-msg" style="margin-top:0.5rem;"></div>
     </div>
   </div>
 </div>
