@@ -13,6 +13,7 @@
   --amber:#b5821a;--amber-light:#d4a832;--amber-dim:#7a5610;
   --red-stamp:#8b1a1a;--green-stamp:#1a4a1a;--blue-ink:#1a2a4a;
   --gray-ink:#4a4540;--gray-light:#8a837a;--divider:rgba(90,75,50,0.25);
+  --direction-color:#b5821a;
   /* Couleurs événements calendrier */
   --ev-interro:#1e40af; --ev-perqui:#166534; --ev-psy:#6b21a8; --ev-ag:#991b1b; --ev-autre:#57534e;
 }
@@ -61,6 +62,7 @@ nav{background:var(--ink);padding:0 2rem;display:flex;align-items:center;justify
 .role-direction{background:rgba(181,130,26,0.2);color:var(--amber-light);border:1px solid rgba(181,130,26,0.4);}
 .role-responsable{background:rgba(26,74,26,0.2);color:#6ab36a;border:1px solid rgba(26,100,26,0.4);}
 .role-agent{background:rgba(100,100,100,0.2);color:var(--gray-light);border:1px solid rgba(100,100,100,0.3);}
+.role-procureur{background:rgba(26,42,74,0.2);color:#7090d0;border:1px solid rgba(26,42,74,0.4);}
 .stimer{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.06em;color:rgba(181,130,26,0.65);display:none;white-space:nowrap;}
 .nbtn{background:none;border:1px solid rgba(255,255,255,0.15);color:rgba(242,234,216,0.6);font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:5px 9px;cursor:pointer;transition:all 0.2s;white-space:nowrap;}
 .nbtn:hover{background:rgba(255,255,255,0.08);color:var(--amber-light);}
@@ -147,6 +149,9 @@ section{padding:4rem 3rem;max-width:1200px;margin:0 auto;}
 .agent-card{background:var(--paper-mid);border:1px solid var(--divider);border-left:4px solid var(--amber-dim);padding:1rem 1.3rem;display:grid;grid-template-columns:auto 1fr auto;gap:1rem;align-items:center;transition:all 0.2s;position:relative;}
 .agent-card:hover{border-left-color:var(--amber);background:var(--paper-dark);}
 .agent-card.chef{border-left-color:var(--amber);background:rgba(181,130,26,0.06);}
+.agent-card.chef-direction{border-left-color:var(--direction-color);background:rgba(181,130,26,0.08);}
+.agent-card.chef-direction .agent-gbi{color:var(--direction-color);}
+.agent-card.chef-direction .agent-unit{color:var(--direction-color);border-color:rgba(181,130,26,0.35);background:rgba(181,130,26,0.12);}
 .agent-card.vacant{border-left-color:var(--red-stamp)!important;background:rgba(139,26,26,0.05)!important;}
 .agent-mat{font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:300;color:var(--amber-dim);width:38px;text-align:center;line-height:1;}
 .agent-card.vacant .agent-mat{color:var(--red-stamp);}
@@ -963,7 +968,12 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
 <!-- ══════ MODAL: TEMPS DE SERVICE ══════ -->
 <div class="overlay" id="service-overlay">
   <div class="modal" style="max-width:900px;">
-    <div class="mh"><span class="mh-title">📊 Temps de Service — C.I.U.</span><button class="mh-close" onclick="closeService()">✕ Fermer</button></div>
+    <div class="mh"><span class="mh-title">📊 Temps de Service — C.I.U.</span>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button onclick="openServicePdf()" style="background:rgba(181,130,26,0.2);border:1px solid var(--amber-dim);color:var(--amber-light);font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:4px 10px;cursor:pointer;">📄 Rapport PDF</button>
+        <button class="mh-close" onclick="closeService()">✕ Fermer</button>
+      </div>
+    </div>
     <div class="mb">
       <div class="admin-tabs">
         <button class="atab active" onclick="switchSvcTab('tab-svc-add',this)">Enregistrer</button>
@@ -1038,6 +1048,9 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
         <button class="atab active" onclick="switchAdminTab('t-online',this)">Connexions</button>
         <button class="atab" onclick="switchAdminTab('t-accounts',this)">Comptes</button>
         <button class="atab" onclick="switchAdminTab('t-effectif',this)">Registre</button>
+        <button class="atab" onclick="switchAdminTab('t-grades',this)">Grades</button>
+        <button class="atab" onclick="switchAdminTab('t-rolenames',this)">Noms Rôles</button>
+        <button class="atab" onclick="switchAdminTab('t-dircolor',this)">Couleur Direction</button>
       </div>
       <div class="atab-content active" id="t-online">
         <div class="msec">Agents connectés</div>
@@ -1056,6 +1069,7 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
               <option value="agent">Agent</option>
               <option value="responsable">Responsable</option>
               <option value="direction">Direction</option>
+              <option value="procureur">Bureau du Procureur</option>
             </select>
           </div>
         </div>
@@ -1096,6 +1110,61 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
         <div id="ef-msg" style="margin-top:0.5rem;"></div>
         <div class="msec" style="margin-top:1.5rem;">Membres actuels</div>
         <div id="admin-ef-list"></div>
+      </div>
+
+      <!-- TAB: GRADES -->
+      <div class="atab-content" id="t-grades">
+        <div class="msec">Grades du registre (hiérarchie)</div>
+        <div id="grades-list-admin"></div>
+        <div class="msec" style="margin-top:1rem;">Ajouter un grade</div>
+        <div class="frow">
+          <div class="ff"><label class="fl">Libellé du grade</label><input class="fi" id="ng-label" placeholder="Ex: Commissaire"></div>
+          <div class="ff"><label class="fl">Valeur hiérarchique (0-100)</label><input class="fi" id="ng-hier" type="number" min="0" max="100" placeholder="Ex: 85"></div>
+          <div class="ff"><label class="fl">Unité</label>
+            <select class="fs" id="ng-unit">
+              <option value="Direction">Direction</option>
+              <option value="Det. Division">Det. Division (D.D.)</option>
+              <option value="S.C.U.">Street Crimes Unit (S.C.U.)</option>
+              <option value="">Toutes</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-p" onclick="addGrade()">+ Ajouter le grade</button>
+        <div id="grades-msg" style="margin-top:0.5rem;"></div>
+      </div>
+
+      <!-- TAB: NOMS DES RÔLES -->
+      <div class="atab-content" id="t-rolenames">
+        <div class="msec">Nommer les rôles du portail</div>
+        <p style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--gray-light);margin-bottom:1rem;">Seuls Direction et le développeur peuvent modifier les noms de rôle.</p>
+        <div class="frow">
+          <div class="ff"><label class="fl">Nom affiché pour "Direction"</label><input class="fi" id="rn-direction" placeholder="Direction"></div>
+          <div class="ff"><label class="fl">Nom affiché pour "Responsable"</label><input class="fi" id="rn-responsable" placeholder="Responsable"></div>
+        </div>
+        <div class="frow">
+          <div class="ff"><label class="fl">Nom affiché pour "Agent"</label><input class="fi" id="rn-agent" placeholder="Agent"></div>
+          <div class="ff"><label class="fl">Nom affiché pour "Bureau du Procureur"</label><input class="fi" id="rn-procureur" placeholder="Bureau du Procureur"></div>
+        </div>
+        <button class="btn btn-p" onclick="saveRoleNames()">💾 Sauvegarder les noms</button>
+        <div id="rolenames-msg" style="margin-top:0.5rem;"></div>
+      </div>
+
+      <!-- TAB: COULEUR DIRECTION -->
+      <div class="atab-content" id="t-dircolor">
+        <div class="msec">Couleur de la barrette Direction</div>
+        <p style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--gray-light);margin-bottom:1rem;">Choisissez la couleur de la bordure latérale des cartes de la Direction dans le registre du personnel.</p>
+        <div class="frow">
+          <div class="ff"><label class="fl">Couleur Direction</label>
+            <input type="color" id="dir-color-picker" value="#b5821a" style="width:80px;height:40px;padding:2px;border:1px solid var(--divider);background:var(--paper-mid);cursor:pointer;">
+          </div>
+          <div class="ff" style="align-self:flex-end;">
+            <button class="btn btn-p" onclick="saveDirColor()">💾 Appliquer</button>
+          </div>
+        </div>
+        <div id="dircolor-msg" style="margin-top:0.5rem;"></div>
+        <div style="margin-top:1rem;padding:0.5rem 1rem;border-left:4px solid var(--direction-color);background:rgba(181,130,26,0.06);font-family:'IBM Plex Mono',monospace;font-size:11px;">
+          Aperçu de la couleur actuelle
+        </div>
       </div>
     </div>
   </div>
@@ -1219,19 +1288,60 @@ const COL = {
 };
 
 // ── Session (localStorage uniquement) ─────────────────────
-const SSK='ciu_sess_v1', SESS_MS=15*60*1000, ROOT='jamesjones.lspd@gmail.com', DEF_PW='lspd-dd-2026';
+const SSK='ciu_sess_v2', SESS_MS=15*60*1000;
+const ROOT='jamesjones.lspd@gmail.com';
+const DEV_EMAIL='john.anderson.ctg@gmail.com'; // Douglas Walker — développeur
+const PROTECTED_EMAILS=[ROOT, DEV_EMAIL];
+const DEF_PW='lspd-dd-2026';
 const loadSess=()=>{try{const r=localStorage.getItem(SSK);if(!r)return null;const s=JSON.parse(r);return Date.now()-s.ts<SESS_MS?s:null;}catch{return null;}};
 const saveSess=e=>localStorage.setItem(SSK,JSON.stringify({email:e,ts:Date.now()}));
 const clearSess=()=>localStorage.removeItem(SSK);
 
+// ── Sécurité : hachage SHA-256 ─────────────────────────────
+async function sha256(str){
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+// Vérification mot de passe : supporte pw en clair (migration) et haché
+async function verifyPw(input,stored){
+  if(!stored||!input)return false;
+  if(stored.length===64&&/^[0-9a-f]+$/.test(stored)){
+    return(await sha256(input))===stored;
+  }
+  // Mot de passe en clair (ancien) → accepter et migrer
+  return input===stored;
+}
+async function hashPw(pw){return sha256(pw);}
+
 // ── DB en mémoire (mis à jour par les listeners) ───────────
-let DB = { users:{}, effectif:[], online:{}, manuels:[], penalCode:[], warrants:[], bracelets:[], events:[], service:[] };
+let DB = { users:{}, effectif:[], online:{}, manuels:[], penalCode:[], warrants:[], bracelets:[], events:[], service:[], grades:[] };
 let currentEmail=null, currentUser=null, userRole='agent';
 let dbReady = false;
 
+// Rôles disponibles
+const BUILTIN_ROLES=['direction','responsable','agent','procureur'];
 const isDirection=()=>userRole==='direction';
 const isResp=()=>userRole==='direction'||userRole==='responsable';
-const roleName=r=>r==='direction'?'Direction':r==='responsable'?'Responsable':'Agent';
+const isDev=()=>currentEmail===DEV_EMAIL||currentEmail===ROOT;
+const isProtected=(e)=>PROTECTED_EMAILS.includes(e);
+// Peut modifier le registre directement (Direction + Développeur)
+const canEditEffectif=()=>isDirection()||isDev();
+
+function roleName(r){
+  if(!DB.roleNames)return _defaultRoleName(r);
+  return DB.roleNames[r]||_defaultRoleName(r);
+}
+function _defaultRoleName(r){
+  return r==='direction'?'Direction':r==='responsable'?'Responsable':r==='procureur'?'Bureau du Procureur':'Agent';
+}
+const isProcureur=()=>userRole==='procureur';
+// Le procureur peut voir tout sauf : Notes, Services, Admin
+function canAccessModule(m){
+  if(!isProcureur())return true;
+  const blocked=['openNotes()','openService()'];
+  if(blocked.includes((m.action||'').trim()))return false;
+  return true;
+}
 
 // ── Helpers Firestore ──────────────────────────────────────
 async function fsSet(col, id, data){ await COL[col].doc(id).set(data); }
@@ -1252,7 +1362,9 @@ async function saveConfig(){
     missions: DB.missions||[],
     calCategories: DB.calCategories||[],
     fpConfig: DB.fpConfig||null,
-    effectifInfobox: DB.effectifInfobox||''
+    effectifInfobox: DB.effectifInfobox||'',
+    grades: DB.grades||[],
+    roleNames: DB.roleNames||{}
   });
 }
 
@@ -1378,6 +1490,8 @@ function startListeners(){
       DB.calCategories  = d.calCategories||null;
       DB.fpConfig       = d.fpConfig||null;
       DB.effectifInfobox= d.effectifInfobox||'';
+      DB.grades         = d.grades||null;
+      DB.roleNames      = d.roleNames||{};
       ensureExtendedDefaults(DB);
       if(dbReady){
         renderEffectif();
@@ -1471,12 +1585,11 @@ async function initApp(){
       DB.calCategories  = d.calCategories||null;
       DB.fpConfig       = d.fpConfig||null;
       DB.effectifInfobox= d.effectifInfobox||'';
+      DB.grades         = d.grades||null;
+      DB.roleNames      = d.roleNames||{};
       ensureExtendedDefaults(DB);
     }
     // Load collections snapshot for initial state
-    const [wSnap,bSnap,eSnap,sSnap] = await Promise.all([
-      COL.warrants.get(), COL.bracelets.get(), COL.events.get(), COL.service.get()
-    ]);
     DB.warrants  = wSnap.docs.map(d=>({_id:d.id,...d.data()}));
     DB.bracelets = bSnap.docs.map(d=>({_id:d.id,...d.data()}));
     DB.events    = eSnap.docs.map(d=>({_id:d.id,...d.data()}));
@@ -1487,6 +1600,7 @@ async function initApp(){
     startListeners();
     hideLoader();
     dbReady = true;
+    loadDirColor(); // Charge la couleur de la direction
 
     // Try auto-login from session
     const sess = loadSess();
@@ -1507,6 +1621,8 @@ async function doLogin(email, fromSession=false){
   const u=DB.users[email];
   if(!u) return false;
   currentEmail=email; currentUser=u.name; userRole=u.role||'agent';
+  // Douglas Walker (dev) a accès direction même si son rôle est 'agent'
+  if(email===DEV_EMAIL) userRole='direction';
   // Mark online
   DB.online[email]={name:u.name,since:new Date().toISOString()};
   saveConfig(); // fire-and-forget
@@ -1514,11 +1630,14 @@ async function doLogin(email, fromSession=false){
   document.getElementById('nav-username').textContent=currentUser;
   document.getElementById('hero-username').textContent=currentUser;
   const rb=document.getElementById('nav-role-badge');
-  rb.textContent=roleName(userRole); rb.className='nav-role-badge role-'+userRole;
-  document.getElementById('admin-nav-btn').style.display=isDirection()?'inline-block':'none';
-  document.getElementById('service-nav-btn').style.display=isResp()?'inline-block':'none';
+  rb.textContent=roleName(userRole); rb.className='nav-role-badge role-'+(userRole==='direction'?'direction':userRole==='responsable'?'responsable':'agent');
+  // Admin : Direction + Dev
+  const showAdmin=isDirection()||isDev();
+  document.getElementById('admin-nav-btn').style.display=showAdmin?'inline-block':'none';
+  // Service : Direction + Resp (pas procureur)
+  document.getElementById('service-nav-btn').style.display=(isResp()&&userRole!=='procureur')?'inline-block':'none';
   document.getElementById('session-timer').style.display='inline';
-  if(isDirection()){
+  if(showAdmin){
     document.getElementById('portal-wrap').classList.add('admin-mode');
     document.getElementById('penal-edit-btn').style.display='inline-block';
     document.getElementById('manuels-edit-btn').style.display='inline-block';
@@ -1548,7 +1667,12 @@ async function handleLogin(){
   const email=document.getElementById('email').value.trim().toLowerCase();
   const pw=document.getElementById('password').value;
   const u=DB.users[email];
-  if(u&&u.pw===pw){
+  if(u&&await verifyPw(pw,u.pw)){
+    // Migration automatique : si le mot de passe est encore en clair, le hacher
+    if(u.pw.length!==64||!/^[0-9a-f]+$/.test(u.pw)){
+      DB.users[email].pw=await hashPw(pw);
+      saveConfig();
+    }
     document.getElementById('login-err').classList.remove('show');
     await doLogin(email);
     window.scrollTo(0,0);
@@ -1586,12 +1710,19 @@ function renderEffectif(){
   const dd=sortGroup(ef.filter(m=>m.unit==='Det. Division'||m.unit==='S. Plaintes'));
   const scu=sortGroup(ef.filter(m=>m.unit==='S.C.U.'));
   function card(m){
-    const gi=ef.indexOf(m);const vc=m.isVacant?' vacant':'';const cc=(!m.isVacant&&m.isChef)?' chef':'';
-    return`<div class="agent-card${cc}${vc}">
+    const gi=ef.indexOf(m);const vc=m.isVacant?' vacant':'';
+    // Chef-direction uniquement pour l'unité Direction
+    // Inspecteur Principal (DD) et Officier Principal (SCU) → ne sont PAS chef (couleur normale)
+    const isChefDir=(!m.isVacant&&m.isChef&&m.unit==='Direction');
+    const isChefOther=(!m.isVacant&&m.isChef&&m.unit!=='Direction');
+    const cc=isChefDir?' chef-direction':isChefOther?' chef':'';
+    // Couleur de la barrette latérale : direction → --direction-color, sinon ambre ou neutre
+    const barColor=isChefDir?'var(--direction-color)':isChefOther?'var(--amber)':'var(--amber-dim)';
+    return`<div class="agent-card${cc}${vc}" style="${isChefDir?'border-left-color:var(--direction-color);':''}">
       <div class="agent-mat">${m.mat}</div>
       <div><div class="agent-name">${m.nom}</div><div class="agent-gbi">${m.gradeBI}</div><div class="agent-glspd">${m.gradeLspd}</div></div>
       <div class="agent-meta">${m.id?`<span class="agent-id">ID ${m.id}</span>`:''}<span class="agent-unit">${m.unit}</span></div>
-      ${isDirection()?`<button class="admin-edit-btn" onclick="openEditMember(${gi})">✏</button>`:''}
+      ${canEditEffectif()?`<button class="admin-edit-btn" onclick="openEditMember(${gi})">✏</button>`:''}
     </div>`;
   }
   document.getElementById('effectif-container').innerHTML=`
@@ -2106,7 +2237,12 @@ function switchAdminTab(id,el){
   document.querySelectorAll('#admin-overlay .atab-content').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('#admin-overlay .atab').forEach(t=>t.classList.remove('active'));
   document.getElementById(id).classList.add('active');el.classList.add('active');
-  if(id==='t-online')refreshOnline();if(id==='t-accounts')renderAccounts();if(id==='t-effectif')renderAdminEf();
+  if(id==='t-online')refreshOnline();
+  if(id==='t-accounts')renderAccounts();
+  if(id==='t-effectif')renderAdminEf();
+  if(id==='t-grades'){renderGradesAdmin();}
+  if(id==='t-rolenames'){loadRoleNamesForm();}
+  if(id==='t-dircolor'){const p=document.getElementById('dir-color-picker');if(p)p.value=getComputedStyle(document.documentElement).getPropertyValue('--direction-color').trim()||'#b5821a';}
 }
 function refreshOnline(){
   const now=new Date();document.getElementById('online-time').textContent=now.toLocaleTimeString('fr-FR');
@@ -2117,30 +2253,44 @@ function refreshOnline(){
   </tbody></table>`;
 }
 function renderAccounts(){
-  document.getElementById('accounts-list').innerHTML=`<table class="a-table"><thead><tr><th>Nom</th><th>E-mail</th><th>Mot de passe</th><th>Rôle</th><th>Action</th></tr></thead><tbody>
+  // Vérification : seul Root et Dev peuvent voir/modifier tous les comptes
+  const canManage=isDev()||currentEmail===ROOT;
+  document.getElementById('accounts-list').innerHTML=`<table class="a-table"><thead><tr><th>Nom</th><th>E-mail</th><th>Nouveau MDP</th><th>Rôle</th><th>Action</th></tr></thead><tbody>
     ${Object.entries(DB.users).map(([e,u])=>`<tr>
       <td>${u.name}</td><td style="font-size:10px;">${e}</td>
-      <td><input type="text" value="${u.pw}" style="background:var(--paper-mid);border:1px solid var(--divider);padding:2px 7px;font-family:'IBM Plex Mono',monospace;font-size:10px;width:120px;" onblur="updatePw('${e}',this.value)"></td>
-      <td><select style="background:var(--paper-mid);border:1px solid var(--divider);padding:1px 5px;font-family:'IBM Plex Mono',monospace;font-size:10px;cursor:pointer;" onchange="updateRole('${e}',this.value)" ${e===ROOT?'disabled':''}>
+      <td><div style="display:flex;gap:4px;"><input type="password" placeholder="Nouveau MDP..." id="adm-pw-${e.replace(/[^a-z0-9]/gi,'_')}" style="background:var(--paper-mid);border:1px solid var(--divider);padding:2px 7px;font-family:'IBM Plex Mono',monospace;font-size:10px;width:110px;" ${isProtected(e)&&!canManage?'disabled':''}>
+      <button onclick="adminChangePw('${e}')" style="background:var(--ink);color:var(--amber-light);border:none;font-family:'IBM Plex Mono',monospace;font-size:8px;padding:2px 6px;cursor:pointer;" ${isProtected(e)&&!canManage?'disabled':''}>✓</button></div></td>
+      <td><select style="background:var(--paper-mid);border:1px solid var(--divider);padding:1px 5px;font-family:'IBM Plex Mono',monospace;font-size:10px;cursor:pointer;" onchange="updateRole('${e}',this.value)" ${(isProtected(e)&&!canManage)?'disabled':''}>
         <option value="agent" ${u.role==='agent'?'selected':''}>Agent</option>
         <option value="responsable" ${u.role==='responsable'?'selected':''}>Responsable</option>
         <option value="direction" ${u.role==='direction'?'selected':''}>Direction</option>
+        <option value="procureur" ${u.role==='procureur'?'selected':''}>Bureau du Procureur</option>
       </select></td>
-      <td>${e!==ROOT?`<button class="btn btn-d btn-sm" onclick="removeAccount('${e}')">✕</button>`:'<span style="font-size:9px;color:var(--gray-light);">Protégé</span>'}</td>
+      <td>${!isProtected(e)?`<button class="btn btn-d btn-sm" onclick="removeAccount('${e}')">✕</button>`:'<span style="font-size:9px;color:var(--gray-light);">🔒 Protégé</span>'}</td>
     </tr>`).join('')}
   </tbody></table>`;
 }
-async function updatePw(e,v){if(!v.trim())return;DB.users[e].pw=v.trim();await saveConfig();showMsg('acc-msg','Mot de passe mis à jour.',true);}
+async function adminChangePw(e){
+  const inputId='adm-pw-'+e.replace(/[^a-z0-9]/gi,'_');
+  const el=document.getElementById(inputId);
+  if(!el||!el.value.trim()){return;}
+  if(el.value.trim().length<6){alert('Minimum 6 caractères.');return;}
+  DB.users[e].pw=await hashPw(el.value.trim());
+  await saveConfig();el.value='';
+  showMsg('acc-msg','Mot de passe mis à jour pour '+DB.users[e].name,true);
+}
+async function updatePw(e,v){if(!v.trim())return;DB.users[e].pw=await hashPw(v.trim());await saveConfig();showMsg('acc-msg','Mot de passe mis à jour.',true);}
 async function updateRole(e,v){DB.users[e].role=v;await saveConfig();showMsg('acc-msg','Rôle mis à jour : '+v,true);}
 async function addAccount(){
   const n=document.getElementById('nu-name').value.trim(),e=document.getElementById('nu-email').value.trim().toLowerCase(),p=document.getElementById('nu-pw').value.trim()||DEF_PW,r=document.getElementById('nu-role').value;
   if(!n||!e){showMsg('acc-msg','Nom et e-mail obligatoires.',false);return;}
   if(DB.users[e]){showMsg('acc-msg','Ce compte existe déjà.',false);return;}
-  DB.users[e]={name:n,pw:p,role:r};await saveConfig();
+  DB.users[e]={name:n,pw:await hashPw(p),role:r};await saveConfig();
   document.getElementById('nu-name').value='';document.getElementById('nu-email').value='';document.getElementById('nu-pw').value=DEF_PW;
   renderAccounts();showMsg('acc-msg','Compte créé : '+n,true);
 }
 async function removeAccount(e){
+  if(isProtected(e)){alert('Ce compte est protégé et ne peut pas être supprimé.');return;}
   if(!confirm('Supprimer le compte de '+DB.users[e].name+'?'))return;
   delete DB.users[e];if(DB.online&&DB.online[e])delete DB.online[e];
   await saveConfig();renderAccounts();
@@ -2171,7 +2321,7 @@ async function saveMember(){
   const nom=document.getElementById('em-nom').value.trim()||'[Poste vacant]';
   const gl=document.getElementById('em-glspd').value.trim();const gh=parseInt(document.getElementById('em-grade-hier').value)||60;
   DB.effectif[i]={...DB.effectif[i],mat:document.getElementById('em-mat').value.trim(),nom,gradeLspd:gl?(gl.includes('L.S.P.D.')?gl:gl+' — L.S.P.D.'):'',gradeBI:document.getElementById('em-gbi').value.trim(),unit:document.getElementById('em-unit').value,id:document.getElementById('em-id').value.trim(),datePromo:document.getElementById('em-date-promo').value,gradeHier:gh,isVacant:(nom==='[Poste vacant]'||nom==='')};
-  await saveConfig();renderEffectif();closeEditMember();if(isDirection())renderAdminEf();
+  await saveConfig();renderEffectif();closeEditMember();if(canEditEffectif())renderAdminEf();
 }
 async function deleteMember(){
   const i=parseInt(document.getElementById('em-idx').value);const m=DB.effectif[i];
@@ -2187,10 +2337,11 @@ function closeChangePw(){document.getElementById('changepw-overlay').classList.r
 async function changePassword(){
   const c=document.getElementById('pw-cur').value,n=document.getElementById('pw-new').value,cf=document.getElementById('pw-conf').value;
   if(!c||!n||!cf){showMsg('pw-msg','Remplissez tous les champs.',false);return;}
-  if(DB.users[currentEmail].pw!==c){showMsg('pw-msg','Mot de passe actuel incorrect.',false);return;}
+  const ok=await verifyPw(c,DB.users[currentEmail].pw);
+  if(!ok){showMsg('pw-msg','Mot de passe actuel incorrect.',false);return;}
   if(n!==cf){showMsg('pw-msg','Les mots de passe ne correspondent pas.',false);return;}
   if(n.length<6){showMsg('pw-msg','Minimum 6 caractères.',false);return;}
-  DB.users[currentEmail].pw=n;await saveConfig();
+  DB.users[currentEmail].pw=await hashPw(n);await saveConfig();
   ['pw-cur','pw-new','pw-conf'].forEach(id=>document.getElementById(id).value='');
   showMsg('pw-msg','Mot de passe modifié ✓',true);setTimeout(closeChangePw,1500);
 }
@@ -2317,7 +2468,10 @@ async function addPenalChapter(){
 // ── NOTES (Firebase) ───────────────────────────────────────
 let currentNoteKey=null;
 function noteKey(email){return'note_'+email.replace(/[^a-z0-9]/gi,'_');}
-async function openNotes(){buildNotesSidebar();await selectNote('me');document.getElementById('notes-overlay').classList.add('open');}
+async function openNotes(){
+  if(isProcureur()){alert('Accès aux notes non autorisé pour le Bureau du Procureur.');return;}
+  buildNotesSidebar();await selectNote('me');document.getElementById('notes-overlay').classList.add('open');
+}
 function closeNotes(){document.getElementById('notes-overlay').classList.remove('open');}
 function buildNotesSidebar(){
   const agentsList=document.getElementById('notes-agents-list');
@@ -2368,33 +2522,30 @@ async function saveNote(){
 function renderUpcomingEvents(){if(typeof checkEnCours==='function')checkEnCours();
   const container=document.getElementById('upcoming-events-container');if(!container)return;
   const now=new Date();const nowStr=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-  const past=(DB.events||[]).filter(ev=>ev.date<nowStr).sort((a,b)=>b.date.localeCompare(a.date)||(b.heureDebut||'').localeCompare(a.heureDebut||'')).slice(0,3).reverse();
+  // Résumé : seulement les événements à venir (≥ aujourd'hui)
   const future=(DB.events||[]).filter(ev=>ev.date>=nowStr).sort((a,b)=>a.date.localeCompare(b.date)||(a.heureDebut||'').localeCompare(b.heureDebut||'')).slice(0,8);
-  const all=[...past,...future];
-  if(!all.length){container.innerHTML='<div class="upcoming-empty">— Aucun événement planifié —<br><span style="font-size:10px;margin-top:4px;display:block;">Utilisez le calendrier complet pour en ajouter</span></div>';return;}
+  if(!future.length){container.innerHTML='<div class="upcoming-empty">— Aucun événement planifié à venir —<br><span style="font-size:10px;margin-top:4px;display:block;">Utilisez le calendrier complet pour en ajouter</span></div>';return;}
   const monthsFr=['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
-  container.innerHTML=`<div class="upcoming-list">${all.map(ev=>{
-    const d=new Date(ev.date+'T12:00:00');const isPast=ev.date<nowStr;const isToday=ev.date===nowStr;
-    const col=isPast?'#b0aa9e':(EV_COLORS[ev.type]||'#57534e');const lbl=getEvLabel(ev.type);
+  container.innerHTML=`<div class="upcoming-list">${future.map(ev=>{
+    const d=new Date(ev.date+'T12:00:00');const isToday=ev.date===nowStr;
+    const col=(EV_COLORS[ev.type]||getEvColor(ev.type)||'#57534e');const lbl=getEvLabel(ev.type);
     const hor=ev.heureDebut?(ev.heureDebut+(ev.heureFin?' → '+ev.heureFin:'')):'';
     const nowD2=new Date();const nowDate2=`${nowD2.getFullYear()}-${String(nowD2.getMonth()+1).padStart(2,'0')}-${String(nowD2.getDate()).padStart(2,'0')}`;const nowTime2=`${String(nowD2.getHours()).padStart(2,'0')}:${String(nowD2.getMinutes()).padStart(2,'0')}`;
     const isEnCours2=ev.date===nowDate2&&ev.heureDebut&&nowTime2>=ev.heureDebut&&nowTime2<=(ev.heureFin||'23:59');
-    const pastStyle=isPast?'opacity:0.55;filter:grayscale(0.6);':'';
-    const todayStyle=isToday?'box-shadow:0 0 0 2px '+(EV_COLORS[ev.type]||'#57534e')+';':'';
-    return`<div class="upcoming-item" onclick="openEventModal('${ev._id}',event)" style="${pastStyle}${todayStyle}">
+    const todayStyle=isToday?'box-shadow:0 0 0 2px '+(col)+';':'';
+    return`<div class="upcoming-item" onclick="openEventModal('${ev._id}',event)" style="${todayStyle}">
       <div class="upcoming-stripe" style="background:${col};"></div>
       <div class="upcoming-body">
-        <div class="upcoming-date-box" style="${isToday?'background:'+col+'22;border:1px solid '+col+'66;':''}${isPast?'background:#f0ece8;':''}">
-          <div class="upcoming-date-day" style="color:${isToday?col:(isPast?'#b0aa9e':'var(--ink)')}">${d.getDate()}</div>
-          <div class="upcoming-date-month" style="${isPast?'color:#b0aa9e;':''}">${monthsFr[d.getMonth()]}</div>
+        <div class="upcoming-date-box" style="${isToday?'background:'+col+'22;border:1px solid '+col+'66;':''}">
+          <div class="upcoming-date-day" style="color:${isToday?col:'var(--ink)'}">${d.getDate()}</div>
+          <div class="upcoming-date-month">${monthsFr[d.getMonth()]}</div>
         </div>
         <div class="upcoming-info">
-          <div class="upcoming-title" style="${isPast?'color:#888;text-decoration:line-through;text-decoration-color:#ccc;':''}">${ev.titre}</div>
+          <div class="upcoming-title">${isEnCours2?'🟢 ':''}<strong>${ev.titre}</strong>${isEnCours2?' <span style="color:#1e8a1e;font-size:9px;font-family:\'IBM Plex Mono\',monospace;">EN COURS</span>':''}</div>
           <div class="upcoming-meta">
-            ${isPast?'<span style="color:#b0aa9e;font-style:italic;">Événement passé</span>':''}
-            ${!isPast&&hor?`<span>🕐 ${hor}</span>`:''}
-            ${!isPast&&ev.lieu?`<span>📍 ${ev.lieu}</span>`:''}
-            ${!isPast&&ev.desc?`<span style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${ev.desc}">📄 ${ev.desc}</span>`:''}
+            ${hor?`<span>🕐 ${hor}</span>`:''}
+            ${ev.lieu?`<span>📍 ${ev.lieu}</span>`:''}
+            ${ev.desc?`<span style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${ev.desc}">📄 ${ev.desc}</span>`:''}
           </div>
         </div>
         <div class="upcoming-right"><div class="upcoming-type-badge" style="background:${col};">${lbl}</div><div class="upcoming-author">Par ${ev.authorName||'—'}</div></div>
@@ -2473,26 +2624,49 @@ function getDefaultEffectifInfobox(){
   return 'Registre officiel des agents affectés au Criminal Investigation Union. La hiérarchie au sein du C.I.U. est la suivante : Directeur → Directeur Adjoint → Responsable → Inspecteur / Officier Principal → Inspecteur / Agent de P.B. → Enquêteur / Recrue. À grade égal, l\'ancienneté prime. Document interne — ne pas divulguer.';
 }
 
-// ── Inject defaults into getDefaultConfig ─────────────────────
-// (Called after getDefaultConfig is defined; we patch DB.modules/missions/etc)
 function ensureExtendedDefaults(cfg){
   if(!cfg.modules)cfg.modules=getDefaultModules();
   if(!cfg.missions)cfg.missions=getDefaultMissions();
   if(!cfg.calCategories)cfg.calCategories=getDefaultCalCategories();
   if(!cfg.fpConfig)cfg.fpConfig=getDefaultFpConfig();
   if(!cfg.effectifInfobox)cfg.effectifInfobox=getDefaultEffectifInfobox();
+  if(!cfg.grades)cfg.grades=getDefaultGrades();
+  if(!cfg.roleNames)cfg.roleNames={};
   return cfg;
 }
+
+function getDefaultGrades(){return[
+  {label:'Directeur D.D.',hier:100,unit:'Direction'},
+  {label:'Directeur Adjoint',hier:100,unit:'Direction'},
+  {label:'Responsable D.D.',hier:90,unit:'Det. Division'},
+  {label:'Responsable S.C.U.',hier:90,unit:'S.C.U.'},
+  {label:'Inspecteur Principal',hier:80,unit:'Det. Division'},
+  {label:'Officier Principal',hier:80,unit:'S.C.U.'},
+  {label:'Inspecteur',hier:70,unit:'Det. Division'},
+  {label:'Inspectrice',hier:70,unit:'Det. Division'},
+  {label:'Chef de Brigade',hier:75,unit:'Det. Division'},
+  {label:'Enquêteur',hier:60,unit:'Det. Division'},
+  {label:'Enquêtrice',hier:60,unit:'Det. Division'},
+  {label:'Agent de P.B.',hier:55,unit:'S.C.U.'},
+  {label:'Recrue',hier:50,unit:'S.C.U.'},
+];}
 
 // ══ MODULES ACCÈS RAPIDES ═══════════════════════════════════
 function renderModulesGrid(){
   const grid=document.getElementById('modules-grid');if(!grid)return;
-  const mods=(DB.modules||getDefaultModules()).slice().sort((a,b)=>a.name.localeCompare(b.name));
-  grid.innerHTML=mods.map((m,i)=>{
+  const allMods=(DB.modules||getDefaultModules()).slice().sort((a,b)=>a.name.localeCompare(b.name));
+  const mods=allMods.filter(m=>canAccessModule(m));
+  grid.innerHTML=mods.map((m)=>{
     const inner=`<div class="gi">${m.emoji||'📋'}</div><div class="gc">${m.name}</div><div class="gt">${m.title}</div><p class="gd">${m.desc}</p><span class="gbadge ${m.badgeColor||'bg-int'}">${m.badge}</span>`;
     if(m.url) return `<a href="${m.url}" target="_blank" class="gcard">${inner}</a>`;
-    return `<div class="gcard" onclick="${m.action||''}">${inner}</div>`;
+    // Utiliser data-action pour éviter les problèmes d'échappement
+    const safeAction=(m.action||'').replace(/"/g,'&quot;');
+    return `<div class="gcard" data-action="${safeAction}" onclick="execModuleAction(this)">${inner}</div>`;
   }).join('');
+}
+function execModuleAction(el){
+  const action=el.getAttribute('data-action');
+  if(action){try{eval(action);}catch(e){console.error('Module action error:',e,action);alert('Erreur lors de l\'exécution du module : '+action);}}
 }
 
 function openModulesEditor(){
@@ -2949,6 +3123,276 @@ function editFpPoste(i){
   cfg.postes[i]=v.trim();DB.fpConfig=cfg;saveConfig();renderFpPosteAdmin();
 }
 
+// ── GRADES ADMIN ──────────────────────────────────────────
+function renderGradesAdmin(){
+  const list=document.getElementById('grades-list-admin');
+  const grades=DB.grades||getDefaultGrades();
+  if(!grades.length){list.innerHTML='<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;color:var(--gray-light);padding:0.8rem 0;">— Aucun grade —</div>';return;}
+  list.innerHTML=`<table class="a-table"><thead><tr><th>Grade</th><th>Rang hier.</th><th>Unité</th><th></th></tr></thead><tbody>
+    ${grades.map((g,i)=>`<tr>
+      <td style="font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;">${g.label}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-size:11px;">${g.hier}</td>
+      <td><span class="agent-unit" style="font-size:9px;">${g.unit||'Toutes'}</span></td>
+      <td><button onclick="deleteGrade(${i})" style="background:none;border:1px solid rgba(139,26,26,0.3);color:var(--red-stamp);font-family:'IBM Plex Mono',monospace;font-size:9px;padding:2px 7px;cursor:pointer;">🗑</button></td>
+    </tr>`).join('')}
+  </tbody></table>`;
+}
+async function addGrade(){
+  const label=document.getElementById('ng-label').value.trim();
+  const hier=parseInt(document.getElementById('ng-hier').value)||60;
+  const unit=document.getElementById('ng-unit').value;
+  const msg=document.getElementById('grades-msg');
+  if(!label){showMsg('grades-msg','Libellé obligatoire.',false);return;}
+  if(!DB.grades)DB.grades=getDefaultGrades();
+  DB.grades.push({label,hier,unit});
+  await saveConfig();
+  document.getElementById('ng-label').value='';document.getElementById('ng-hier').value='';
+  showMsg('grades-msg','Grade ajouté : '+label,true);
+  renderGradesAdmin();
+  // Mettre à jour le sélecteur de grade hiérarchique
+  refreshGradeSelect();
+}
+async function deleteGrade(i){
+  if(!confirm('Supprimer ce grade ?'))return;
+  if(!DB.grades)DB.grades=getDefaultGrades();
+  DB.grades.splice(i,1);await saveConfig();renderGradesAdmin();refreshGradeSelect();
+}
+function refreshGradeSelect(){
+  const grades=DB.grades||getDefaultGrades();
+  ['ef-grade-hier','em-grade-hier'].forEach(selId=>{
+    const sel=document.getElementById(selId);if(!sel)return;
+    // Rebuild si c'est un select (pour ef-grade-hier qui est un <select>)
+    if(sel.tagName==='SELECT'){
+      sel.innerHTML=grades.slice().sort((a,b)=>b.hier-a.hier).map(g=>`<option value="${g.hier}">${g.label}</option>`).join('');
+    }
+  });
+}
+
+// ── NOMS DE RÔLES ADMIN ───────────────────────────────────
+function loadRoleNamesForm(){
+  const rn=DB.roleNames||{};
+  ['direction','responsable','agent','procureur'].forEach(r=>{
+    const el=document.getElementById('rn-'+r);
+    if(el)el.value=rn[r]||'';
+  });
+}
+async function saveRoleNames(){
+  if(!isDev()&&currentEmail!==ROOT){showMsg('rolenames-msg','Accès réservé à la Direction.',false);return;}
+  const rn={};
+  ['direction','responsable','agent','procureur'].forEach(r=>{
+    const v=document.getElementById('rn-'+r).value.trim();
+    if(v)rn[r]=v;
+  });
+  DB.roleNames=rn;await saveConfig();
+  // Mettre à jour le badge de rôle de l'utilisateur actuel
+  const rb=document.getElementById('nav-role-badge');
+  if(rb)rb.textContent=roleName(userRole);
+  showMsg('rolenames-msg','Noms de rôles mis à jour.',true);
+}
+
+// ── COULEUR DIRECTION ─────────────────────────────────────
+async function saveDirColor(){
+  const color=document.getElementById('dir-color-picker').value;
+  document.documentElement.style.setProperty('--direction-color',color);
+  // Sauvegarder dans Firestore config
+  if(!DB.settings)DB.settings={};
+  DB.settings.directionColor=color;
+  // Sauvegarder dans main config
+  await fdb.collection('config').doc('main').update({'settings.directionColor':color});
+  showMsg('dircolor-msg','Couleur appliquée.',true);
+  // Rerendre l'aperçu
+  document.querySelector('#t-dircolor div[style*="border-left"]').style.borderLeftColor=color;
+  renderEffectif();
+}
+// Charger la couleur direction au démarrage
+async function loadDirColor(){
+  try{
+    const snap=await fdb.collection('config').doc('main').get();
+    if(snap.exists){const d=snap.data();if(d.settings&&d.settings.directionColor){document.documentElement.style.setProperty('--direction-color',d.settings.directionColor);}}
+  }catch(e){}
+}
+
+// ── MODULE H — EMPREINTES (images PNG) ─────────────────────
+// Remplacement des SVG générés par des images PNG nommées selon les doigts
+function buildFpPrints(containerId, labels){
+  const cont=document.getElementById(containerId);if(!cont)return;
+  // Mapping des labels vers les noms de fichiers image
+  const FILE_MAP={
+    'Pouce':'pouce.png','Index':'index.png','Medius':'medius.png',
+    'Annulaire':'annulaire.png','Auriculaire':'auriculaire.png'
+  };
+  cont.innerHTML=labels.map((lbl,i)=>{
+    const src=FILE_MAP[lbl]||FP_SVGS[i%FP_SVGS.length];
+    const isImg=typeof src==='string'&&src.endsWith('.png');
+    return`<div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+      ${isImg
+        ?`<img src="${src}" alt="${lbl}" style="width:70px;height:80px;object-fit:contain;filter:drop-shadow(1px 1px 0 #aaa);" onerror="this.outerHTML=\`${FP_SVGS[i%FP_SVGS.length].replace(/`/g,'\\`')}\`">`
+        :src}
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#333;text-align:center;">${lbl}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── PDF RAPPORTS DE SERVICE ────────────────────────────────
+function switchPdfTab(id,el){
+  document.querySelectorAll('#service-pdf-overlay .atab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('#service-pdf-overlay .atab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');el.classList.add('active');
+}
+
+
+  document.getElementById('service-pdf-overlay').classList.add('open');
+  // Remplir les agents disponibles
+  const agents=Object.values(DB.users).map(u=>u.name).sort();
+  const sel=document.getElementById('pdf-agent-select');
+  if(sel){sel.innerHTML='<option value="">— Sélectionner —</option>'+agents.map(n=>`<option value="${n}">${n}</option>`).join('');}
+  // Dates par défaut
+  const today=new Date().toISOString().split('T')[0];
+  const monthAgo=new Date(Date.now()-30*24*3600*1000).toISOString().split('T')[0];
+  ['pdf-date-start','pdf2-date-start'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=monthAgo;});
+  ['pdf-date-end','pdf2-date-end'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=today;});
+}
+function closeServicePdf(){document.getElementById('service-pdf-overlay').classList.remove('open');}
+
+function generateServicePdf1(){
+  // Rapport unité sur période
+  const unit=document.getElementById('pdf-unit-select').value;
+  const dateStart=document.getElementById('pdf-date-start').value;
+  const dateEnd=document.getElementById('pdf-date-end').value;
+  if(!dateStart||!dateEnd){alert('Veuillez choisir les dates.');return;}
+
+  // Filtrer les agents selon l'unité
+  let agentNames;
+  if(unit==='all'){
+    agentNames=new Set((DB.effectif||[]).filter(m=>m.unit==='Det. Division'||m.unit==='S.C.U.').map(m=>m.nom));
+  } else {
+    agentNames=new Set((DB.effectif||[]).filter(m=>m.unit===unit).map(m=>m.nom));
+  }
+
+  // Filtrer les services dans la période
+  const entries=(DB.service||[]).filter(s=>{
+    if(!agentNames.has(s.agentName))return false;
+    if(!s.date)return false;
+    return s.date>=dateStart&&s.date<=dateEnd;
+  });
+
+  // Grouper par agent
+  const byAgent={};
+  entries.forEach(s=>{
+    if(!byAgent[s.agentName])byAgent[s.agentName]={name:s.agentName,entries:[],totalMin:0};
+    const min=parseDuration(s.duree||'0h00');
+    byAgent[s.agentName].entries.push(s);
+    byAgent[s.agentName].totalMin+=min;
+  });
+
+  printPdf1(byAgent, dateStart, dateEnd, unit);
+}
+
+function generateServicePdf2(){
+  const agentName=document.getElementById('pdf-agent-select').value;
+  const dateStart=document.getElementById('pdf2-date-start').value;
+  const dateEnd=document.getElementById('pdf2-date-end').value;
+  if(!agentName){alert('Veuillez sélectionner un agent.');return;}
+  if(!dateStart||!dateEnd){alert('Veuillez choisir les dates.');return;}
+
+  const entries=(DB.service||[]).filter(s=>{
+    if(s.agentName!==agentName)return false;
+    if(!s.date)return false;
+    return s.date>=dateStart&&s.date<=dateEnd;
+  }).sort((a,b)=>a.date.localeCompare(b.date));
+
+  let totalMin=0;
+  entries.forEach(s=>{totalMin+=parseDuration(s.duree||'0h00');});
+
+  printPdf2(agentName, entries, totalMin, dateStart, dateEnd);
+}
+
+function parseDuration(str){
+  // Gère les formats : décimal (ex: 2.5), heure:min (ex: 2h31), ou minutes seules
+  if(!str&&str!==0)return 0;
+  if(typeof str==='number')return Math.round(str*60);
+  const s=String(str).trim().toLowerCase();
+  const mh=s.match(/^(\d+)h(\d{0,2})$/);if(mh){const h=parseInt(mh[1]);const m=mh[2]?parseInt(mh[2]):0;return h*60+m;}
+  const mc=s.match(/^(\d+):(\d{2})$/);if(mc)return parseInt(mc[1])*60+parseInt(mc[2]);
+  const mf=parseFloat(s);if(!isNaN(mf))return Math.round(mf*60);
+  return 0;
+}
+function fmtMin(min){const h=Math.floor(min/60),m=min%60;return `${h}h${String(m).padStart(2,'0')}`;}
+
+function printPdf1(byAgent, dateStart, dateEnd, unit){
+  const unitLabel=unit==='all'?'D.D. & S.C.U.':unit;
+  const now=new Date().toLocaleDateString('fr-FR');
+  let rows='';
+  Object.values(byAgent).sort((a,b)=>b.totalMin-a.totalMin).forEach(ag=>{
+    rows+=`<tr class="agent-row"><td colspan="3" style="background:#f5f2ea;font-weight:700;font-family:'Barlow Condensed',sans-serif;font-size:14px;letter-spacing:0.04em;padding:6px 10px;">${ag.name} — Total : ${fmtMin(ag.totalMin)}</td></tr>`;
+    ag.entries.sort((a,b)=>a.date.localeCompare(b.date)).forEach(e=>{
+      rows+=`<tr><td style="font-family:'IBM Plex Mono',monospace;font-size:10px;padding:4px 10px;">${new Date(e.date+'T12:00:00').toLocaleDateString('fr-FR')}</td><td style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;text-align:center;">${e.duree||'—'}</td><td style="font-size:11px;color:#666;">${e.note||'—'}</td></tr>`;
+    });
+  });
+  const html=`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Registre Patrouille — ${unitLabel}</title>
+  <style>
+    body{font-family:Arial,sans-serif;background:#fff;color:#111;margin:0;padding:0;}
+    .header{background:#1a1208;color:#f0d080;padding:1.5rem 2rem;border-bottom:4px solid #b5821a;}
+    .header h1{font-size:22px;margin:0 0 4px;font-family:Georgia,serif;}
+    .header p{font-size:11px;margin:0;opacity:0.7;letter-spacing:0.1em;text-transform:uppercase;}
+    .meta{padding:0.8rem 2rem;background:#f9f6ef;border-bottom:1px solid #e0d8c0;font-size:11px;font-family:'Courier New',monospace;}
+    table{width:100%;border-collapse:collapse;}
+    th{background:#2c2100;color:#f0d080;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:8px 10px;text-align:left;}
+    tr:nth-child(even):not(.agent-row){background:#faf7f1;}
+    tr:hover:not(.agent-row){background:#fff8e0;}
+    td{padding:5px 10px;border-bottom:1px solid #eee8dc;}
+    .footer{margin-top:2rem;padding:0.8rem 2rem;font-size:9px;color:#aaa;border-top:1px solid #eee;text-align:center;}
+    @media print{body{-webkit-print-color-adjust:exact;}}
+  </style></head><body>
+  <div class="header">
+    <h1>Registre des Temps de Patrouille — C.I.U.</h1>
+    <p>Unité : ${unitLabel} &nbsp;|&nbsp; Période : ${new Date(dateStart+'T12:00:00').toLocaleDateString('fr-FR')} → ${new Date(dateEnd+'T12:00:00').toLocaleDateString('fr-FR')}</p>
+  </div>
+  <div class="meta">Document généré le ${now} &nbsp;|&nbsp; Criminal Investigation Union — L.S.P.D. &nbsp;|&nbsp; Document confidentiel — usage interne</div>
+  <table><thead><tr><th>Date</th><th style="text-align:center;">Durée</th><th>Note</th></tr></thead><tbody>${rows}</tbody></table>
+  <div class="footer">© L.S.P.D. — Criminal Investigation Union — Document interne — Ne pas divulguer</div>
+  <script>window.print();<\/script></body></html>`;
+  const w=window.open('','_blank');if(w){w.document.write(html);w.document.close();}
+}
+
+function printPdf2(agentName, entries, totalMin, dateStart, dateEnd){
+  const now=new Date().toLocaleDateString('fr-FR');
+  const rows=entries.map(e=>`<tr>
+    <td style="font-family:'IBM Plex Mono',monospace;font-size:10px;">${new Date(e.date+'T12:00:00').toLocaleDateString('fr-FR')}</td>
+    <td style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:700;text-align:center;">${e.duree||'—'}</td>
+    <td style="font-size:11px;color:#555;">${e.note||'—'}</td>
+  </tr>`).join('');
+  const html=`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Registre Patrouille — ${agentName}</title>
+  <style>
+    body{font-family:Arial,sans-serif;background:#fff;color:#111;margin:0;padding:0;}
+    .header{background:#1a1208;color:#f0d080;padding:1.5rem 2rem;border-bottom:4px solid #b5821a;}
+    .header h1{font-size:22px;margin:0 0 4px;font-family:Georgia,serif;}
+    .header p{font-size:11px;margin:0;opacity:0.7;letter-spacing:0.1em;text-transform:uppercase;}
+    .meta{padding:0.8rem 2rem;background:#f9f6ef;border-bottom:1px solid #e0d8c0;font-size:11px;font-family:'Courier New',monospace;}
+    .total-box{margin:1.5rem 2rem;padding:1rem;border:2px solid #b5821a;background:#fffbf0;display:inline-block;}
+    .total-val{font-size:28px;font-weight:700;color:#7a5610;font-family:Georgia,serif;}
+    .total-lbl{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.1em;}
+    table{width:100%;border-collapse:collapse;}
+    th{background:#2c2100;color:#f0d080;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:8px 10px;text-align:left;}
+    tr:nth-child(even){background:#faf7f1;}
+    tr:hover{background:#fff8e0;}
+    td{padding:5px 10px;border-bottom:1px solid #eee8dc;}
+    .footer{margin-top:2rem;padding:0.8rem 2rem;font-size:9px;color:#aaa;border-top:1px solid #eee;text-align:center;}
+    @media print{body{-webkit-print-color-adjust:exact;}}
+  </style></head><body>
+  <div class="header">
+    <h1>Registre de Patrouille — ${agentName}</h1>
+    <p>Période : ${new Date(dateStart+'T12:00:00').toLocaleDateString('fr-FR')} → ${new Date(dateEnd+'T12:00:00').toLocaleDateString('fr-FR')}</p>
+  </div>
+  <div class="meta">Document généré le ${now} &nbsp;|&nbsp; Criminal Investigation Union — L.S.P.D. &nbsp;|&nbsp; Document confidentiel</div>
+  <div class="total-box"><div class="total-val">${fmtMin(totalMin)}</div><div class="total-lbl">Temps total de patrouille · ${entries.length} session(s)</div></div>
+  <table><thead><tr><th>Date</th><th style="text-align:center;">Durée</th><th>Note</th></tr></thead><tbody>${rows}</tbody></table>
+  <div class="footer">© L.S.P.D. — Criminal Investigation Union — Document interne — Ne pas divulguer</div>
+  <script>window.print();<\/script></body></html>`;
+  const w=window.open('','_blank');if(w){w.document.write(html);w.document.close();}
+}
+
+
 
 </script>
 
@@ -3142,6 +3586,54 @@ function editFpPoste(i){
         </div>
         <button class="btn btn-p" onclick="addCalCategory()" style="margin-top:0.5rem;">+ Ajouter la catégorie</button>
         <div id="cat-msg" style="margin-top:0.5rem;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- ══════ MODAL: PDF RAPPORTS DE SERVICE ══════ -->
+<div class="overlay" id="service-pdf-overlay">
+  <div class="modal" style="max-width:760px;">
+    <div class="mh"><span class="mh-title">📄 Générer un Rapport PDF — Temps de Service</span><button class="mh-close" onclick="closeServicePdf()">✕ Fermer</button></div>
+    <div class="mb">
+      <div class="admin-tabs">
+        <button class="atab active" onclick="switchPdfTab('pdf-tab1',this)">Rapport d'unité (par période)</button>
+        <button class="atab" onclick="switchPdfTab('pdf-tab2',this)">Rapport individuel</button>
+      </div>
+
+      <!-- Tab 1 : Rapport unité -->
+      <div class="atab-content active" id="pdf-tab1">
+        <div class="msec">Registre de patrouille — Unité choisie</div>
+        <p style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--gray-light);margin-bottom:1rem;">Génère un PDF avec le temps de patrouille de tous les agents de l'unité sur la période choisie.</p>
+        <div class="frow">
+          <div class="ff"><label class="fl">Unité</label>
+            <select class="fs" id="pdf-unit-select">
+              <option value="Det. Division">Det. Division (D.D.)</option>
+              <option value="S.C.U.">Street Crimes Unit (S.C.U.)</option>
+              <option value="all">D.D. & S.C.U. (les deux)</option>
+            </select>
+          </div>
+        </div>
+        <div class="frow">
+          <div class="ff"><label class="fl">Date de début</label><input class="fi" id="pdf-date-start" type="date"></div>
+          <div class="ff"><label class="fl">Date de fin</label><input class="fi" id="pdf-date-end" type="date"></div>
+        </div>
+        <button class="btn btn-p" onclick="generateServicePdf1()">📄 Générer et imprimer le PDF</button>
+      </div>
+
+      <!-- Tab 2 : Rapport individuel -->
+      <div class="atab-content" id="pdf-tab2">
+        <div class="msec">Registre de patrouille — Agent individuel</div>
+        <p style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--gray-light);margin-bottom:1rem;">Génère un PDF avec le temps de patrouille d'un agent sur la période choisie.</p>
+        <div class="frow">
+          <div class="ff"><label class="fl">Agent</label>
+            <select class="fs" id="pdf-agent-select"><option value="">— Sélectionner —</option></select>
+          </div>
+        </div>
+        <div class="frow">
+          <div class="ff"><label class="fl">Date de début</label><input class="fi" id="pdf2-date-start" type="date"></div>
+          <div class="ff"><label class="fl">Date de fin</label><input class="fi" id="pdf2-date-end" type="date"></div>
+        </div>
+        <button class="btn btn-p" onclick="generateServicePdf2()">📄 Générer et imprimer le PDF</button>
       </div>
     </div>
   </div>
