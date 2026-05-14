@@ -508,7 +508,7 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
   <div class="login-bg-lines"></div>
   <div class="login-card">
     <div class="login-header">
-      <img src="db_logo.png" alt="DB Logo" style="width:56px;height:56px;object-fit:contain;filter:drop-shadow(0 2px 8px rgba(181,130,26,0.4));" onerror="this.style.display='none'">
+      <img src="ciu_logo.png" alt="DB Logo" style="width:56px;height:56px;object-fit:contain;filter:drop-shadow(0 2px 8px rgba(181,130,26,0.4));" onerror="this.style.display='none'">
       <div>
         <div class="login-hd">Los Santos Police Department</div>
         <div class="login-ht">Criminal Investigation<br>Union</div>
@@ -532,7 +532,7 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
 
 <nav>
   <div class="nav-brand">
-    <img src="db_logo.png" alt="DB" class="nav-logo" style="width:34px;height:34px;object-fit:contain;" onerror="this.style.display='none'">
+    <img src="ciu_logo.png" alt="DB" class="nav-logo" style="width:34px;height:34px;object-fit:contain;" onerror="this.style.display='none'">
     <span class="nav-title">L.S.P.D. — <span>Criminal Investigation Union</span></span>
   </div>
   <div class="nav-right">
@@ -556,7 +556,7 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
 <!-- HERO -->
 <div class="portal-hero">
   <div class="hero-emb">
-    <img src="db_logo.png" alt="DB Logo" class="emb-svg" style="width:150px;height:150px;object-fit:contain;filter:drop-shadow(3px 4px 12px rgba(0,0,0,0.18));" onerror="this.style.display='none'">
+    <img src="ciu_logo.png" alt="DB Logo" class="emb-svg" style="width:150px;height:150px;object-fit:contain;filter:drop-shadow(3px 4px 12px rgba(0,0,0,0.18));" onerror="this.style.display='none'">
     <div style="display:flex;align-items:center;gap:10px;margin-top:0.5rem;">
       <img src="dd_logo.png" alt="DD Logo" style="width:38px;height:38px;border-radius:50%;border:2px solid var(--amber);object-fit:cover;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.15));" onerror="this.style.display='none'">
       <div class="emb-sub" style="text-align:left;">C.I.U. — Insigne Officiel<br>Det. Bureau · Los Santos</div>
@@ -1589,6 +1589,8 @@ async function initApp(){
       DB.calCategories  = def.calCategories;
       DB.fpConfig       = def.fpConfig;
       DB.effectifInfobox= def.effectifInfobox;
+      DB.grades         = def.grades||[];
+      DB.roleNames      = def.roleNames||{};
       DB.online         = {};
     } else {
       const d = snap.data();
@@ -1607,6 +1609,9 @@ async function initApp(){
       ensureExtendedDefaults(DB);
     }
     // Load collections snapshot for initial state
+    const [wSnap,bSnap,eSnap,sSnap] = await Promise.all([
+      COL.warrants.get(), COL.bracelets.get(), COL.events.get(), COL.service.get()
+    ]);
     DB.warrants  = wSnap.docs.map(d=>({_id:d.id,...d.data()}));
     DB.bracelets = bSnap.docs.map(d=>({_id:d.id,...d.data()}));
     DB.events    = eSnap.docs.map(d=>({_id:d.id,...d.data()}));
