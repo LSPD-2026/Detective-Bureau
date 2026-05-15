@@ -196,9 +196,9 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
 .scroll-top.show{opacity:1;}
 
 /* ═══ OVERLAY/MODAL ═══ */
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.78);z-index:300;display:none;align-items:flex-start;justify-content:center;padding:1.5rem 1rem;overflow-y:auto;}
+.modal{background:var(--paper);border:2px solid var(--ink);box-shadow:8px 8px 0 rgba(0,0,0,0.4);width:100%;max-width:1200px;animation:fadeUp 0.3s cubic-bezier(0.16,1,0.3,1) forwards;margin:auto;}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.78);z-index:300;display:none;align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto;}
 .overlay.open{display:flex;}
-.modal{background:var(--paper);border:2px solid var(--ink);box-shadow:8px 8px 0 rgba(0,0,0,0.4);width:100%;max-width:1000px;animation:fadeUp 0.3s cubic-bezier(0.16,1,0.3,1) forwards;margin:auto;}
 .mh{background:var(--ink);padding:1.1rem 1.8rem;display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid var(--amber);position:sticky;top:0;z-index:10;}
 .mh-title{font-family:'Special Elite',cursive;font-size:19px;color:var(--paper);}
 .mh-close{background:none;border:1px solid rgba(255,255,255,0.2);color:rgba(242,234,216,0.6);font-family:'IBM Plex Mono',monospace;font-size:10px;padding:5px 10px;cursor:pointer;transition:all 0.2s;}
@@ -457,7 +457,7 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
 .arch-del-btn{background:none;border:1px solid rgba(180,0,0,0.4);color:rgba(180,0,0,0.8);font-size:14px;width:24px;height:24px;border-radius:50%;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all 0.2s;font-weight:bold;padding:0;line-height:1;flex-shrink:0;}
 .arch-del-btn:hover{background:var(--red-stamp);color:#fff;border-color:var(--red-stamp);}
 
-@media(max-width:960px){
+@media(max-width:1200px){
   .portal-hero,.gway-grid,.mission-grid,.effectif-grid,.charte-grid,.pi-body,.svc-stats{grid-template-columns:1fr;gap:1.2rem;}
   .penal-grid,.frow,.manuels-grid,.wm-form-grid,.bm-form-grid{grid-template-columns:1fr;}
   .pchap:nth-child(odd){border-right:none;}
@@ -470,8 +470,31 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
   .cal-day{min-height:60px;}
 }
 
-/* ═══ EMPREINTES ═══ */
-#fingerprints-overlay .modal{background:#f8f9ff;}
+/* ═══ RICH TEXT EDITOR ═══ */
+.rte-wrap{display:flex;flex-direction:column;flex:1;}
+.rte-toolbar{display:flex;flex-wrap:wrap;gap:3px;padding:6px 8px;background:#f0f2ff;border:2px solid #c5cae9;border-bottom:1px solid #c5cae9;border-radius:8px 8px 0 0;}
+.rte-btn{background:none;border:1px solid transparent;border-radius:3px;padding:3px 7px;cursor:pointer;font-size:13px;color:#3949ab;transition:all 0.15s;line-height:1.4;}
+.rte-btn:hover{background:#e8eaff;border-color:#7986cb;}
+.rte-btn.active{background:#c5cae9;border-color:#7986cb;}
+.rte-sep{width:1px;background:#c5cae9;margin:2px 3px;align-self:stretch;}
+.rte-color-wrap{display:flex;align-items:center;gap:3px;}
+.rte-color-wrap input[type=color]{width:24px;height:24px;padding:1px;border:1px solid #c5cae9;border-radius:3px;cursor:pointer;}
+.rte-content{flex:1;width:100%;min-height:420px;background:#fff;border:2px solid #c5cae9;border-top:none;border-radius:0 0 8px 8px;padding:1.2rem;font-family:'Barlow',sans-serif;font-size:14px;color:#1a237e;line-height:1.7;outline:none;overflow-y:auto;transition:border-color 0.2s;}
+.rte-content:focus{border-color:#5c6bc0;box-shadow:0 0 0 3px rgba(92,107,192,0.12);}
+.rte-content img{max-width:100%;max-height:320px;cursor:move;border:2px solid transparent;border-radius:3px;}
+.rte-content img:hover{border-color:#7986cb;}
+.rte-content img.selected{border-color:#3949ab;}
+.rte-content:empty:before{content:attr(placeholder);color:#9fa8da;font-style:italic;pointer-events:none;}
+/* Image resize toolbar */
+.rte-img-toolbar{position:fixed;background:var(--ink);border:1px solid var(--amber);border-radius:4px;padding:4px 8px;display:none;gap:6px;align-items:center;z-index:9999;box-shadow:0 2px 10px rgba(0,0,0,0.4);}
+.rte-img-toolbar.show{display:flex;}
+.rte-img-toolbar label{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--amber-light);letter-spacing:0.1em;}
+.rte-img-toolbar input{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:var(--paper);font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 6px;width:60px;border-radius:2px;}
+.rte-img-toolbar button{background:rgba(181,130,26,0.2);border:1px solid var(--amber-dim);color:var(--amber-light);font-family:'IBM Plex Mono',monospace;font-size:9px;padding:2px 8px;cursor:pointer;border-radius:2px;}
+.rte-img-toolbar button:hover{background:var(--amber);color:var(--ink);}
+.rte-img-toolbar .rte-tb-del{background:rgba(139,26,26,0.3);border-color:var(--red-stamp);color:#d47070;}
+.rte-img-toolbar .rte-tb-del:hover{background:var(--red-stamp);color:#fff;}
+
 
 /* ═══ EN COURS badge ═══ */
 #encours-banner{transition:opacity 0.3s;}
@@ -492,7 +515,7 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
 <!-- Bandeau erreur Firebase (caché par défaut) -->
 <div id="fb-err" style="display:none;position:fixed;inset:0;z-index:99999;background:#0a0908;flex-direction:column;align-items:center;justify-content:center;gap:1rem;padding:2rem;">
   <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#d4a832;letter-spacing:0.1em;text-transform:uppercase;">⚠ Erreur de connexion Firebase</div>
-  <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:rgba(242,234,216,0.6);text-align:center;max-width:480px;line-height:1.8;">
+  <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:rgba(242,234,216,0.6);text-align:center;max-width:1000px;line-height:1.8;">
     Les scripts Firebase n'ont pas pu se charger.<br>
     Vérifiez votre connexion internet et rechargez la page.
   </div>
@@ -656,7 +679,7 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
 
 <!-- ══════ MODAL: GESTION MANUELS ══════ -->
 <div class="overlay" id="manuels-editor-overlay">
-  <div class="modal" style="max-width:800px;">
+  <div class="modal" style="max-width:1060px;">
     <div class="mh" style="border-bottom-color:var(--amber-light);">
       <span class="mh-title">📚 Gestion — Manuels & Documents</span>
       <button class="mh-close" onclick="closeManuelsEditor()">✕ Fermer</button>
@@ -755,7 +778,7 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
 
 <!-- MODAL: MODIFIER AVIS -->
 <div class="overlay" id="edit-warrant-overlay">
-  <div class="modal" style="max-width:660px;">
+  <div class="modal" style="max-width:920px;">
     <div class="mh wm-header"><span class="mh-title" style="color:#f0d080;">✏️ Modifier l'avis de recherche</span><button class="mh-close" onclick="closeEditWarrant()">✕</button></div>
     <div class="mb" style="background:#f5f2ea;">
       <input type="hidden" id="ew-idx">
@@ -824,7 +847,7 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
 
 <!-- MODAL: MODIFIER BRACELET -->
 <div class="overlay" id="edit-brac-overlay">
-  <div class="modal" style="max-width:700px;">
+  <div class="modal" style="max-width:1200px;">
     <div class="mh bm-header"><span class="mh-title" style="color:#90e0b0;">✏️ Modifier / Pointer le bracelet</span><button class="mh-close" onclick="closeEditBrac()">✕</button></div>
     <div class="mb" style="background:#f0faf4;">
       <input type="hidden" id="eb-idx">
@@ -885,7 +908,7 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
 
 <!-- ══════ MODAL: CALENDRIER ══════ -->
 <div class="overlay" id="calendrier-overlay">
-  <div class="modal" style="max-width:1100px;">
+  <div class="modal" style="max-width:1300px;">
     <div class="mh"><span class="mh-title">📅 Calendrier Opérationnel — C.I.U.</span><button class="mh-close" onclick="closeCalendrier()">✕ Fermer</button></div>
     <div class="mb">
       <div id="cal-modal-inner"></div>
@@ -895,7 +918,7 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
 
 <!-- MODAL: AJOUTER/MODIFIER EVENEMENT -->
 <div class="overlay" id="event-overlay">
-  <div class="modal" style="max-width:540px;">
+  <div class="modal" style="max-width:820px;">
     <div class="mh"><span class="mh-title" id="event-modal-title">📅 Ajouter un événement</span><button class="mh-close" onclick="closeEventModal()">✕</button></div>
     <div class="mb">
       <input type="hidden" id="ev-idx">
@@ -1019,7 +1042,7 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
 
 <!-- MODAL: MODIFIER ENTRÉE SERVICE -->
 <div class="overlay" id="edit-svc-overlay">
-  <div class="modal" style="max-width:480px;">
+  <div class="modal" style="max-width:1000px;">
     <div class="mh"><span class="mh-title">✏️ Modifier une entrée de service</span><button class="mh-close" onclick="closeEditSvc()">✕</button></div>
     <div class="mb">
       <input type="hidden" id="esvc-idx">
@@ -1041,7 +1064,7 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
 
 <!-- ══════ MODAL: ADMIN ══════ -->
 <div class="overlay" id="admin-overlay">
-  <div class="modal" style="max-width:960px;">
+  <div class="modal" style="max-width:1200px;">
     <div class="mh" style="border-bottom-color:var(--amber-light);"><span class="mh-title">⚙ Panneau Direction — C.I.U.</span><button class="mh-close" onclick="closeAdmin()">✕ Fermer</button></div>
     <div class="mb">
       <div class="admin-tabs">
@@ -1059,10 +1082,12 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
       <div class="atab-content" id="t-accounts">
         <div class="msec">Liste des comptes</div>
         <div id="accounts-list"></div>
-        <div class="msec">Ajouter un compte</div>
-        <div class="frow"><div class="ff"><label class="fl">Nom</label><input class="fi" id="nu-name" placeholder="Prénom Nom"></div><div class="ff"><label class="fl">E-mail</label><input class="fi" id="nu-email" type="email" placeholder="prenom.nom@gmail.com"></div></div>
+        <div class="msec">Ajouter un profil agent</div>
+        <div style="background:rgba(181,130,26,0.08);border-left:3px solid var(--amber);padding:8px 12px;margin-bottom:0.8rem;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--gray-ink);line-height:1.6;">
+          ⚠️ Créez d'abord le compte dans <strong>Firebase Console → Authentication → Add user</strong> avec l'email de l'agent, puis ajoutez le profil ici.
+        </div>
+        <div class="frow"><div class="ff"><label class="fl">Nom affiché</label><input class="fi" id="nu-name" placeholder="Prénom Nom"></div><div class="ff"><label class="fl">Email (même que Firebase Console)</label><input class="fi" id="nu-email" type="email" placeholder="prenom.nom@gmail.com"></div></div>
         <div class="frow">
-          <div class="ff"><label class="fl">Mot de passe</label><input class="fi" id="nu-pw" value="lspd-dd-2026"></div>
           <div class="ff"><label class="fl">Rôle</label>
             <select class="fs" id="nu-role">
               <option value="agent">Agent</option>
@@ -1072,9 +1097,8 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
             </select>
           </div>
         </div>
-        <button class="btn btn-p" onclick="addAccount()">+ Ajouter</button>
+        <button class="btn btn-p" onclick="addAccount()">+ Ajouter le profil</button>
         <div id="acc-msg" style="margin-top:0.5rem;"></div>
-      </div>
       <div class="atab-content" id="t-effectif">
         <div class="msec">Ajouter un membre</div>
         <div class="frow"><div class="ff"><label class="fl">Matricule</label><input class="fi" id="ef-mat"></div><div class="ff"><label class="fl">Nom complet</label><input class="fi" id="ef-nom"></div></div>
@@ -1158,7 +1182,7 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
 
 <!-- MODAL: MODIFIER MEMBRE -->
 <div class="overlay" id="edit-member-overlay">
-  <div class="modal" style="max-width:580px;">
+  <div class="modal" style="max-width:860px;">
     <div class="mh"><span class="mh-title">✏️ Modifier un membre</span><button class="mh-close" onclick="closeEditMember()">✕</button></div>
     <div class="mb">
       <input type="hidden" id="em-idx">
@@ -1190,7 +1214,7 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
 
 <!-- MODAL: CHANGER MDP -->
 <div class="overlay" id="changepw-overlay">
-  <div class="modal" style="max-width:400px;">
+  <div class="modal" style="max-width:1200px;">
     <div class="mh"><span class="mh-title">🔑 Changer mon mot de passe</span><button class="mh-close" onclick="closeChangePw()">✕</button></div>
     <div class="mb">
       <div class="ff" style="margin-bottom:0.8rem;"><label class="fl">Mot de passe actuel</label><input class="fi" type="password" id="pw-cur"></div>
@@ -1204,7 +1228,7 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
 
 <!-- ══════ MODAL: NOTES D'AGENT ══════ -->
 <div class="overlay" id="notes-overlay">
-  <div class="modal" style="max-width:960px;overflow:hidden;">
+  <div class="modal" style="max-width:1200px;overflow:hidden;">
     <div class="notes-header-bar">
       <div>
         <div class="notes-title-main">📓 Notes d'Agent</div>
@@ -1231,7 +1255,29 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
               <span class="notes-readonly-badge" id="notes-readonly-badge" style="display:none;">🔒 Lecture seule</span>
             </div>
           </div>
-          <textarea class="notes-textarea" id="notes-textarea" placeholder="Écrivez vos notes ici... Observations terrain, informations suspectes, mémos personnels, rappels..."></textarea>
+          <div class="rte-wrap" id="rte-notes-wrap">
+            <div class="rte-toolbar" id="rte-notes-toolbar">
+              <button class="rte-btn" onclick="rteCmd('notes-editor','bold')" title="Gras"><b>G</b></button>
+              <button class="rte-btn" onclick="rteCmd('notes-editor','italic')" title="Italique"><i>I</i></button>
+              <button class="rte-btn" onclick="rteCmd('notes-editor','underline')" title="Souligné"><u>S</u></button>
+              <button class="rte-btn" onclick="rteCmd('notes-editor','strikeThrough')" title="Barré"><s>B</s></button>
+              <div class="rte-sep"></div>
+              <button class="rte-btn" onclick="rteCmd('notes-editor','justifyLeft')" title="Gauche">⬅</button>
+              <button class="rte-btn" onclick="rteCmd('notes-editor','justifyCenter')" title="Centre">☰</button>
+              <button class="rte-btn" onclick="rteCmd('notes-editor','justifyRight')" title="Droite">➡</button>
+              <div class="rte-sep"></div>
+              <div class="rte-color-wrap" title="Couleur du texte">
+                <span style="font-size:11px;color:#555;">A</span>
+                <input type="color" id="rte-notes-color" value="#1a237e" onchange="rteColor('notes-editor',this.value)">
+              </div>
+              <div class="rte-sep"></div>
+              <button class="rte-btn" onclick="rteInsertImage('notes-editor')" title="Insérer image">🖼</button>
+            </div>
+            <div class="rte-content" id="notes-editor" contenteditable="true"
+              placeholder="Écrivez vos notes ici..."
+              oninput="onRteInput('notes-editor')"
+              style="min-height:420px;"></div>
+          </div>
           <div class="notes-save-row">
             <button class="notes-save-btn" id="notes-save-btn" onclick="saveNote()">💾 Sauvegarder</button>
             <span class="notes-saved-badge" id="notes-saved-badge">✓ Sauvegardé</span>
@@ -1246,6 +1292,7 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
 <!-- ════════ FIREBASE (synchrone) + SCRIPT PRINCIPAL ════════ -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script>
 // ═══════════════════════════════════════════════════════════
 //  C.I.U. PORTAL — Firebase Firestore Edition
@@ -1262,7 +1309,7 @@ const firebaseConfig = {
   messagingSenderId: "1072590977967",
   appId: "1:1072590977967:web:4d1b0b8b3a6bdcfb208d5a"
 };
-let fdb, COL;
+let fdb, COL, fauth;
 function initFirebase(){
   if(typeof firebase==='undefined'){
     console.error('Firebase non chargé');
@@ -1272,6 +1319,9 @@ function initFirebase(){
   try{
     if(!firebase.apps.length)firebase.initializeApp(firebaseConfig);
     fdb=firebase.firestore();
+    fauth=firebase.auth();
+    // Persistance de session navigateur
+    fauth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
     COL={
       config:fdb.collection('config'),warrants:fdb.collection('warrants'),
       bracelets:fdb.collection('bracelets'),events:fdb.collection('events'),
@@ -1281,31 +1331,19 @@ function initFirebase(){
   }catch(e){console.error('Firebase init error:',e);return false;}
 }
 
-// ── Session (localStorage uniquement) ─────────────────────
-const SSK='ciu_sess_v2', SESS_MS=15*60*1000;
-const ROOT='jamesjones.lspd@gmail.com';
-const DEV_EMAIL='john.anderson.ctg@gmail.com'; // Douglas Walker — développeur
-const PROTECTED_EMAILS=[ROOT, DEV_EMAIL];
-const DEF_PW='lspd-dd-2026';
-const loadSess=()=>{try{const r=localStorage.getItem(SSK);if(!r)return null;const s=JSON.parse(r);return Date.now()-s.ts<SESS_MS?s:null;}catch{return null;}};
-const saveSess=e=>localStorage.setItem(SSK,JSON.stringify({email:e,ts:Date.now()}));
-const clearSess=()=>localStorage.removeItem(SSK);
+// ── Session & Auth — Firebase Authentication ──────────────
+// Les mots de passe ne sont PLUS stockés dans Firestore.
+// Firebase Auth gère tout : hachage bcrypt, sessions sécurisées, reset par email.
+const ROOT_EMAIL='jamesjones.lspd@gmail.com';
+const DEV_EMAIL='john.anderson.ctg@gmail.com';
+const PROTECTED_EMAILS=[ROOT_EMAIL, DEV_EMAIL];
 
-// ── Sécurité : hachage SHA-256 ─────────────────────────────
+// Plus besoin de sha256/verifyPw/hashPw — Firebase Auth s'en charge
+// Gardé uniquement pour compatibilité avec anciens mots de passe lors de la migration
 async function sha256(str){
   const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));
   return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
 }
-// Vérification mot de passe : supporte pw en clair (migration) et haché
-async function verifyPw(input,stored){
-  if(!stored||!input)return false;
-  if(stored.length===64&&/^[0-9a-f]+$/.test(stored)){
-    return(await sha256(input))===stored;
-  }
-  // Mot de passe en clair (ancien) → accepter et migrer
-  return input===stored;
-}
-async function hashPw(pw){return sha256(pw);}
 
 // ── DB en mémoire (mis à jour par les listeners) ───────────
 let DB = { users:{}, effectif:[], online:{}, manuels:[], penalCode:[], warrants:[], bracelets:[], events:[], service:[], grades:[] };
@@ -1344,10 +1382,16 @@ async function fsAdd(col, data){ return await COL[col].add(data); }
 async function fsDelete(col, id){ await COL[col].doc(id).delete(); }
 async function fsGet(col, id){ const d=await COL[col].doc(id).get(); return d.exists?{id:d.id,...d.data()}:null; }
 
-// saveConfig : sauvegarde users/effectif/online/manuels/penalCode dans doc 'main'
+// saveConfig : sauvegarde les profils (SANS mots de passe) et données dans doc 'main'
+// Les mots de passe sont gérés UNIQUEMENT par Firebase Auth — jamais dans Firestore
 async function saveConfig(){
+  // Nettoyer les mots de passe avant sauvegarde (sécurité)
+  const safeUsers={};
+  Object.entries(DB.users||{}).forEach(([e,u])=>{
+    safeUsers[e]={name:u.name,role:u.role};// PAS de pw
+  });
   await fsSet('config','main',{
-    users: DB.users,
+    users: safeUsers,
     effectif: DB.effectif,
     online: DB.online||{},
     manuels: DB.manuels||[],
@@ -1561,37 +1605,25 @@ async function initApp(){
       showLoader('Initialisation de la base...');
       const def = getDefaultConfig();
       ensureExtendedDefaults(def);
+      const safeUsers={};
+      Object.entries(def.users||{}).forEach(([e,u])=>{safeUsers[e]={name:u.name,role:u.role};});
+      def.users=safeUsers;
       await fsSet('config','main', def);
-      DB.users          = def.users;
-      DB.effectif       = def.effectif;
-      DB.manuels        = def.manuels;
-      DB.penalCode      = def.penalCode;
-      DB.modules        = def.modules;
-      DB.missions       = def.missions;
-      DB.calCategories  = def.calCategories;
-      DB.fpConfig       = def.fpConfig;
-      DB.effectifInfobox= def.effectifInfobox;
-      DB.grades         = def.grades||[];
-      DB.roleNames      = def.roleNames||{};
-      DB.online         = {};
+      DB.users=safeUsers; DB.effectif=def.effectif; DB.manuels=def.manuels;
+      DB.penalCode=def.penalCode; DB.online={}; DB.modules=def.modules;
+      DB.missions=def.missions; DB.calCategories=def.calCategories;
+      DB.fpConfig=def.fpConfig; DB.effectifInfobox=def.effectifInfobox;
+      DB.grades=def.grades||[]; DB.roleNames=def.roleNames||{}; DB.charte=def.charte||[];
     } else {
       const d = snap.data();
-      DB.users          = d.users||{};
-      DB.effectif       = d.effectif||[];
-      DB.manuels        = d.manuels||[];
-      DB.penalCode      = d.penalCode||[];
-      DB.online         = d.online||{};
-      DB.modules        = d.modules||null;
-      DB.missions       = d.missions||null;
-      DB.calCategories  = d.calCategories||null;
-      DB.fpConfig       = d.fpConfig||null;
-      DB.effectifInfobox= d.effectifInfobox||'';
-      DB.grades         = d.grades||null;
-      DB.roleNames      = d.roleNames||{};
-      DB.charte         = d.charte||null;
+      DB.users=d.users||{}; DB.effectif=d.effectif||[]; DB.manuels=d.manuels||[];
+      DB.penalCode=d.penalCode||[]; DB.online=d.online||{};
+      DB.modules=d.modules||null; DB.missions=d.missions||null;
+      DB.calCategories=d.calCategories||null; DB.fpConfig=d.fpConfig||null;
+      DB.effectifInfobox=d.effectifInfobox||''; DB.grades=d.grades||null;
+      DB.roleNames=d.roleNames||{}; DB.charte=d.charte||null;
       ensureExtendedDefaults(DB);
     }
-    // Load collections snapshot for initial state
     const [wSnap,bSnap,eSnap,sSnap] = await Promise.all([
       COL.warrants.get(), COL.bracelets.get(), COL.events.get(), COL.service.get()
     ]);
@@ -1601,94 +1633,88 @@ async function initApp(){
     DB.events.sort((a,b)=>a.date.localeCompare(b.date));
     DB.service   = sSnap.docs.map(d=>({_id:d.id,...d.data()}));
     DB.service.sort((a,b)=>(b.ts||0)-(a.ts||0));
-
     startListeners();
     hideLoader();
     dbReady = true;
-    loadDirColor(); // Charge la couleur de la direction
+    applyGradeColors();
 
-    // Try auto-login from session
-    const sess = loadSess();
-    if(sess){ const ok=await doLogin(sess.email,true); if(!ok) clearSess(); }
-
+    // Firebase Auth gère la session automatiquement (persistance locale)
+    fauth.onAuthStateChanged(async function(fbUser){
+      if(fbUser){
+        await doLoginWithUser(fbUser);
+      } else {
+        if(currentEmail){
+          currentEmail=null; currentUser=null; userRole='agent';
+          document.getElementById('portal-page').classList.remove('active');
+          document.getElementById('portal-wrap').classList.remove('admin-mode');
+          document.getElementById('login-page').classList.add('active');
+          document.getElementById('session-timer').style.display='none';
+        }
+      }
+    });
   } catch(err){
     console.error('Firebase init error:',err);
     hideLoader();
-    alert('⚠️ Impossible de se connecter à Firebase.\nVérifiez votre connexion internet.\n\nErreur : '+err.message);
+    alert('⚠️ Impossible de se connecter à Firebase.\n\nErreur : '+err.message);
   }
 }
 
-// ── Touch session ──────────────────────────────────────────
-['click','keydown','scroll'].forEach(ev=>document.addEventListener(ev,()=>{if(currentEmail)saveSess(currentEmail);},{passive:true}));
+async function handleLogin(){
+  const emailInput=document.getElementById('email').value.trim().toLowerCase();
+  const pw=document.getElementById('password').value;
+  const errEl=document.getElementById('login-err');
+  errEl.classList.remove('show');
+  if(!emailInput||!pw){errEl.textContent='✕ Renseignez votre identifiant et mot de passe.';errEl.classList.add('show');return;}
+  showLoader('Authentification...');
+  try{
+    await fauth.signInWithEmailAndPassword(emailInput, pw);
+    document.getElementById('password').value='';
+    hideLoader();
+  }catch(err){
+    hideLoader();
+    let msg='✕ Identifiants incorrects.';
+    if(err.code==='auth/user-not-found'||err.code==='auth/wrong-password'||err.code==='auth/invalid-credential') msg='✕ Identifiant ou mot de passe incorrect.';
+    else if(err.code==='auth/too-many-requests') msg='✕ Trop de tentatives. Réessayez dans quelques minutes.';
+    else if(err.code==='auth/user-disabled') msg='✕ Ce compte a été désactivé.';
+    errEl.textContent=msg;
+    errEl.classList.add('show');
+    document.getElementById('password').value='';
+  }
+}
 
-// ── LOGIN ──────────────────────────────────────────────────
-async function doLogin(email, fromSession=false){
-  const u=DB.users[email];
-  if(!u) return false;
-  currentEmail=email; currentUser=u.name; userRole=u.role||'agent';
-  // Douglas Walker (dev) a accès direction même si son rôle est 'agent'
-  if(email===DEV_EMAIL) userRole='direction';
-  // Mark online
-  DB.online[email]={name:u.name,since:new Date().toISOString()};
-  saveConfig(); // fire-and-forget
-  saveSess(email);
+async function doLoginWithUser(fbUser){
+  const email=fbUser.email;
+  const profile=DB.users[email]||{name:fbUser.displayName||email.split('@')[0],role:'agent'};
+  currentEmail=email; currentUser=profile.name; userRole=profile.role||'agent';
+  if(PROTECTED_EMAILS.includes(email)) userRole='direction';
+  DB.online[email]={name:currentUser,since:new Date().toISOString()};
+  saveConfig();
   document.getElementById('nav-username').textContent=currentUser;
   document.getElementById('hero-username').textContent=currentUser;
   const rb=document.getElementById('nav-role-badge');
-  rb.textContent=roleName(userRole); rb.className='nav-role-badge role-'+(userRole==='direction'?'direction':userRole==='responsable'?'responsable':'agent');
-  // Admin : Direction + Dev
+  const roleClass=userRole==='direction'?'direction':userRole==='responsable'?'responsable':userRole==='procureur'?'procureur':'agent';
+  rb.textContent=roleName(userRole); rb.className='nav-role-badge role-'+roleClass;
   const showAdmin=isDirection()||isDev();
   document.getElementById('admin-nav-btn').style.display=showAdmin?'inline-block':'none';
-  // Service : Direction + Resp (pas procureur)
-  document.getElementById('service-nav-btn').style.display=(isResp()&&userRole!=='procureur')?'inline-block':'none';
+  document.getElementById('service-nav-btn').style.display=(isResp()&&!isProcureur())?'inline-block':'none';
   document.getElementById('session-timer').style.display='inline';
+  sessionStartTime=Date.now();
   if(showAdmin){
     document.getElementById('portal-wrap').classList.add('admin-mode');
-    document.getElementById('penal-edit-btn').style.display='inline-block';
-    document.getElementById('manuels-edit-btn').style.display='inline-block';
-    document.getElementById('modules-edit-btn').style.display='inline-block';
-    document.getElementById('missions-edit-btn').style.display='inline-block';
-    document.getElementById('cal-settings-btn').style.display='inline-block';
-    document.getElementById('effectif-infobox-btn').style.display='inline-block';
-    document.getElementById('fp-settings-btn').style.display='inline-block';
+    ['penal-edit-btn','manuels-edit-btn','modules-edit-btn','missions-edit-btn','cal-settings-btn','effectif-infobox-btn','fp-settings-btn'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.display='inline-block';});
   } else {
-    document.getElementById('penal-edit-btn').style.display='none';
-    document.getElementById('manuels-edit-btn').style.display='none';
-    document.getElementById('modules-edit-btn').style.display='none';
-    document.getElementById('missions-edit-btn').style.display='none';
-    document.getElementById('cal-settings-btn').style.display='none';
-    document.getElementById('effectif-infobox-btn').style.display='none';
-    document.getElementById('fp-settings-btn').style.display='none';
+    document.getElementById('portal-wrap').classList.remove('admin-mode');
+    ['penal-edit-btn','manuels-edit-btn','modules-edit-btn','missions-edit-btn','cal-settings-btn','effectif-infobox-btn','fp-settings-btn'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.display='none';});
   }
+  const charteBtn=document.getElementById('charte-edit-btn');
+  if(charteBtn)charteBtn.style.display=isDirection()?'inline-block':'none';
   document.getElementById('login-page').classList.remove('active');
   document.getElementById('portal-page').classList.add('active');
   renderEffectif(); renderUpcomingEvents(); renderPenalGrid();
   renderModulesGrid(); renderMissionsGrid(); renderCalLegend();
   renderEffectifInfobox(); buildEvTypeOptions(); checkEnCours();
   renderCharte(); applyGradeColors();
-  // Afficher le bouton édition charte pour Direction
-  const charteBtn=document.getElementById('charte-edit-btn');
-  if(charteBtn)charteBtn.style.display=isDirection()?'inline-block':'none';
-  return true;
-}
-
-async function handleLogin(){
-  const email=document.getElementById('email').value.trim().toLowerCase();
-  const pw=document.getElementById('password').value;
-  const u=DB.users[email];
-  if(u&&await verifyPw(pw,u.pw)){
-    // Migration automatique : si le mot de passe est encore en clair, le hacher
-    if(u.pw.length!==64||!/^[0-9a-f]+$/.test(u.pw)){
-      DB.users[email].pw=await hashPw(pw);
-      saveConfig();
-    }
-    document.getElementById('login-err').classList.remove('show');
-    await doLogin(email);
-    window.scrollTo(0,0);
-  } else {
-    document.getElementById('login-err').classList.add('show');
-    document.getElementById('password').value='';
-  }
+  window.scrollTo(0,0);
 }
 
 async function handleLogout(){
@@ -1696,7 +1722,8 @@ async function handleLogout(){
     delete DB.online[currentEmail];
     await saveConfig();
   }
-  clearSess(); currentEmail=null; currentUser=null; userRole='agent';
+  currentEmail=null; currentUser=null; userRole='agent';
+  await fauth.signOut();
   document.getElementById('portal-page').classList.remove('active');
   document.getElementById('portal-wrap').classList.remove('admin-mode');
   document.getElementById('login-page').classList.add('active');
@@ -2261,48 +2288,55 @@ function refreshOnline(){
   </tbody></table>`;
 }
 function renderAccounts(){
-  const canManage=isDirection()||isDev()||currentEmail===ROOT;
-  const canSeePasswords=isDirection()||isDev();
-  document.getElementById('accounts-list').innerHTML=`<table class="a-table"><thead><tr><th>Nom</th><th>Identifiant</th><th>Mot de passe / Reset</th><th>Rôle</th><th>Action</th></tr></thead><tbody>
+  const canManage=isDirection()||isDev();
+  document.getElementById('accounts-list').innerHTML=`<table class="a-table"><thead><tr><th>Nom</th><th>Email Firebase</th><th>Rôle</th><th>Réinitialiser MDP</th><th>Action</th></tr></thead><tbody>
     ${Object.entries(DB.users).map(([e,u])=>`<tr>
       <td style="font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;">${u.name}</td>
       <td style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--gray-light);">${e}</td>
-      <td><div style="display:flex;gap:4px;align-items:center;">
-        <input type="password" placeholder="Nouveau MDP..." id="adm-pw-${e.replace(/[^a-z0-9]/gi,'_')}" style="background:var(--paper-mid);border:1px solid var(--divider);padding:2px 7px;font-family:'IBM Plex Mono',monospace;font-size:10px;width:100px;" ${isProtected(e)&&!canManage?'disabled':''}>
-        <button onclick="adminChangePw('${e}')" style="background:var(--ink);color:var(--amber-light);border:none;font-family:'IBM Plex Mono',monospace;font-size:8px;padding:2px 6px;cursor:pointer;" ${isProtected(e)&&!canManage?'disabled':''}>✓</button>
-      </div></td>
       <td><select style="background:var(--paper-mid);border:1px solid var(--divider);padding:1px 5px;font-family:'IBM Plex Mono',monospace;font-size:10px;cursor:pointer;" onchange="updateRole('${e}',this.value)" ${(isProtected(e)&&!canManage)?'disabled':''}>
         <option value="agent" ${u.role==='agent'?'selected':''}>Agent</option>
         <option value="responsable" ${u.role==='responsable'?'selected':''}>Responsable</option>
         <option value="direction" ${u.role==='direction'?'selected':''}>Direction</option>
         <option value="procureur" ${u.role==='procureur'?'selected':''}>Bureau du Procureur</option>
       </select></td>
+      <td><button onclick="adminSendReset('${e}')" style="background:rgba(181,130,26,0.15);border:1px solid var(--amber-dim);color:var(--amber-dim);font-family:'IBM Plex Mono',monospace;font-size:9px;padding:3px 10px;cursor:pointer;border-radius:2px;" ${!canManage?'disabled':''}>📧 Envoyer email reset</button></td>
       <td>${!isProtected(e)?`<button class="btn btn-d btn-sm" onclick="removeAccount('${e}')">✕</button>`:'<span style="font-size:9px;color:var(--gray-light);">🔒 Protégé</span>'}</td>
     </tr>`).join('')}
   </tbody></table>`;
 }
-async function adminChangePw(e){
-  const inputId='adm-pw-'+e.replace(/[^a-z0-9]/gi,'_');
-  const el=document.getElementById(inputId);
-  if(!el||!el.value.trim()){return;}
-  if(el.value.trim().length<6){alert('Minimum 6 caractères.');return;}
-  DB.users[e].pw=await hashPw(el.value.trim());
-  await saveConfig();el.value='';
-  showMsg('acc-msg','Mot de passe mis à jour pour '+DB.users[e].name,true);
+async function adminSendReset(email){
+  if(!isDirection()){alert('Accès Direction requis.');return;}
+  try{
+    await fauth.sendPasswordResetEmail(email);
+    showMsg('acc-msg','Email de réinitialisation envoyé à '+email+'. L\'agent pourra choisir son nouveau mot de passe.',true);
+  }catch(err){
+    let msg=err.message;
+    if(err.code==='auth/user-not-found') msg='Aucun compte Firebase pour '+email+'. Cr\u00e9ez d\u2019abord le compte dans Firebase Console > Authentication.';
+    showMsg('acc-msg','Erreur : '+msg,false);
+  }
 }
-async function updatePw(e,v){if(!v.trim())return;DB.users[e].pw=await hashPw(v.trim());await saveConfig();showMsg('acc-msg','Mot de passe mis à jour.',true);}
-async function updateRole(e,v){DB.users[e].role=v;await saveConfig();showMsg('acc-msg','Rôle mis à jour : '+v,true);}
+async function updateRole(e,v){
+  if(!DB.users[e])return;
+  DB.users[e].role=v;
+  await saveConfig();
+  showMsg('acc-msg','Rôle mis à jour : '+v,true);
+}
 async function addAccount(){
-  const n=document.getElementById('nu-name').value.trim(),e=document.getElementById('nu-email').value.trim().toLowerCase(),p=document.getElementById('nu-pw').value.trim()||DEF_PW,r=document.getElementById('nu-role').value;
+  const n=document.getElementById('nu-name').value.trim();
+  const e=document.getElementById('nu-email').value.trim().toLowerCase();
+  const r=document.getElementById('nu-role').value;
   if(!n||!e){showMsg('acc-msg','Nom et e-mail obligatoires.',false);return;}
-  if(DB.users[e]){showMsg('acc-msg','Ce compte existe déjà.',false);return;}
-  DB.users[e]={name:n,pw:await hashPw(p),role:r};await saveConfig();
-  document.getElementById('nu-name').value='';document.getElementById('nu-email').value='';document.getElementById('nu-pw').value=DEF_PW;
-  renderAccounts();showMsg('acc-msg','Compte créé : '+n,true);
+  if(DB.users[e]){showMsg('acc-msg','Ce profil existe déjà.',false);return;}
+  // Créer le profil dans Firestore (le compte Firebase Auth doit être créé séparément via Firebase Console ou email d'invitation)
+  DB.users[e]={name:n,role:r};
+  await saveConfig();
+  document.getElementById('nu-name').value='';document.getElementById('nu-email').value='';
+  renderAccounts();
+  showMsg('acc-msg','Profil créé pour '+n+'. ⚠️ Créez aussi le compte dans Firebase Console > Authentication avec le même email.',true);
 }
 async function removeAccount(e){
   if(isProtected(e)){alert('Ce compte est protégé et ne peut pas être supprimé.');return;}
-  if(!confirm('Supprimer le compte de '+DB.users[e].name+'?'))return;
+  if(!confirm('Supprimer le profil de '+DB.users[e].name+' ?\n⚠️ Supprimez aussi le compte dans Firebase Console > Authentication.'))return;
   delete DB.users[e];if(DB.online&&DB.online[e])delete DB.online[e];
   await saveConfig();renderAccounts();
 }
@@ -2346,15 +2380,27 @@ async function deleteMember(){
 function openChangePw(){document.getElementById('changepw-overlay').classList.add('open');}
 function closeChangePw(){document.getElementById('changepw-overlay').classList.remove('open');}
 async function changePassword(){
-  const c=document.getElementById('pw-cur').value,n=document.getElementById('pw-new').value,cf=document.getElementById('pw-conf').value;
+  const c=document.getElementById('pw-cur').value;
+  const n=document.getElementById('pw-new').value;
+  const cf=document.getElementById('pw-conf').value;
   if(!c||!n||!cf){showMsg('pw-msg','Remplissez tous les champs.',false);return;}
-  const ok=await verifyPw(c,DB.users[currentEmail].pw);
-  if(!ok){showMsg('pw-msg','Mot de passe actuel incorrect.',false);return;}
   if(n!==cf){showMsg('pw-msg','Les mots de passe ne correspondent pas.',false);return;}
-  if(n.length<6){showMsg('pw-msg','Minimum 6 caractères.',false);return;}
-  DB.users[currentEmail].pw=await hashPw(n);await saveConfig();
-  ['pw-cur','pw-new','pw-conf'].forEach(id=>document.getElementById(id).value='');
-  showMsg('pw-msg','Mot de passe modifié ✓',true);setTimeout(closeChangePw,1500);
+  if(n.length<8){showMsg('pw-msg','Minimum 8 caractères.',false);return;}
+  try{
+    // Re-authentification requise par Firebase avant de changer le mot de passe
+    const credential=firebase.auth.EmailAuthProvider.credential(currentEmail, c);
+    await fauth.currentUser.reauthenticateWithCredential(credential);
+    await fauth.currentUser.updatePassword(n);
+    ['pw-cur','pw-new','pw-conf'].forEach(id=>document.getElementById(id).value='');
+    showMsg('pw-msg','Mot de passe modifié avec succès ✓',true);
+    setTimeout(closeChangePw,1800);
+  }catch(err){
+    let msg='Erreur lors du changement de mot de passe.';
+    if(err.code==='auth/wrong-password') msg='Mot de passe actuel incorrect.';
+    else if(err.code==='auth/weak-password') msg='Nouveau mot de passe trop faible (min. 8 caractères).';
+    else if(err.code==='auth/too-many-requests') msg='Trop de tentatives. Réessayez plus tard.';
+    showMsg('pw-msg',msg,false);
+  }
 }
 
 // ── UTILS ──────────────────────────────────────────────────
@@ -2535,6 +2581,113 @@ async function addPenalChapter(){
   const sl=document.getElementById('penal-chap-list');if(sl)sl.scrollTop=sl.scrollHeight;
 }
 
+// ── ÉDITEUR TEXTE RICHE ────────────────────────────────────
+let rteSelectedImg=null;
+
+function rteCmd(editorId, cmd, value){
+  document.getElementById(editorId).focus();
+  document.execCommand(cmd, false, value||null);
+}
+function rteColor(editorId, color){
+  document.getElementById(editorId).focus();
+  document.execCommand('foreColor', false, color);
+}
+function rteInsertImage(editorId){
+  const input=document.createElement('input');
+  input.type='file';
+  input.accept='image/png,image/jpeg,image/gif,image/webp';
+  input.onchange=function(){
+    const file=input.files[0];
+    if(!file)return;
+    if(file.size>5*1024*1024){alert('Image trop grande (max 5 Mo). Les vidéos ne sont pas acceptées.');return;}
+    const reader=new FileReader();
+    reader.onload=function(ev){
+      const el=document.getElementById(editorId);
+      el.focus();
+      const uid='rte'+Date.now();
+      const imgHtml='<img src="'+ev.target.result+'" data-rte-img="1" data-rte-id="'+uid+'" style="width:300px;height:auto;cursor:pointer;vertical-align:middle;max-width:100%;">';
+      document.execCommand('insertHTML',false,imgHtml);
+      setTimeout(function(){rteBindImages(editorId);},150);
+    };
+    reader.readAsDataURL(file);
+  };
+  input.click();
+}
+function rteBindImages(editorId){
+  const el=document.getElementById(editorId);
+  if(!el)return;
+  el.querySelectorAll('img[data-rte-img]').forEach(function(img){
+    img.onclick=null;
+    img.addEventListener('click',function(e){e.stopPropagation();rteSelectImg(this);},false);
+    img.style.cursor='pointer';
+  });
+}
+function rteSelectImg(img){
+  document.querySelectorAll('img[data-rte-img]').forEach(function(i){i.style.outline='none';});
+  rteSelectedImg=img;
+  img.style.outline='2px solid #3949ab';
+  const tb=document.getElementById('rte-img-toolbar');
+  if(!tb)return;
+  const rect=img.getBoundingClientRect();
+  const sy=window.scrollY||document.documentElement.scrollTop;
+  const sx=window.scrollX||document.documentElement.scrollLeft;
+  let top=rect.bottom+8+sy;
+  if(rect.bottom+60>window.innerHeight) top=rect.top-60+sy;
+  tb.style.top=Math.max(4,top)+'px';
+  tb.style.left=Math.max(4,Math.min(rect.left+sx, window.innerWidth-420))+'px';
+  document.getElementById('rte-img-w').value=Math.round(img.offsetWidth)||300;
+  document.getElementById('rte-img-h').value=Math.round(img.offsetHeight)||'';
+  tb.classList.add('show');
+}
+function rteHideImgToolbar(){
+  const tb=document.getElementById('rte-img-toolbar');
+  if(tb)tb.classList.remove('show');
+  if(rteSelectedImg){rteSelectedImg.style.outline='none';rteSelectedImg=null;}
+}
+function rteApplyImgSize(){
+  if(!rteSelectedImg)return;
+  const wv=document.getElementById('rte-img-w').value;
+  const hv=document.getElementById('rte-img-h').value;
+  const unit=document.getElementById('rte-img-unit').value||'px';
+  if(wv){rteSelectedImg.style.width=wv+unit;rteSelectedImg.style.maxWidth='none';}
+  if(hv){rteSelectedImg.style.height=hv+unit;}
+  else{rteSelectedImg.style.height='auto';}
+  setTimeout(function(){
+    if(rteSelectedImg){
+      document.getElementById('rte-img-w').value=Math.round(rteSelectedImg.offsetWidth);
+      document.getElementById('rte-img-h').value=Math.round(rteSelectedImg.offsetHeight);
+    }
+  },60);
+}
+function rteImgPreset(w){
+  if(!rteSelectedImg)return;
+  document.getElementById('rte-img-unit').value='px';
+  document.getElementById('rte-img-w').value=w;
+  document.getElementById('rte-img-h').value='';
+  rteApplyImgSize();
+}
+function rteImgAutoSize(){
+  if(!rteSelectedImg)return;
+  rteSelectedImg.style.width='100%';rteSelectedImg.style.maxWidth='100%';rteSelectedImg.style.height='auto';
+  document.getElementById('rte-img-w').value='';document.getElementById('rte-img-h').value='';
+}
+function rteDeleteImg(){
+  if(!rteSelectedImg)return;
+  rteSelectedImg.remove();
+  rteHideImgToolbar();
+}
+document.addEventListener('click',function(e){
+  const tb=document.getElementById('rte-img-toolbar');
+  if(tb&&!tb.contains(e.target)&&!e.target.hasAttribute('data-rte-img')){
+    rteHideImgToolbar();
+  }
+},{passive:true});
+function onRteInput(editorId){}
+function getRteHtml(editorId){var el=document.getElementById(editorId);return el?el.innerHTML:'';}
+function setRteHtml(editorId, html){
+  var el=document.getElementById(editorId);
+  if(el){el.innerHTML=html||'';setTimeout(function(){rteBindImages(editorId);},100);}
+}
 // ── NOTES (Firebase) ───────────────────────────────────────
 let currentNoteKey=null;
 function noteKey(email){return'note_'+email.replace(/[^a-z0-9]/gi,'_');}
@@ -2560,28 +2713,31 @@ async function selectNote(target){
   const canEdit=isMe;
   if(isMe){document.getElementById('notes-my-btn').classList.add('active');}
   else{const b=document.getElementById('note-btn-'+currentNoteKey);if(b)b.classList.add('active');}
-  const ta=document.getElementById('notes-textarea');
   const titleEl=document.getElementById('notes-editor-title');
   const meta=document.getElementById('notes-editor-meta');
   const roLabel=document.getElementById('notes-readonly-badge');
   const saveBtn=document.getElementById('notes-save-btn');
+  const editor=document.getElementById('notes-editor');
+  const toolbar=document.getElementById('rte-notes-toolbar');
   titleEl.textContent=isMe?'Ma note personnelle':'Note de '+userName;
-  ta.value='...'; ta.disabled=true;
+  if(editor)editor.innerHTML='<em style="color:#aaa;">Chargement...</em>';
   meta.textContent='Chargement...';
   try {
     const snap=await COL.notes.doc(currentNoteKey).get();
     const noteData=snap.exists?snap.data():{content:'',lastEdit:''};
-    ta.value=noteData.content||'';
+    if(editor)editor.innerHTML=noteData.content||'';
     meta.textContent=noteData.lastEdit?'Dernière modification : '+noteData.lastEdit:'Aucune modification enregistrée';
-  } catch(err){ ta.value=''; meta.textContent='Erreur de chargement'; }
-  ta.disabled=!canEdit;
+    setTimeout(()=>rteBindImages('notes-editor'),100);
+  } catch(err){ if(editor)editor.innerHTML=''; meta.textContent='Erreur de chargement'; }
+  if(editor){editor.contentEditable=canEdit?'true':'false';editor.style.opacity=canEdit?'1':'0.7';}
+  if(toolbar)toolbar.style.display=canEdit?'flex':'none';
   roLabel.style.display=canEdit?'none':'inline-block';
-  saveBtn.disabled=!canEdit;
+  if(saveBtn)saveBtn.disabled=!canEdit;
   document.getElementById('notes-saved-badge').style.display='none';
 }
 async function saveNote(){
   if(!currentNoteKey)return;
-  const content=document.getElementById('notes-textarea').value;
+  const content=getRteHtml('notes-editor');
   const now=new Date().toLocaleString('fr-FR');
   await fsSet('notes',currentNoteKey,{content,lastEdit:now,savedBy:currentUser});
   document.getElementById('notes-editor-meta').textContent='Dernière modification : '+now;
@@ -2638,15 +2794,15 @@ document.getElementById('password').addEventListener('keydown',e=>{if(e.key==='E
 document.getElementById('email').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('password').focus();});
 window.addEventListener('scroll',()=>{const b=document.getElementById('scrollTop');window.scrollY>400?b.classList.add('show'):b.classList.remove('show');});
 
-// Session timer
+// Indicateur session — Firebase Auth gère la persistance automatiquement
+// Le timer affiche simplement la durée de la session actuelle
+let sessionStartTime=null;
 setInterval(()=>{
-  if(!currentEmail)return;
-  const sess=loadSess();if(!sess){handleLogout();return;}
-  const rem=SESS_MS-(Date.now()-sess.ts);if(rem<=0){handleLogout();return;}
-  const mins=Math.floor(rem/60000),secs=Math.floor((rem%60000)/1000);
-  const tv=document.getElementById('timer-val'),tw=document.getElementById('session-timer');
+  if(!currentEmail||!sessionStartTime)return;
+  const elapsed=Date.now()-sessionStartTime;
+  const mins=Math.floor(elapsed/60000),secs=Math.floor((elapsed%60000)/1000);
+  const tv=document.getElementById('timer-val');
   if(tv)tv.textContent=String(mins).padStart(2,'0')+':'+String(secs).padStart(2,'0');
-  if(tw)tw.style.color=rem<120000?'rgba(220,80,80,0.85)':'rgba(181,130,26,0.65)';
 },1000);
 
 // ── BOOT ───────────────────────────────────────────────────
@@ -2872,18 +3028,19 @@ function renderEffectifInfobox(){
   const txt=DB.effectifInfobox||getDefaultEffectifInfobox();
   const el=document.getElementById('effectif-infobox-text');
   if(el){
-    // Bold → strong tags already stripped; show plain text with bold keywords
-    el.innerHTML=txt.replace(/(Directeur|Directeur Adjoint|Responsable|Inspecteur \/ Officier Principal|Inspecteur \/ Agent de P\.B\.|Enquêteur \/ Recrue)/g,'<strong>$1</strong>');
+    // Si c'est du HTML (contient des balises) on l'affiche tel quel
+    if(txt.includes('<')){el.innerHTML=txt;}
+    else{el.innerHTML=txt.replace(/(Directeur|Directeur Adjoint|Responsable|Inspecteur \/ Officier Principal|Inspecteur \/ Agent de P\.B\.|Enquêteur \/ Recrue)/g,'<strong>$1</strong>');}
   }
 }
 function openInfoboxEditor(){
   if(!isDirection())return;
-  document.getElementById('infobox-textarea').value=DB.effectifInfobox||getDefaultEffectifInfobox();
+  setRteHtml('infobox-editor', DB.effectifInfobox||getDefaultEffectifInfobox());
   document.getElementById('infobox-editor-overlay').classList.add('open');
 }
 function closeInfoboxEditor(){document.getElementById('infobox-editor-overlay').classList.remove('open');}
 async function saveInfobox(){
-  DB.effectifInfobox=document.getElementById('infobox-textarea').value.trim();
+  DB.effectifInfobox=getRteHtml('infobox-editor');
   await saveConfig();
   renderEffectifInfobox();
   closeInfoboxEditor();
@@ -3100,16 +3257,11 @@ function buildFpPosteSelect(){
 }
 
 function openFingerprints(){
-  const cfg=DB.fpConfig||getDefaultFpConfig();
-  buildFpPrints('fp-top-prints',cfg.prints.top);
-  buildFpPrints('fp-bottom-prints',cfg.prints.bottom);
-  buildFpCheckboxes();
-  buildFpPosteSelect();
-  // Pre-fill agent name
-  if(currentUser)document.getElementById('fp-agent').value=currentUser;
-  document.getElementById('fp-report-out').style.display='none';
-  document.getElementById('fp-copy-row').style.display='none';
-  document.getElementById('fp-settings-btn').style.display=isDirection()?'inline-block':'none';
+  // Pré-remplir le nom de l'agent
+  if(currentUser&&document.getElementById('fp-agent'))document.getElementById('fp-agent').value=currentUser;
+  // Afficher le bouton paramètres seulement pour Direction
+  const fpBtn=document.getElementById('fp-settings-btn');
+  if(fpBtn)fpBtn.style.display=isDirection()?'inline-block':'none';
   document.getElementById('fingerprints-overlay').classList.add('open');
 }
 function closeFingerprints(){document.getElementById('fingerprints-overlay').classList.remove('open');}
@@ -3130,12 +3282,9 @@ function generateFpReport(){
   document.getElementById('fp-copy-row').style.display='block';
 }
 function clearFpForm(){
-  ['fp-date','fp-affaire','fp-nom','fp-prenom','fp-num'].forEach(id=>document.getElementById(id).value='');
-  if(currentUser)document.getElementById('fp-agent').value=currentUser;
-  const cfg=DB.fpConfig||getDefaultFpConfig();
-  cfg.checkboxes.forEach(lbl=>{const el=document.getElementById('fp-chk-'+lbl.replace(/\s+/g,'_'));if(el)el.checked=false;});
-  document.getElementById('fp-report-out').style.display='none';
-  document.getElementById('fp-copy-row').style.display='none';
+  ['fp-date','fp-affaire','fp-nom','fp-prenom','fp-num','fp-agent'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['fp-chk-victime','fp-chk-lsms','fp-chk-temoin','fp-chk-lspd','fp-chk-suspect','fp-chk-marshal'].forEach(id=>{const el=document.getElementById(id);if(el)el.checked=false;});
+  if(currentUser&&document.getElementById('fp-agent'))document.getElementById('fp-agent').value=currentUser;
 }
 function copyFpReport(){
   const txt=document.getElementById('fp-report-out').textContent;
@@ -3533,58 +3682,118 @@ function generateServicePdf2(){
 </style>
 
 <!-- ══════ MODAL: EMPREINTES DIGITALES ══════ -->
+<!-- ══════ MODAL: EMPREINTES DIGITALES ══════ -->
 <div class="overlay" id="fingerprints-overlay">
-  <div class="modal" style="max-width:1100px;">
-    <div class="mh" style="background:#1a1a2e;border-bottom:2px solid #4a90d4;">
-      <span class="mh-title" style="color:#90c8f0;">🖐 Module H — Empreintes Digitales — D.D. × D.O.J.</span>
+  <div class="modal" style="max-width:1280px;padding:0;overflow:hidden;">
+    <div class="mh" style="background:var(--ink);border-bottom:3px solid var(--amber);">
+      <span class="mh-title" style="color:var(--paper);">🖐 Module H — Empreintes Digitales — D.D. × D.O.J.</span>
       <div style="display:flex;gap:8px;align-items:center;">
-        <button id="fp-settings-btn" onclick="openFpSettings()" style="display:none;background:rgba(74,144,212,0.2);border:1px solid rgba(74,144,212,0.4);color:#90c8f0;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:4px 10px;cursor:pointer;">⚙ Paramètres</button>
+        <button id="fp-settings-btn" onclick="openFpSettings()" style="display:none;background:rgba(181,130,26,0.2);border:1px solid var(--amber-dim);color:var(--amber-light);font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:4px 10px;cursor:pointer;">⚙ Paramètres</button>
         <button class="mh-close" onclick="closeFingerprints()">✕ Fermer</button>
       </div>
     </div>
-    <div class="mb" style="background:#f8f9ff;padding:1.5rem;">
-      <!-- Main fingerprint form -->
-      <div id="fp-form-area">
-        <!-- Top row: 5 right-hand prints -->
-        <div style="display:flex;justify-content:center;gap:2rem;margin-bottom:1.5rem;">
-          <div id="fp-top-prints" style="display:flex;gap:2rem;justify-content:center;flex-wrap:wrap;"></div>
+
+    <!-- En-tête style original : logo + titre -->
+    <div id="fp-header" style="display:flex;justify-content:space-between;align-items:center;padding:10px 20px;background:var(--amber);color:var(--ink);">
+      <img src="ciu_logo.png" alt="CIU Logo" style="width:80px;height:80px;object-fit:contain;" onerror="this.style.display='none'">
+      <h2 style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;letter-spacing:0.1em;text-transform:uppercase;margin:0;">Empreintes Digitales — C.I.U.</h2>
+      <img src="ciu_logo.png" alt="CIU Logo" style="width:80px;height:80px;object-fit:contain;" onerror="this.style.display='none'">
+    </div>
+
+    <!-- Corps du formulaire style original -->
+    <div style="background:#fff;padding:20px;">
+
+      <!-- Rangée haute d'empreintes (empr1 à empr5) -->
+      <div style="display:flex;justify-content:space-evenly;padding:10px;margin-bottom:10px;">
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          <img src="empr1.png" alt="Empreinte Pouce" style="width:90px;height:100px;border-radius:4px;object-fit:contain;" onerror="this.style.background:'#eee'">
+          <label style="font-family:'Barlow',sans-serif;font-size:13px;margin-top:4px;">Pouce</label>
         </div>
-        <!-- Fields row -->
-        <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:1.5rem;align-items:start;margin-bottom:1.2rem;">
-          <div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin-bottom:0.8rem;">
-              <div class="ff"><label class="fl">Date</label><input class="fi" id="fp-date" type="date"></div>
-              <div class="ff"><label class="fl">Affaire</label><input class="fi" id="fp-affaire" placeholder="N° affaire..."></div>
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin-bottom:0.8rem;">
-              <div class="ff"><label class="fl">Nom de l'individu</label><input class="fi" id="fp-nom" placeholder="NOM" oninput="this.value=this.value.toUpperCase()"></div>
-              <div class="ff"><label class="fl">Prénom de l'individu</label><input class="fi" id="fp-prenom" placeholder="Prénom"></div>
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;">
-              <div class="ff"><label class="fl">Numéro d'enregistrement</label><input class="fi" id="fp-num" placeholder="Ex: 53212"></div>
-              <div class="ff"><label class="fl">NOM de l'agent</label><input class="fi" id="fp-agent" placeholder="Agent traitant"></div>
-            </div>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:0.6rem;padding-top:0.5rem;">
-            <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gray-light);margin-bottom:4px;">Qualité</div>
-            <div id="fp-checkboxes" style="display:flex;flex-direction:column;gap:5px;"></div>
-          </div>
-          <div>
-            <div class="ff"><label class="fl">Poste</label>
-              <select class="fs" id="fp-poste" style="width:100%;"></select>
-            </div>
-          </div>
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          <img src="empr2.png" alt="Empreinte Index" style="width:90px;height:100px;border-radius:4px;object-fit:contain;" onerror="this.style.background='#eee'">
+          <label style="font-family:'Barlow',sans-serif;font-size:13px;margin-top:4px;">Index</label>
         </div>
-        <!-- Bottom row: 5 left-hand prints -->
-        <div style="display:flex;justify-content:center;gap:2rem;margin-top:0.5rem;">
-          <div id="fp-bottom-prints" style="display:flex;gap:2rem;justify-content:center;flex-wrap:wrap;"></div>
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          <img src="empr3.png" alt="Empreinte Medius" style="width:90px;height:100px;border-radius:4px;object-fit:contain;" onerror="this.style.background='#eee'">
+          <label style="font-family:'Barlow',sans-serif;font-size:13px;margin-top:4px;">Medius</label>
         </div>
-        <div style="display:flex;gap:8px;margin-top:1.5rem;justify-content:center;">
-          <button class="btn btn-p" onclick="generateFpReport()" style="padding:8px 24px;">📋 Générer le rapport</button>
-          <button class="btn btn-d" onclick="clearFpForm()">✕ Effacer</button>
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          <img src="empr4.png" alt="Empreinte Annulaire" style="width:90px;height:100px;border-radius:4px;object-fit:contain;" onerror="this.style.background='#eee'">
+          <label style="font-family:'Barlow',sans-serif;font-size:13px;margin-top:4px;">Annulaire</label>
         </div>
-        <div id="fp-report-out" style="display:none;margin-top:1.2rem;background:var(--paper-mid);border:1px solid var(--divider);border-left:3px solid var(--amber);padding:1rem;font-family:'IBM Plex Mono',monospace;font-size:12px;white-space:pre-wrap;line-height:1.7;"></div>
-        <div id="fp-copy-row" style="display:none;margin-top:0.5rem;"><button class="btn btn-p btn-sm" onclick="copyFpReport()">📋 Copier</button></div>
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          <img src="empr5.png" alt="Empreinte Auriculaire" style="width:90px;height:100px;border-radius:4px;object-fit:contain;" onerror="this.style.background='#eee'">
+          <label style="font-family:'Barlow',sans-serif;font-size:13px;margin-top:4px;">Auriculaire</label>
+        </div>
+      </div>
+
+      <!-- Tableau de saisie identique à l'original -->
+      <table style="width:90%;margin:0 auto 10px;">
+        <tr>
+          <td style="padding:8px;font-family:'Barlow',sans-serif;font-size:13px;">Date :</td>
+          <td colspan="2"><input type="date" id="fp-date" style="width:95%;padding:8px;border-radius:4px;border:1px solid #ddd;font-family:'Segoe UI',sans-serif;font-size:13px;"></td>
+          <td style="padding:8px;font-family:'Barlow',sans-serif;font-size:13px;">Affaire :</td>
+          <td><input type="text" id="fp-affaire" style="width:95%;padding:8px;border-radius:4px;border:1px solid #ddd;font-family:'Segoe UI',sans-serif;font-size:13px;"></td>
+        </tr>
+        <tr>
+          <td style="padding:8px;font-family:'Barlow',sans-serif;font-size:13px;">Nom de l'individu :</td>
+          <td colspan="2"><input type="text" id="fp-nom" oninput="this.value=this.value.toUpperCase()" style="width:95%;padding:8px;border-radius:4px;border:1px solid #ddd;font-family:'Segoe UI',sans-serif;font-size:13px;"></td>
+          <td style="padding:8px;font-family:'Barlow',sans-serif;font-size:13px;">Prénom de l'individu :</td>
+          <td><input type="text" id="fp-prenom" style="width:95%;padding:8px;border-radius:4px;border:1px solid #ddd;font-family:'Segoe UI',sans-serif;font-size:13px;"></td>
+        </tr>
+        <tr>
+          <td style="padding:8px;font-family:'Barlow',sans-serif;font-size:13px;">Numéro d'enregistrement :</td>
+          <td colspan="2"><input type="number" id="fp-num" style="width:95%;padding:8px;border-radius:4px;border:1px solid #ddd;font-family:'Segoe UI',sans-serif;font-size:13px;"></td>
+          <td style="padding:8px;font-family:'Barlow',sans-serif;font-size:13px;">NOM de l'agent :</td>
+          <td><input type="text" id="fp-agent" style="width:95%;padding:8px;border-radius:4px;border:1px solid #ddd;font-family:'Segoe UI',sans-serif;font-size:13px;"></td>
+        </tr>
+        <tr>
+          <td colspan="3" style="padding:8px;">
+            <label style="margin-right:10px;font-family:'Barlow',sans-serif;font-size:13px;"><input type="checkbox" id="fp-chk-victime" style="margin-right:4px;"> Victime / Plaignant</label>
+            <label style="margin-right:10px;font-family:'Barlow',sans-serif;font-size:13px;"><input type="checkbox" id="fp-chk-lsms" style="margin-right:4px;"> LSMS</label>
+            <label style="margin-right:10px;font-family:'Barlow',sans-serif;font-size:13px;"><input type="checkbox" id="fp-chk-temoin" style="margin-right:4px;"> Témoin</label>
+            <label style="margin-right:10px;font-family:'Barlow',sans-serif;font-size:13px;"><input type="checkbox" id="fp-chk-lspd" style="margin-right:4px;"> LSPD</label>
+            <label style="margin-right:10px;font-family:'Barlow',sans-serif;font-size:13px;"><input type="checkbox" id="fp-chk-suspect" style="margin-right:4px;"> Suspect</label>
+            <label style="font-family:'Barlow',sans-serif;font-size:13px;"><input type="checkbox" id="fp-chk-marshal" style="margin-right:4px;"> Marshal</label>
+          </td>
+          <td style="padding:8px;font-family:'Barlow',sans-serif;font-size:13px;">Poste :</td>
+          <td>
+            <select id="fp-poste" style="width:95%;padding:8px;border-radius:4px;border:1px solid #ddd;font-family:'Segoe UI',sans-serif;font-size:13px;">
+              <option>Vinewood</option>
+              <option>IAA</option>
+              <option>Paleto Bay</option>
+            </select>
+          </td>
+        </tr>
+      </table>
+
+      <!-- Rangée basse d'empreintes (empr6 à empr10) -->
+      <div style="display:flex;justify-content:space-evenly;padding:10px;margin-top:10px;">
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          <img src="empr6.png" alt="Empreinte Pouce" style="width:90px;height:100px;border-radius:4px;object-fit:contain;" onerror="this.style.background='#eee'">
+          <label style="font-family:'Barlow',sans-serif;font-size:13px;margin-top:4px;">Pouce</label>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          <img src="empr7.png" alt="Empreinte Index" style="width:90px;height:100px;border-radius:4px;object-fit:contain;" onerror="this.style.background='#eee'">
+          <label style="font-family:'Barlow',sans-serif;font-size:13px;margin-top:4px;">Index</label>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          <img src="empr8.png" alt="Empreinte Medius" style="width:90px;height:100px;border-radius:4px;object-fit:contain;" onerror="this.style.background='#eee'">
+          <label style="font-family:'Barlow',sans-serif;font-size:13px;margin-top:4px;">Medius</label>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          <img src="empr9.png" alt="Empreinte Annulaire" style="width:90px;height:100px;border-radius:4px;object-fit:contain;" onerror="this.style.background='#eee'">
+          <label style="font-family:'Barlow',sans-serif;font-size:13px;margin-top:4px;">Annulaire</label>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          <img src="empr10.png" alt="Empreinte Auriculaire" style="width:90px;height:100px;border-radius:4px;object-fit:contain;" onerror="this.style.background='#eee'">
+          <label style="font-family:'Barlow',sans-serif;font-size:13px;margin-top:4px;">Auriculaire</label>
+        </div>
+      </div>
+
+      <!-- Bouton effacer uniquement (pas de "Générer rapport") -->
+      <div style="text-align:center;margin-top:16px;">
+        <button class="btn btn-d" onclick="clearFpForm()" style="padding:8px 24px;">✕ Effacer le formulaire</button>
       </div>
     </div>
   </div>
@@ -3592,7 +3801,7 @@ function generateServicePdf2(){
 
 <!-- ══════ MODAL: PARAMÈTRES EMPREINTES ══════ -->
 <div class="overlay" id="fp-settings-overlay">
-  <div class="modal" style="max-width:700px;">
+  <div class="modal" style="max-width:1200px;">
     <div class="mh" style="background:#1a1a2e;border-bottom:2px solid #4a90d4;">
       <span class="mh-title" style="color:#90c8f0;">⚙ Paramètres — Module Empreintes</span>
       <button class="mh-close" onclick="closeFpSettings()">✕</button>
@@ -3624,7 +3833,7 @@ function generateServicePdf2(){
 
 <!-- ══════ MODAL: ÉDITEUR MODULES (Accès rapides) ══════ -->
 <div class="overlay" id="modules-editor-overlay">
-  <div class="modal" style="max-width:800px;">
+  <div class="modal" style="max-width:1060px;">
     <div class="mh" style="border-bottom-color:var(--amber-light);">
       <span class="mh-title">⚙ Gestionnaire — Modules Accès Rapide</span>
       <button class="mh-close" onclick="closeModulesEditor()">✕ Fermer</button>
@@ -3659,7 +3868,7 @@ function generateServicePdf2(){
 
 <!-- ══════ MODAL: ÉDITEUR MISSIONS ══════ -->
 <div class="overlay" id="missions-editor-overlay">
-  <div class="modal" style="max-width:700px;">
+  <div class="modal" style="max-width:1200px;">
     <div class="mh" style="border-bottom-color:var(--amber-light);">
       <span class="mh-title">⚙ Éditeur — Missions & Compétences</span>
       <button class="mh-close" onclick="closeMissionsEditor()">✕ Fermer</button>
@@ -3681,16 +3890,32 @@ function generateServicePdf2(){
 
 <!-- ══════ MODAL: ÉDITEUR INFOBOX EFFECTIF ══════ -->
 <div class="overlay" id="infobox-editor-overlay">
-  <div class="modal" style="max-width:600px;">
+  <div class="modal" style="max-width:900px;">
     <div class="mh" style="border-bottom-color:var(--amber-light);">
       <span class="mh-title">✏ Modifier l'intitulé du registre</span>
       <button class="mh-close" onclick="closeInfoboxEditor()">✕</button>
     </div>
     <div class="mb">
-      <div class="ff" style="margin-bottom:1rem;"><label class="fl">Texte de l'intitulé</label>
-        <textarea class="fi" id="infobox-textarea" style="min-height:100px;resize:vertical;font-family:'Barlow',sans-serif;font-size:13px;line-height:1.6;"></textarea>
+      <label class="fl" style="margin-bottom:6px;display:block;">Texte de l'intitulé</label>
+      <div class="rte-wrap" style="min-height:160px;">
+        <div class="rte-toolbar" style="background:rgba(181,130,26,0.08);border-color:var(--divider);">
+          <button class="rte-btn" onclick="rteCmd('infobox-editor','bold')" title="Gras" style="color:var(--amber-dim);"><b>G</b></button>
+          <button class="rte-btn" onclick="rteCmd('infobox-editor','italic')" title="Italique" style="color:var(--amber-dim);"><i>I</i></button>
+          <button class="rte-btn" onclick="rteCmd('infobox-editor','underline')" title="Souligné" style="color:var(--amber-dim);"><u>S</u></button>
+          <button class="rte-btn" onclick="rteCmd('infobox-editor','strikeThrough')" title="Barré" style="color:var(--amber-dim);"><s>B</s></button>
+          <div class="rte-sep"></div>
+          <button class="rte-btn" onclick="rteCmd('infobox-editor','justifyLeft')" style="color:var(--amber-dim);">⬅</button>
+          <button class="rte-btn" onclick="rteCmd('infobox-editor','justifyCenter')" style="color:var(--amber-dim);">☰</button>
+          <button class="rte-btn" onclick="rteCmd('infobox-editor','justifyRight')" style="color:var(--amber-dim);">➡</button>
+          <div class="rte-sep"></div>
+          <div class="rte-color-wrap"><span style="font-size:11px;color:var(--amber-dim);">A</span><input type="color" value="#0f0e0c" onchange="rteColor('infobox-editor',this.value)"></div>
+        </div>
+        <div id="infobox-editor" contenteditable="true"
+          class="rte-content"
+          style="min-height:120px;color:var(--gray-ink);border-color:var(--divider);border-radius:0 0 4px 4px;background:var(--paper-mid);"
+          placeholder="Texte de l'intitulé..."></div>
       </div>
-      <div style="display:flex;gap:8px;">
+      <div style="display:flex;gap:8px;margin-top:1rem;">
         <button class="btn btn-p" onclick="saveInfobox()" style="flex:1;">💾 Sauvegarder</button>
         <button class="btn btn-d" onclick="closeInfoboxEditor()" style="flex:1;">Annuler</button>
       </div>
@@ -3700,7 +3925,7 @@ function generateServicePdf2(){
 
 <!-- ══════ MODAL: PARAMÈTRES CALENDRIER ══════ -->
 <div class="overlay" id="cal-settings-overlay">
-  <div class="modal" style="max-width:680px;">
+  <div class="modal" style="max-width:940px;">
     <div class="mh" style="border-bottom-color:var(--amber-light);">
       <span class="mh-title">⚙ Paramètres — Calendrier Opérationnel</span>
       <button class="mh-close" onclick="closeCalSettings()">✕</button>
@@ -3723,7 +3948,7 @@ function generateServicePdf2(){
 </div>
 <!-- ══════ MODAL: PDF RAPPORTS DE SERVICE ══════ -->
 <div class="overlay" id="service-pdf-overlay">
-  <div class="modal" style="max-width:760px;">
+  <div class="modal" style="max-width:1000px;">
     <div class="mh"><span class="mh-title">📄 Générer un Rapport PDF — Temps de Service</span><button class="mh-close" onclick="closeServicePdf()">✕ Fermer</button></div>
     <div class="mb">
       <div class="admin-tabs">
@@ -3771,7 +3996,7 @@ function generateServicePdf2(){
 </div>
 <!-- ══════ MODAL: ÉDITEUR CHARTE § 05 ══════ -->
 <div class="overlay" id="charte-editor-overlay">
-  <div class="modal" style="max-width:700px;">
+  <div class="modal" style="max-width:1200px;">
     <div class="mh" style="border-bottom-color:var(--amber-light);">
       <span class="mh-title">✏ Éditeur — § 05 Charte C.I.U.</span>
       <button class="mh-close" onclick="closeCharteEditor()">✕ Fermer</button>
@@ -3789,6 +4014,26 @@ function generateServicePdf2(){
       <div id="charte-msg" style="margin-top:0.5rem;"></div>
     </div>
   </div>
+</div>
+<!-- Image resize toolbar (floating) -->
+<div class="rte-img-toolbar" id="rte-img-toolbar">
+  <label>L :</label>
+  <input type="number" id="rte-img-w" placeholder="300" min="20" max="2000" style="width:55px;">
+  <label>H :</label>
+  <input type="number" id="rte-img-h" placeholder="auto" min="20" max="2000" style="width:55px;">
+  <select id="rte-img-unit" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:var(--paper);font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 4px;border-radius:2px;">
+    <option value="px">px</option>
+    <option value="%">%</option>
+  </select>
+  <button onclick="rteApplyImgSize()" title="Appliquer">✓</button>
+  <div class="rte-sep" style="background:rgba(255,255,255,0.2);"></div>
+  <button onclick="rteImgPreset(150)" title="Petite">S</button>
+  <button onclick="rteImgPreset(300)" title="Moyenne">M</button>
+  <button onclick="rteImgPreset(600)" title="Grande">L</button>
+  <button onclick="rteImgAutoSize()" title="Pleine largeur">↔</button>
+  <div class="rte-sep" style="background:rgba(255,255,255,0.2);"></div>
+  <button class="rte-tb-del" onclick="rteDeleteImg()" title="Supprimer">🗑</button>
+  <button onclick="rteHideImgToolbar()" style="background:none;border:none;color:rgba(255,255,255,0.4);font-size:14px;cursor:pointer;padding:0 4px;" title="Fermer">✕</button>
 </div>
 
 </body>
