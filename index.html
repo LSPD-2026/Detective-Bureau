@@ -525,7 +525,7 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
   <div class="login-bg-lines"></div>
   <div class="login-card">
     <div class="login-header">
-      <img src="ciu_logo.png" alt="DB Logo" style="width:56px;height:56px;object-fit:contain;filter:drop-shadow(0 2px 8px rgba(181,130,26,0.4));" onerror="this.style.display='none'">
+      <img src="db_logo.png" alt="DB Logo" style="width:56px;height:56px;object-fit:contain;filter:drop-shadow(0 2px 8px rgba(181,130,26,0.4));" onerror="this.style.display='none'">
       <div>
         <div class="login-hd">Los Santos Police Department</div>
         <div class="login-ht">Criminal Investigation<br>Union</div>
@@ -549,7 +549,7 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
 
 <nav>
   <div class="nav-brand">
-    <img src="ciu_logo.png" alt="DB" class="nav-logo" style="width:34px;height:34px;object-fit:contain;" onerror="this.style.display='none'">
+    <img src="db_logo.png" alt="DB" class="nav-logo" style="width:34px;height:34px;object-fit:contain;" onerror="this.style.display='none'">
     <span class="nav-title">L.S.P.D. — <span>Criminal Investigation Union</span></span>
   </div>
   <div class="nav-right">
@@ -573,7 +573,7 @@ footer{background:var(--ink);color:var(--paper);padding:2rem 3rem;border-top:1px
 <!-- HERO -->
 <div class="portal-hero">
   <div class="hero-emb">
-    <img src="ciu_logo.png" alt="DB Logo" class="emb-svg" style="width:150px;height:150px;object-fit:contain;filter:drop-shadow(3px 4px 12px rgba(0,0,0,0.18));" onerror="this.style.display='none'">
+    <img src="db_logo.png" alt="DB Logo" class="emb-svg" style="width:150px;height:150px;object-fit:contain;filter:drop-shadow(3px 4px 12px rgba(0,0,0,0.18));" onerror="this.style.display='none'">
     <div style="display:flex;align-items:center;gap:10px;margin-top:0.5rem;">
       <img src="dd_logo.png" alt="DD Logo" style="width:38px;height:38px;border-radius:50%;border:2px solid var(--amber);object-fit:cover;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.15));" onerror="this.style.display='none'">
       <div class="emb-sub" style="text-align:left;">C.I.U. — Insigne Officiel<br>Det. Bureau · Los Santos</div>
@@ -1600,6 +1600,7 @@ async function initApp(){
   if(!initFirebase()){alert('⚠️ Firebase non chargé. Vérifiez la connexion internet.');return;}
   showLoader('Connexion à Firebase...');
   try {
+    // Étape 1 : Charger uniquement la config publique (ne nécessite pas d'auth)
     const snap = await COL.config.doc('main').get();
     if(!snap.exists){
       showLoader('Initialisation de la base...');
@@ -1624,34 +1625,52 @@ async function initApp(){
       DB.roleNames=d.roleNames||{}; DB.charte=d.charte||null;
       ensureExtendedDefaults(DB);
     }
-    const [wSnap,bSnap,eSnap,sSnap] = await Promise.all([
-      COL.warrants.get(), COL.bracelets.get(), COL.events.get(), COL.service.get()
-    ]);
-    DB.warrants  = wSnap.docs.map(d=>({_id:d.id,...d.data()}));
-    DB.bracelets = bSnap.docs.map(d=>({_id:d.id,...d.data()}));
-    DB.events    = eSnap.docs.map(d=>({_id:d.id,...d.data()}));
-    DB.events.sort((a,b)=>a.date.localeCompare(b.date));
-    DB.service   = sSnap.docs.map(d=>({_id:d.id,...d.data()}));
-    DB.service.sort((a,b)=>(b.ts||0)-(a.ts||0));
-    startListeners();
-    hideLoader();
-    dbReady = true;
-    applyGradeColors();
 
-    // Firebase Auth gère la session automatiquement (persistance locale)
+    hideLoader();
+
+    // Étape 2 : Observer Firebase Auth — chargement des données protégées APRÈS connexion
     fauth.onAuthStateChanged(async function(fbUser){
       if(fbUser){
-        await doLoginWithUser(fbUser);
+        showLoader('Chargement des données...');
+        try{
+          // Charger les collections protégées uniquement après authentification
+          const [wSnap,bSnap,eSnap,sSnap] = await Promise.all([
+            COL.warrants.get(), COL.bracelets.get(), COL.events.get(), COL.service.get()
+          ]);
+          DB.warrants  = wSnap.docs.map(d=>({_id:d.id,...d.data()}));
+          DB.bracelets = bSnap.docs.map(d=>({_id:d.id,...d.data()}));
+          DB.events    = eSnap.docs.map(d=>({_id:d.id,...d.data()}));
+          DB.events.sort((a,b)=>a.date.localeCompare(b.date));
+          DB.service   = sSnap.docs.map(d=>({_id:d.id,...d.data()}));
+          DB.service.sort((a,b)=>(b.ts||0)-(a.ts||0));
+          if(!dbReady){
+            startListeners();
+            dbReady=true;
+          }
+          applyGradeColors();
+          hideLoader();
+          await doLoginWithUser(fbUser);
+        }catch(e2){
+          hideLoader();
+          console.error('Erreur chargement données:',e2);
+          await doLoginWithUser(fbUser); // Continuer même si certaines collections échouent
+        }
       } else {
+        // Non connecté — page de login
         if(currentEmail){
           currentEmail=null; currentUser=null; userRole='agent';
           document.getElementById('portal-page').classList.remove('active');
           document.getElementById('portal-wrap').classList.remove('admin-mode');
           document.getElementById('login-page').classList.add('active');
           document.getElementById('session-timer').style.display='none';
+          stopListeners();
+          dbReady=false;
+          DB.warrants=[]; DB.bracelets=[]; DB.events=[]; DB.service=[];
         }
+        hideLoader();
       }
     });
+
   } catch(err){
     console.error('Firebase init error:',err);
     hideLoader();
