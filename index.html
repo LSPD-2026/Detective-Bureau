@@ -3382,7 +3382,24 @@ function buildFpPosteSelect(){
   sel.innerHTML=cfg.postes.map(p=>`<option value="${p}">${p}</option>`).join('');
 }
 
+function buildFpCheckboxesDynamic(){
+  var cfg=DB.fpConfig||getDefaultFpConfig();
+  var container=document.getElementById('fp-checkboxes-dynamic');
+  if(!container)return;
+  container.innerHTML=cfg.checkboxes.map(function(lbl){
+    var id='fp-chk-'+lbl.replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'');
+    return'<label style="font-size:13px;white-space:nowrap;"><input type="checkbox" id="'+id+'" style="margin-right:4px;"> '+lbl+'</label>';
+  }).join('');
+}
+function buildFpPosteSelectDynamic(){
+  var cfg=DB.fpConfig||getDefaultFpConfig();
+  var sel=document.getElementById('fp-poste');
+  if(!sel)return;
+  sel.innerHTML=cfg.postes.map(function(p){return'<option>'+p+'</option>';}).join('');
+}
 function openFingerprints(){
+  buildFpCheckboxesDynamic();
+  buildFpPosteSelectDynamic();
   if(currentUser&&document.getElementById('fp-agent'))document.getElementById('fp-agent').value=currentUser;
   document.getElementById('fingerprints-overlay').classList.add('open');
 }
@@ -3397,15 +3414,17 @@ function generateFpReport(){
   const agent=document.getElementById('fp-agent').value.trim()||currentUser||'—';
   const poste=document.getElementById('fp-poste').value||'—';
   const cfg=DB.fpConfig||getDefaultFpConfig();
-  const checkedBoxes=cfg.checkboxes.filter(lbl=>{const el=document.getElementById('fp-chk-'+lbl.replace(/\s+/g,'_'));return el&&el.checked;}).join(', ')||'Aucun';
+  const container=document.getElementById('fp-checkboxes-dynamic');
+  const checkedBoxes=container?Array.from(container.querySelectorAll('input[type=checkbox]:checked')).map(cb=>cb.nextSibling?cb.nextSibling.textContent.trim():cb.parentElement.textContent.trim()).join(', ')||'Aucun':'Aucun';
   const txt=`:fingerprint: **Relevé d'Empreintes Digitales — D.D. × D.O.J.**\n\n📅 **Date :** ${date}\n🗂 **Affaire :** ${affaire}\n\n👤 **Individu :**\n   — Nom : ${nom}\n   — Prénom : ${prenom}\n   — N° enregistrement : ${num}\n\n✅ **Qualité / Statut :** ${checkedBoxes}\n🏢 **Poste :** ${poste}\n\n🔏 **Agent traitant :** ${agent}`;
   const out=document.getElementById('fp-report-out');
   out.textContent=txt;out.style.display='block';
   document.getElementById('fp-copy-row').style.display='block';
 }
 function clearFpForm(){
-  ['fp-date','fp-affaire','fp-nom','fp-prenom','fp-num','fp-agent'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  ['fp-chk-victime','fp-chk-lsms','fp-chk-temoin','fp-chk-lspd','fp-chk-suspect','fp-chk-marshal'].forEach(id=>{const el=document.getElementById(id);if(el)el.checked=false;});
+  ['fp-date','fp-affaire','fp-nom','fp-prenom','fp-num','fp-agent'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  var container=document.getElementById('fp-checkboxes-dynamic');
+  if(container)container.querySelectorAll('input[type=checkbox]').forEach(function(cb){cb.checked=false;});
   if(currentUser&&document.getElementById('fp-agent'))document.getElementById('fp-agent').value=currentUser;
 }
 function copyFpReport(){
@@ -3415,11 +3434,14 @@ function copyFpReport(){
 
 // ── FP SETTINGS ───────────────────────────────────────────────
 function openFpSettings(){
-  if(!isDirection())return;
   renderFpChkAdmin();renderFpPosteAdmin();
   document.getElementById('fp-settings-overlay').classList.add('open');
 }
-function closeFpSettings(){document.getElementById('fp-settings-overlay').classList.remove('open');}
+function closeFpSettings(){
+  document.getElementById('fp-settings-overlay').classList.remove('open');
+  buildFpCheckboxesDynamic();
+  buildFpPosteSelectDynamic();
+}
 function switchFpTab(id,el){
   document.querySelectorAll('#fp-settings-overlay .atab-content').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('#fp-settings-overlay .atab').forEach(t=>t.classList.remove('active'));
@@ -3847,15 +3869,18 @@ function getWeekNum(d){var jan=new Date(d.getFullYear(),0,1);return Math.ceil(((
   <div class="modal" style="max-width:1280px;padding:0;overflow:hidden;">
     <div class="mh" style="background:var(--ink);border-bottom:3px solid var(--amber);">
       <span class="mh-title" style="color:var(--paper);">🖐 Module H — Empreintes Digitales — D.D. × D.O.J.</span>
-      <button class="mh-close" onclick="closeFingerprints()">✕ Fermer</button>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button id="fp-settings-btn" onclick="openFpSettings()" style="background:rgba(181,130,26,0.2);border:1px solid var(--amber-dim);color:var(--amber-light);font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:4px 12px;cursor:pointer;border-radius:2px;">⚙ Paramètres</button>
+        <button class="mh-close" onclick="closeFingerprints()">✕ Fermer</button>
+      </div>
     </div>
-    <!-- En-tête doré style original -->
+    <!-- En-tête doré -->
     <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 24px;background:var(--amber);">
       <img src="ciu_logo.png" alt="CIU" style="width:80px;height:80px;object-fit:contain;" onerror="this.style.display='none'">
       <h2 style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;letter-spacing:0.1em;text-transform:uppercase;margin:0;color:var(--ink);">Empreintes Digitales — C.I.U.</h2>
       <img src="ciu_logo.png" alt="CIU" style="width:80px;height:80px;object-fit:contain;" onerror="this.style.display='none'">
     </div>
-    <!-- Corps blanc identique à l'original -->
+    <!-- Corps -->
     <div style="background:#fff;padding:20px;">
       <!-- Rangée haute empr1-empr5 -->
       <div style="display:flex;justify-content:space-evenly;padding:10px;margin-bottom:10px;">
@@ -3865,7 +3890,7 @@ function getWeekNum(d){var jan=new Date(d.getFullYear(),0,1);return Math.ceil(((
         <div style="display:flex;flex-direction:column;align-items:center;"><img src="empr4.png" alt="Annulaire" style="width:90px;height:100px;border-radius:4px;object-fit:contain;" onerror="this.style.background='#eee'"><label style="font-family:'Barlow',sans-serif;font-size:13px;margin-top:4px;">Annulaire</label></div>
         <div style="display:flex;flex-direction:column;align-items:center;"><img src="empr5.png" alt="Auriculaire" style="width:90px;height:100px;border-radius:4px;object-fit:contain;" onerror="this.style.background='#eee'"><label style="font-family:'Barlow',sans-serif;font-size:13px;margin-top:4px;">Auriculaire</label></div>
       </div>
-      <!-- Tableau de saisie identique à l'original -->
+      <!-- Tableau -->
       <table style="width:90%;margin:0 auto 10px;">
         <tr>
           <td style="padding:8px;font-size:13px;">Date :</td>
@@ -3887,17 +3912,11 @@ function getWeekNum(d){var jan=new Date(d.getFullYear(),0,1);return Math.ceil(((
         </tr>
         <tr>
           <td colspan="3" style="padding:8px;">
-            <label style="margin-right:10px;font-size:13px;"><input type="checkbox" id="fp-chk-victime" style="margin-right:4px;"> Victime / Plaignant</label>
-            <label style="margin-right:10px;font-size:13px;"><input type="checkbox" id="fp-chk-lsms" style="margin-right:4px;"> LSMS</label>
-            <label style="margin-right:10px;font-size:13px;"><input type="checkbox" id="fp-chk-temoin" style="margin-right:4px;"> Témoin</label>
-            <label style="margin-right:10px;font-size:13px;"><input type="checkbox" id="fp-chk-lspd" style="margin-right:4px;"> LSPD</label>
-            <label style="margin-right:10px;font-size:13px;"><input type="checkbox" id="fp-chk-suspect" style="margin-right:4px;"> Suspect</label>
-            <label style="font-size:13px;"><input type="checkbox" id="fp-chk-marshal" style="margin-right:4px;"> Marshal</label>
+            <!-- Cases à cocher dynamiques depuis DB.fpConfig -->
+            <div id="fp-checkboxes-dynamic" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
           </td>
           <td style="padding:8px;font-size:13px;">Poste :</td>
-          <td><select id="fp-poste" style="width:95%;padding:8px;border-radius:4px;border:1px solid #ddd;font-size:13px;">
-            <option>Vinewood</option><option>IAA</option><option>Paleto Bay</option>
-          </select></td>
+          <td><select id="fp-poste" style="width:95%;padding:8px;border-radius:4px;border:1px solid #ddd;font-size:13px;"></select></td>
         </tr>
       </table>
       <!-- Rangée basse empr6-empr10 -->
@@ -3908,7 +3927,6 @@ function getWeekNum(d){var jan=new Date(d.getFullYear(),0,1);return Math.ceil(((
         <div style="display:flex;flex-direction:column;align-items:center;"><img src="empr9.png" alt="Annulaire" style="width:90px;height:100px;border-radius:4px;object-fit:contain;" onerror="this.style.background='#eee'"><label style="font-family:'Barlow',sans-serif;font-size:13px;margin-top:4px;">Annulaire</label></div>
         <div style="display:flex;flex-direction:column;align-items:center;"><img src="empr10.png" alt="Auriculaire" style="width:90px;height:100px;border-radius:4px;object-fit:contain;" onerror="this.style.background='#eee'"><label style="font-family:'Barlow',sans-serif;font-size:13px;margin-top:4px;">Auriculaire</label></div>
       </div>
-      <!-- Bouton effacer uniquement (pas de génération) -->
       <div style="text-align:center;margin-top:16px;">
         <button class="btn btn-d" onclick="clearFpForm()" style="padding:8px 24px;">✕ Effacer le formulaire</button>
       </div>
@@ -3919,28 +3937,28 @@ function getWeekNum(d){var jan=new Date(d.getFullYear(),0,1);return Math.ceil(((
 <!-- ══════ MODAL: PARAMÈTRES EMPREINTES ══════ -->
 <div class="overlay" id="fp-settings-overlay">
   <div class="modal" style="max-width:700px;">
-    <div class="mh" style="background:#1a1a2e;border-bottom:2px solid #4a90d4;">
-      <span class="mh-title" style="color:#90c8f0;">⚙ Paramètres — Module Empreintes</span>
+    <div class="mh" style="border-bottom-color:var(--amber);">
+      <span class="mh-title">⚙ Paramètres — Module H Empreintes</span>
       <button class="mh-close" onclick="closeFpSettings()">✕</button>
     </div>
     <div class="mb">
       <div class="admin-tabs">
-        <button class="atab active" onclick="switchFpTab('fp-tab-checkboxes',this)">Cases à cocher</button>
-        <button class="atab" onclick="switchFpTab('fp-tab-postes',this)">Postes</button>
+        <button class="atab active" onclick="switchFpTab('fp-tab-checkboxes',this)">Types de personnes</button>
+        <button class="atab" onclick="switchFpTab('fp-tab-postes',this)">Postes de police</button>
       </div>
       <div class="atab-content active" id="fp-tab-checkboxes">
-        <div class="msec">Cases à cocher (qualité / statut)</div>
+        <div class="msec">Types / Qualités de personnes</div>
         <div id="fp-chk-list-admin"></div>
         <div style="display:flex;gap:8px;margin-top:1rem;">
-          <input class="fi" id="fp-new-chk" placeholder="Nouvelle case (ex: LSPD)" style="flex:1;">
+          <input class="fi" id="fp-new-chk" placeholder="Ex: BCSO, FIB, Avocat..." style="flex:1;">
           <button class="btn btn-p" onclick="addFpCheckbox()">+ Ajouter</button>
         </div>
       </div>
       <div class="atab-content" id="fp-tab-postes">
-        <div class="msec">Postes disponibles</div>
+        <div class="msec">Postes de police disponibles</div>
         <div id="fp-postes-list-admin"></div>
         <div style="display:flex;gap:8px;margin-top:1rem;">
-          <input class="fi" id="fp-new-poste" placeholder="Nouveau poste (ex: Sandy Shores)" style="flex:1;">
+          <input class="fi" id="fp-new-poste" placeholder="Ex: Sandy Shores, Mission Row..." style="flex:1;">
           <button class="btn btn-p" onclick="addFpPoste()">+ Ajouter</button>
         </div>
       </div>
