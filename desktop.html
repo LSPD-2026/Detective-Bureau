@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LSPD — Système Intégré C.I.U.</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Exo+2:wght@300;400;500;600&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{width:100%;height:100%;overflow:hidden;background:#07091a;color:#a8c0d8;font-family:'Exo 2',sans-serif;}
+
+/* ── VARIABLES ── */
+:root{
+  --bg:#07091a;--bg2:#0b0f20;
+  --border:#1a2a42;--border2:#1e3050;
+  --cyan:#00b4d8;--cyan2:#0077a8;--cyan-dim:rgba(0,180,216,0.09);
+  --amber:#b5821a;--amber-dim:rgba(181,130,26,0.15);
+  --text:#a8c0d8;--text2:#5a7a96;--text3:#304a60;
+  --white:#d8eeff;
+  --paper:#f5f0e8;--paper-mid:#ede8de;
+  --red:#ef5350;
+  --mono:'Share Tech Mono',monospace;
+  --ui:'Rajdhani',sans-serif;
+  --body:'Exo 2',sans-serif;
+}
+
+/* ════════════════════════════════════
+   LOGIN PAGE
+════════════════════════════════════ */
+#login-page{
+  position:fixed;inset:0;z-index:9999;
+  background:#07091a;
+  display:flex;align-items:center;justify-content:center;
+  transition:opacity .6s ease;
+}
+#login-page.hiding{opacity:0;pointer-events:none;}
+
+/* Animated background */
+#login-page::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 60% 60% at 50% 50%,rgba(0,180,216,0.04) 0%,transparent 70%);
+  animation:pulse-bg 4s ease-in-out infinite;
+}
+@keyframes pulse-bg{0%,100%{opacity:0.5;}50%{opacity:1;}}
+
+.login-wrap{
+  position:relative;z-index:1;
+  display:flex;flex-direction:column;align-items:center;gap:0;
+}
+
+/* Logo zone */
+.login-logo-zone{
+  display:flex;flex-direction:column;align-items:center;gap:12px;
+  margin-bottom:32px;
+}
+.login-logo-zone img{
+  width:100px;height:100px;object-fit:contain;
+  filter:drop-shadow(0 0 20px rgba(0,180,216,0.3));
+  animation:logo-float 3s ease-in-out infinite;
+}
+@keyframes logo-float{0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);}}
+.login-title{
+  font-family:var(--ui);font-size:22px;font-weight:700;
+  letter-spacing:.2em;text-transform:uppercase;color:var(--white);
+}
+.login-sub{
+  font-family:var(--mono);font-size:9px;color:var(--text2);
+  letter-spacing:.2em;text-transform:uppercase;
+}
+
+/* Card */
+.login-card{
+  background:rgba(11,15,32,0.95);
+  border:1px solid var(--border2);
+  width:420px;
+  box-shadow:0 24px 80px rgba(0,0,0,0.7),0 0 0 1px rgba(0,180,216,0.04);
+}
+.login-card-top{
+  padding:6px 20px;background:#060a14;border-bottom:1px solid var(--border);
+  font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.15em;
+  display:flex;align-items:center;gap:6px;
+}
+.login-card-top span{color:var(--cyan);font-size:8px;}
+.login-body{padding:28px 28px 24px;}
+.login-notice{
+  background:rgba(181,130,26,0.06);border:1px solid rgba(181,130,26,0.2);
+  border-left:3px solid var(--amber);padding:8px 12px;
+  font-family:var(--mono);font-size:9px;color:rgba(181,130,26,0.8);
+  letter-spacing:.08em;margin-bottom:20px;line-height:1.6;
+}
+.login-field{margin-bottom:14px;}
+.login-label{
+  font-family:var(--mono);font-size:8px;color:var(--text3);
+  letter-spacing:.15em;text-transform:uppercase;margin-bottom:5px;display:block;
+}
+.login-input{
+  width:100%;background:#060a14;border:1px solid var(--border2);
+  color:var(--text);font-family:var(--mono);font-size:11px;
+  padding:10px 14px;outline:none;transition:border-color .15s;
+  border-radius:0;
+}
+.login-input:focus{border-color:var(--cyan2);}
+.login-input::placeholder{color:var(--text3);}
+.login-btn{
+  width:100%;margin-top:8px;padding:13px;
+  background:rgba(0,180,216,0.08);border:1px solid var(--cyan2);
+  color:var(--cyan);font-family:var(--mono);font-size:10px;
+  letter-spacing:.25em;text-transform:uppercase;cursor:pointer;
+  transition:all .15s;display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.login-btn:hover{background:rgba(0,180,216,0.18);border-color:var(--cyan);}
+.login-btn:disabled{opacity:.5;cursor:not-allowed;}
+.login-err{
+  margin-top:10px;font-family:var(--mono);font-size:9px;
+  color:var(--red);letter-spacing:.08em;display:none;
+  padding:7px 10px;background:rgba(239,83,80,0.08);border:1px solid rgba(239,83,80,0.2);
+}
+.login-err.show{display:block;}
+.login-footer{
+  padding:10px 20px;border-top:1px solid var(--border);
+  font-family:var(--mono);font-size:8px;color:var(--text3);
+  letter-spacing:.1em;display:flex;justify-content:space-between;
+}
+
+/* Scan line animation */
+.login-scanline{
+  position:absolute;inset:0;pointer-events:none;overflow:hidden;opacity:.03;
+}
+.login-scanline::after{
+  content:'';position:absolute;left:0;right:0;height:2px;
+  background:var(--cyan);animation:scan 3s linear infinite;
+}
+@keyframes scan{from{top:-2px;}to{top:100%;}}
+
+/* ════════════════════════════════════
+   DESKTOP
+════════════════════════════════════ */
+#os-desktop{
+  position:fixed;inset:0;
+  display:none;flex-direction:column;
+  background:radial-gradient(ellipse 70% 70% at 20% 50%,#0c1830 0%,#07091a 60%);
+}
+#os-desktop.show{display:flex;}
+
+/* Desktop background logo */
+#desk-bg{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  pointer-events:none;z-index:0;
+}
+#desk-bg img{
+  width:460px;height:460px;object-fit:contain;
+  opacity:0.09;
+}
+
+/* Icons */
+#desk-icons{position:absolute;left:16px;top:16px;z-index:2;display:flex;flex-direction:column;gap:4px;}
+.desk-icon{
+  display:flex;flex-direction:column;align-items:center;gap:5px;
+  cursor:pointer;padding:10px 10px 8px;border-radius:4px;
+  transition:background .15s;user-select:none;width:82px;
+}
+.desk-icon:hover{background:rgba(0,180,216,0.1);}
+.desk-icon:active{background:rgba(0,180,216,0.2);}
+.desk-icon img{
+  width:48px;height:48px;object-fit:contain;
+  filter:drop-shadow(0 2px 8px rgba(0,180,216,0.2));
+  transition:filter .2s;
+}
+.desk-icon:hover img{filter:drop-shadow(0 4px 16px rgba(0,180,216,0.5));}
+.desk-icon span{
+  font-family:var(--mono);font-size:9px;color:var(--text2);
+  text-align:center;line-height:1.4;
+  text-shadow:0 1px 6px rgba(0,0,0,0.9);
+}
+
+/* ── TASKBAR ── */
+#taskbar{
+  position:relative;z-index:100;
+  height:36px;background:#020508;
+  border-top:1px solid #0d1522;
+  display:flex;align-items:center;padding:0 6px;gap:2px;
+  margin-top:auto;flex-shrink:0;
+}
+.tb-btn{
+  display:flex;align-items:center;gap:6px;padding:3px 10px;
+  border-radius:2px;cursor:pointer;font-family:var(--mono);font-size:9px;
+  color:var(--text2);border:1px solid transparent;transition:all .15s;
+}
+.tb-btn:hover{background:rgba(255,255,255,0.03);}
+.tb-btn.active{background:rgba(0,180,216,0.08);border-color:#1a2e44;color:var(--cyan);}
+.tb-btn img{width:14px;height:14px;object-fit:contain;}
+.tb-sep{width:1px;height:18px;background:#0d1522;margin:0 4px;}
+.tb-right{
+  margin-left:auto;display:flex;gap:10px;align-items:center;
+  padding-right:8px;font-family:var(--mono);font-size:9px;
+}
+.tb-right-logout{
+  color:rgba(239,83,80,0.6);cursor:pointer;font-size:8px;letter-spacing:.1em;
+  padding:2px 8px;border:1px solid rgba(239,83,80,0.2);border-radius:2px;
+  transition:all .15s;
+}
+.tb-right-logout:hover{color:var(--red);border-color:rgba(239,83,80,0.4);}
+#tb-user{color:var(--text2);letter-spacing:.08em;}
+#tb-clock{color:var(--text2);}
+#tb-date{color:var(--text3);font-size:8px;}
+
+/* ── WINDOWS ── */
+.win{
+  position:fixed;display:none;flex-direction:column;
+  border:1px solid var(--border2);background:var(--bg2);
+  box-shadow:0 24px 80px rgba(0,0,0,0.85),0 0 0 1px rgba(0,180,216,0.03);
+  overflow:hidden;min-width:400px;min-height:280px;z-index:200;
+}
+.win.show{display:flex;}
+/* Resize handles */
+.rh{position:absolute;z-index:10;}
+.rh-e{right:0;top:6px;bottom:6px;width:5px;cursor:e-resize;}
+.rh-w{left:0;top:6px;bottom:6px;width:5px;cursor:w-resize;}
+.rh-s{bottom:0;left:6px;right:6px;height:5px;cursor:s-resize;}
+.rh-n{top:0;left:6px;right:6px;height:5px;cursor:n-resize;}
+.rh-se{right:0;bottom:0;width:12px;height:12px;cursor:se-resize;}
+.rh-sw{left:0;bottom:0;width:12px;height:12px;cursor:sw-resize;}
+.rh-ne{right:0;top:0;width:12px;height:12px;cursor:ne-resize;}
+.rh-nw{left:0;top:0;width:12px;height:12px;cursor:nw-resize;}
+/* Titlebar */
+.w-title{
+  height:28px;flex-shrink:0;cursor:move;user-select:none;
+  background:#080c18;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:7px;padding:0 10px;
+}
+.w-title img{width:13px;height:13px;object-fit:contain;opacity:.7;}
+.w-title-txt{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.06em;flex:1;}
+.w-btn{width:11px;height:11px;border-radius:50%;border:none;cursor:pointer;transition:opacity .15s;flex-shrink:0;}
+.w-btn:hover{opacity:.7;}
+.w-btn-min{background:#f59e0b;margin-right:2px;}
+.w-btn-max{background:#10b981;margin-right:5px;}
+.w-btn-cls{background:#ef4444;}
+/* Content iframe */
+.win-iframe{flex:1;border:none;background:#07091a;display:block;}
+/* Topbar */
+.w-top{
+  height:30px;flex-shrink:0;background:#090e1c;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 14px;gap:8px;
+}
+.w-top-ico{font-size:11px;color:var(--text3);}
+.w-top-lbl{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.15em;text-transform:uppercase;flex:1;}
+.w-top-badge{font-family:var(--mono);font-size:8px;color:var(--text3);border:1px solid var(--border);padding:1px 6px;border-radius:1px;}
+/* Statusbar */
+.w-status{
+  height:22px;flex-shrink:0;background:#040810;border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;padding:0 12px;
+}
+.w-status span{font-family:var(--mono);font-size:8px;color:var(--text3);}
+
+/* ── LOADER ── */
+#loader{
+  position:fixed;inset:0;z-index:99998;
+  background:#07091a;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:16px;
+  transition:opacity .5s;
+}
+#loader.hidden{opacity:0;pointer-events:none;}
+.loader-bar{width:200px;height:1px;background:#0d1522;position:relative;overflow:hidden;}
+.loader-bar::after{
+  content:'';position:absolute;left:-50%;top:0;bottom:0;width:50%;
+  background:linear-gradient(90deg,transparent,var(--cyan),transparent);
+  animation:loader-slide 1.2s linear infinite;
+}
+@keyframes loader-slide{from{left:-50%;}to{left:100%;}}
+.loader-txt{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.2em;text-transform:uppercase;}
+</style>
+</head>
+<body>
+
+<!-- ════ LOADER ════ -->
+<div id="loader">
+  <img src="ciu_logo.png" style="width:60px;height:60px;object-fit:contain;opacity:0.6;" onerror="this.style.display='none'">
+  <div class="loader-bar"></div>
+  <div class="loader-txt" id="loader-txt">Connexion à Firebase...</div>
+</div>
+
+<!-- ════ LOGIN PAGE ════ -->
+<div id="login-page">
+  <div class="login-scanline"></div>
+  <div class="login-wrap">
+    <div class="login-logo-zone">
+      <img src="ciu_logo.png" onerror="this.style.display='none'">
+      <div class="login-title">C.I.U. — L.S.P.D.</div>
+      <div class="login-sub">Système Intégré — Accès Restreint</div>
+    </div>
+    <div class="login-card">
+      <div class="login-card-top">
+        <span>⬤</span> PORTAIL INTERNE — BUREAU DES INSPECTEURS
+      </div>
+      <div class="login-body">
+        <div class="login-notice">
+          ⚠ ACCÈS RESTREINT — PERSONNEL AUTORISÉ UNIQUEMENT
+        </div>
+        <div class="login-field">
+          <label class="login-label">Adresse E-mail Institutionnelle</label>
+          <input class="login-input" id="login-email" type="email" placeholder="prenom.nom@gmail.com" onkeydown="if(event.key==='Enter')document.getElementById('login-pw').focus()">
+        </div>
+        <div class="login-field">
+          <label class="login-label">Code d'accès</label>
+          <input class="login-input" id="login-pw" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+        </div>
+        <button class="login-btn" id="login-btn" onclick="doLogin()">
+          CONNEXION — SYSTÈME C.I.U.
+        </button>
+        <div class="login-err" id="login-err">✕ Identifiant ou mot de passe incorrect.</div>
+      </div>
+      <div class="login-footer">
+        <span>© L.S.P.D. — Criminal Investigation Union</span>
+        <span>Usage interne</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ DESKTOP ════ -->
+<div id="os-desktop">
+  <!-- Background logo -->
+  <div id="desk-bg">
+    <img src="ciu_logo.png" onerror="this.style.display='none'">
+  </div>
+
+  <!-- Desktop icons -->
+  <div id="desk-icons">
+    <div class="desk-icon" ondblclick="openApp('win-ciu')">
+      <img src="ciu_logo.png" onerror="this.textContent='🔍';this.style.fontSize='32px'">
+      <span>LSPD — PANEL INVESTIGATION</span>
+    </div>
+    <div class="desk-icon" ondblclick="openApp('win-for')">
+      <img src="for_logo.png" onerror="this.textContent='🔬';this.style.fontSize='32px'">
+      <span>LSPD — SYSTÈME FORENSIC</span>
+    </div>
+  </div>
+
+  <!-- Window: CIU Panel -->
+  <div class="win" id="win-ciu" style="left:100px;top:30px;width:1200px;height:720px;">
+    <div class="rh rh-e" data-dir="e"></div><div class="rh rh-w" data-dir="w"></div>
+    <div class="rh rh-s" data-dir="s"></div><div class="rh rh-n" data-dir="n"></div>
+    <div class="rh rh-se" data-dir="se"></div><div class="rh rh-sw" data-dir="sw"></div>
+    <div class="rh rh-ne" data-dir="ne"></div><div class="rh rh-nw" data-dir="nw"></div>
+    <div class="w-title" id="ciu-title">
+      <img src="ciu_logo.png" onerror="this.style.display='none'">
+      <span class="w-title-txt">LSPD — Panel Investigation C.I.U.</span>
+      <button class="w-btn w-btn-min" onclick="minApp('win-ciu','tb-ciu')"></button>
+      <button class="w-btn w-btn-max" onclick="maxApp('win-ciu')"></button>
+      <button class="w-btn w-btn-cls" onclick="closeApp('win-ciu','tb-ciu')"></button>
+    </div>
+    <iframe class="win-iframe" id="iframe-ciu" src="about:blank"></iframe>
+  </div>
+
+  <!-- Window: Forensic -->
+  <div class="win" id="win-for" style="left:120px;top:50px;width:1200px;height:720px;">
+    <div class="rh rh-e" data-dir="e"></div><div class="rh rh-w" data-dir="w"></div>
+    <div class="rh rh-s" data-dir="s"></div><div class="rh rh-n" data-dir="n"></div>
+    <div class="rh rh-se" data-dir="se"></div><div class="rh rh-sw" data-dir="sw"></div>
+    <div class="rh rh-ne" data-dir="ne"></div><div class="rh rh-nw" data-dir="nw"></div>
+    <div class="w-title" id="for-title">
+      <img src="for_logo.png" onerror="this.style.display='none'">
+      <span class="w-title-txt">LSPD — Système Forensique</span>
+      <button class="w-btn w-btn-min" onclick="minApp('win-for','tb-for')"></button>
+      <button class="w-btn w-btn-max" onclick="maxApp('win-for')"></button>
+      <button class="w-btn w-btn-cls" onclick="closeApp('win-for','tb-for')"></button>
+    </div>
+    <iframe class="win-iframe" id="iframe-for" src="about:blank"></iframe>
+  </div>
+
+  <!-- Taskbar -->
+  <div id="taskbar">
+    <div class="tb-btn" id="tb-ciu" onclick="toggleApp('win-ciu','tb-ciu','index.html')">
+      <img src="ciu_logo.png" onerror="this.textContent='🔍'"> LSPD - Panel Investigation
+    </div>
+    <div class="tb-sep"></div>
+    <div class="tb-btn" id="tb-for" onclick="toggleApp('win-for','tb-for','forensic.html')">
+      <img src="for_logo.png" onerror="this.textContent='🔬'"> LSPD - Système Forensique
+    </div>
+    <div class="tb-right">
+      <span id="tb-user"></span>
+      <span id="tb-clock">--:--</span>
+      <span id="tb-date">--/--/----</span>
+      <span class="tb-right-logout" onclick="logout()">⏻ Déconnexion</span>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+<script>
+// ═══════════════════════════════════════════════
+// FIREBASE CONFIG
+// ═══════════════════════════════════════════════
+const firebaseConfig = {
+  apiKey: "AIzaSyDjFtSaDCRnBh2rqQezLOAFyvBA6aV2Mds",
+  authDomain: "ciu-portal.firebaseapp.com",
+  projectId: "ciu-portal",
+  storageBucket: "ciu-portal.firebasestorage.app",
+  messagingSenderId: "1072590977967",
+  appId: "1:1072590977967:web:4d1b0b8b3a6bdcfb208d5a"
+};
+let fdb, fauth, DB_users = {};
+
+function initFB(){
+  try{
+    if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    fdb = firebase.firestore();
+    fauth = firebase.auth();
+    return true;
+  }catch(e){ console.error(e); return false; }
+}
+
+// ═══════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════
+const DEF_PW = 'lspd-dd-2026';
+const SSK = 'ciu_desk_v1';
+const SESS_MS = 15 * 60 * 1000;
+let currentUser = null;
+let lastActivity = Date.now();
+let inactivityWarned = false;
+
+async function sha256(str){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+async function verifyPw(input, stored){
+  if(!stored || !input) return false;
+  if(stored.length === 64 && /^[0-9a-f]+$/.test(stored)) return (await sha256(input)) === stored;
+  return input === stored;
+}
+
+async function doLogin(){
+  const email = document.getElementById('login-email').value.trim().toLowerCase();
+  const pw    = document.getElementById('login-pw').value;
+  const err   = document.getElementById('login-err');
+  const btn   = document.getElementById('login-btn');
+  err.classList.remove('show');
+  if(!email || !pw){ err.textContent='✕ Renseignez votre identifiant et mot de passe.'; err.classList.add('show'); return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Authentification...';
+
+  // 1. Essayer Firebase Auth
+  if(fauth){
+    try{
+      await fauth.signInWithEmailAndPassword(email, pw);
+      await afterLogin(email);
+      btn.disabled = false; btn.textContent = 'CONNEXION — SYSTÈME C.I.U.';
+      return;
+    }catch(authErr){
+      const notFound = ['auth/user-not-found','auth/invalid-credential','auth/wrong-password','auth/invalid-email'].includes(authErr.code);
+      if(!notFound){
+        btn.disabled = false; btn.textContent = 'CONNEXION — SYSTÈME C.I.U.';
+        err.textContent = authErr.code === 'auth/too-many-requests' ? '✕ Trop de tentatives. Réessayez plus tard.' : '✕ Identifiants incorrects.';
+        err.classList.add('show');
+        document.getElementById('login-pw').value = '';
+        return;
+      }
+    }
+  }
+
+  // 2. Fallback local (Firestore)
+  const u = DB_users[email];
+  if(!u){ btn.disabled=false; btn.textContent='CONNEXION — SYSTÈME C.I.U.'; err.classList.add('show'); document.getElementById('login-pw').value=''; return; }
+  let ok = false;
+  if(!u.pw){ if(pw.length>=4){ ok=true; } }
+  else { ok = await verifyPw(pw, u.pw); }
+  btn.disabled = false; btn.textContent = 'CONNEXION — SYSTÈME C.I.U.';
+  if(ok){ await afterLogin(email); }
+  else { err.classList.add('show'); document.getElementById('login-pw').value=''; }
+}
+
+async function afterLogin(email){
+  const u = DB_users[email] || {name: email.split('@')[0], role:'agent'};
+  currentUser = {email, name: u.name, role: u.role};
+  // Sauvegarder session bureau
+  localStorage.setItem(SSK, JSON.stringify({email, name:u.name, ts: Date.now()}));
+  // Injecter aussi la session du portail CIU (même domaine = même localStorage)
+  // Le portail CIU utilise 'ciu_sess_v2' avec {email, ts}
+  localStorage.setItem('ciu_sess_v2', JSON.stringify({email, ts: Date.now()}));
+  showDesktop();
+}
+
+function showDesktop(){
+  document.getElementById('loader').classList.add('hidden');
+  // Hide login
+  const lp = document.getElementById('login-page');
+  lp.classList.add('hiding');
+  setTimeout(()=>{ lp.style.display='none'; }, 650);
+  // Show desktop
+  document.getElementById('os-desktop').classList.add('show');
+  document.getElementById('tb-user').textContent = currentUser.name;
+  lastActivity = Date.now();
+}
+
+function logout(){
+  if(!confirm('Se déconnecter du système C.I.U. ?')) return;
+  localStorage.removeItem(SSK);
+  localStorage.removeItem('ciu_sess_v2'); // Effacer aussi la session du portail CIU
+  if(fauth) fauth.signOut().catch(()=>{});
+  currentUser = null;
+  // Close all windows
+  ['win-ciu','win-for'].forEach(id=>{
+    const w = document.getElementById(id);
+    w.classList.remove('show');
+    const iframe = w.querySelector('iframe');
+    if(iframe) iframe.src = 'about:blank';
+  });
+  ['tb-ciu','tb-for'].forEach(id=> document.getElementById(id).classList.remove('active'));
+  document.getElementById('os-desktop').classList.remove('show');
+  const lp = document.getElementById('login-page');
+  lp.style.display = 'flex';
+  lp.classList.remove('hiding');
+  document.getElementById('login-email').value = '';
+  document.getElementById('login-pw').value = '';
+  document.getElementById('login-err').classList.remove('show');
+}
+
+// ═══════════════════════════════════════════════
+// WINDOW MANAGEMENT
+// ═══════════════════════════════════════════════
+let zTop = 200;
+const APP_URLS = { 'win-ciu': 'index.html', 'win-for': 'forensic.html' };
+
+function openApp(winId){
+  const w = document.getElementById(winId);
+  const iframe = w.querySelector('iframe');
+  if(iframe && iframe.src === window.location.origin + '/about:blank' || iframe.src === 'about:blank'){
+    setLoader(winId);
+    iframe.src = APP_URLS[winId];
+  }
+  w.classList.add('show');
+  w.style.zIndex = ++zTop;
+  const tbId = 'tb-' + winId.replace('win-','');
+  document.getElementById(tbId).classList.add('active');
+}
+
+function setLoader(winId){
+  const iframe = document.getElementById('iframe-'+winId.replace('win-',''));
+  if(iframe){
+    iframe.onload = function(){
+      // iframe chargée
+    };
+  }
+}
+
+function closeApp(winId, tbId){
+  document.getElementById(winId).classList.remove('show');
+  document.getElementById(tbId).classList.remove('active');
+}
+function minApp(winId, tbId){ closeApp(winId, tbId); }
+function toggleApp(winId, tbId, url){
+  const w = document.getElementById(winId);
+  if(w.classList.contains('show')){ closeApp(winId, tbId); }
+  else { openApp(winId); }
+}
+function maxApp(id){
+  const w = document.getElementById(id);
+  if(w.dataset.max==='1'){
+    w.style.cssText = w.dataset.prev;
+    delete w.dataset.max;
+  } else {
+    w.dataset.prev = w.style.cssText;
+    w.style.left='0'; w.style.top='0';
+    w.style.width='100vw'; w.style.height='calc(100vh - 36px)';
+    w.dataset.max='1';
+  }
+}
+
+// ── Drag ──
+document.querySelectorAll('.w-title').forEach(bar=>{
+  let dx,dy,drag=false;
+  bar.addEventListener('mousedown',e=>{
+    if(e.target.tagName==='BUTTON') return;
+    drag=true;
+    const w=bar.closest('.win');
+    w.style.zIndex=++zTop;
+    dx=e.clientX-w.offsetLeft; dy=e.clientY-w.offsetTop;
+  });
+  document.addEventListener('mousemove',e=>{
+    if(!drag) return;
+    const w=bar.closest('.win');
+    w.style.left=(e.clientX-dx)+'px'; w.style.top=(e.clientY-dy)+'px';
+  });
+  document.addEventListener('mouseup',()=>drag=false);
+});
+
+// ── Resize ──
+(function(){
+  let rs=null,sx,sy,sw,sh,sl,st;
+  document.querySelectorAll('.rh').forEach(h=>{
+    h.addEventListener('mousedown',e=>{
+      e.stopPropagation(); e.preventDefault();
+      const w=h.closest('.win');
+      rs={w,dir:h.dataset.dir};
+      sx=e.clientX; sy=e.clientY;
+      sw=w.offsetWidth; sh=w.offsetHeight;
+      sl=w.offsetLeft; st=w.offsetTop;
+      w.style.zIndex=++zTop;
+      document.body.style.cursor=getComputedStyle(h).cursor;
+      document.body.style.userSelect='none';
+    });
+  });
+  document.addEventListener('mousemove',e=>{
+    if(!rs) return;
+    const {w,dir}=rs, dx=e.clientX-sx, dy=e.clientY-sy, MW=400, MH=280;
+    if(dir.includes('e')) w.style.width=Math.max(MW,sw+dx)+'px';
+    if(dir.includes('s')) w.style.height=Math.max(MH,sh+dy)+'px';
+    if(dir.includes('w')){ const nw=Math.max(MW,sw-dx); w.style.width=nw+'px'; w.style.left=(sl+sw-nw)+'px'; }
+    if(dir.includes('n')){ const nh=Math.max(MH,sh-dy); w.style.height=nh+'px'; w.style.top=(st+sh-nh)+'px'; }
+  });
+  document.addEventListener('mouseup',()=>{ if(!rs)return; rs=null; document.body.style.cursor=''; document.body.style.userSelect=''; });
+})();
+
+// ═══════════════════════════════════════════════
+// CLOCK & INACTIVITY
+// ═══════════════════════════════════════════════
+function tick(){
+  const n=new Date();
+  document.getElementById('tb-clock').textContent=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');
+  document.getElementById('tb-date').textContent=String(n.getDate()).padStart(2,'0')+'/'+String(n.getMonth()+1).padStart(2,'0')+'/'+n.getFullYear();
+}
+tick(); setInterval(tick,10000);
+
+const INACTIVITY_MS = 15*60*1000;
+const WARN_MS = 2*60*1000;
+['click','keydown','mousemove','scroll'].forEach(ev=>{
+  document.addEventListener(ev,()=>{
+    if(!currentUser) return;
+    lastActivity = Date.now();
+    inactivityWarned = false;
+    // Renouveler aussi la session du portail CIU
+    localStorage.setItem('ciu_sess_v2', JSON.stringify({email: currentUser.email, ts: Date.now()}));
+  },{ passive:true });
+});
+setInterval(()=>{
+  if(!currentUser) return;
+  const rem = INACTIVITY_MS-(Date.now()-lastActivity);
+  if(rem<=0){ logout(); return; }
+  if(rem<=WARN_MS && !inactivityWarned){
+    inactivityWarned=true;
+    const min=Math.floor(rem/60000), sec=Math.floor((rem%60000)/1000);
+    if(confirm('⏱ Session expirée dans '+min+'m'+String(sec).padStart(2,'0')+'s\n\nRester connecté ?')){
+      lastActivity=Date.now(); inactivityWarned=false;
+    } else { logout(); }
+  }
+},10000);
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+async function init(){
+  document.getElementById('loader-txt').textContent = 'Connexion à Firebase...';
+  const ok = initFB();
+  if(!ok){ document.getElementById('loader').classList.add('hidden'); return; }
+  try{
+    document.getElementById('loader-txt').textContent = 'Chargement de la configuration...';
+    const snap = await fdb.collection('config').doc('main').get();
+    if(snap.exists){ DB_users = snap.data().users || {}; }
+  }catch(e){ console.warn('Firebase read:', e.message); }
+
+  document.getElementById('loader').classList.add('hidden');
+
+  // Vérifier session existante
+  try{
+    const s = JSON.parse(localStorage.getItem(SSK)||'null');
+    if(s && Date.now()-s.ts < SESS_MS && s.email){
+      currentUser = {email:s.email, name:s.name||s.email.split('@')[0]};
+      showDesktop();
+      return;
+    }
+  }catch(e){}
+
+  // Firebase Auth session
+  if(fauth){
+    fauth.onAuthStateChanged(async fbUser=>{
+      if(fbUser && !currentUser){
+        await afterLogin(fbUser.email);
+      }
+    });
+  }
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
