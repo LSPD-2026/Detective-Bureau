@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Notes d'Agent — C.I.U.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div id="app-loader" style="position:fixed;inset:0;background:var(--cream);z-index:9999;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--gray);letter-spacing:.1em;">Chargement…</div>
+
+<div class="ciu-container">
+  <div class="page-head">
+    <div>
+      <span class="sec-num">§ 09</span>
+      <h1 class="page-title">Notes d'Agent</h1>
+      <p class="page-sub">Carnet personnel — observations terrain, suivis d'enquête, mémos.</p>
+    </div>
+  </div>
+
+  <div class="notes-layout">
+    <div class="notes-sidebar">
+      <div class="notes-sb-label">Navigation</div>
+      <button class="notes-my-note-btn active" id="notes-my-btn" onclick="selectNote('me')">📓 Ma note</button>
+      <div id="notes-agents-list" style="display:none;"></div>
+    </div>
+    <div class="notes-main">
+      <div class="notes-editor-title" id="notes-editor-title">Ma note personnelle</div>
+      <div class="notes-editor-meta" id="notes-editor-meta">—</div>
+      <div class="notes-readonly-badge" id="notes-readonly-badge">🔒 Lecture seule</div>
+      <div class="rte-toolbar" id="rte-notes-toolbar">
+        <button class="rte-btn" onclick="rteCmd('notes-editor','bold')"><b>G</b></button>
+        <button class="rte-btn" onclick="rteCmd('notes-editor','italic')"><i>I</i></button>
+        <button class="rte-btn" onclick="rteCmd('notes-editor','underline')"><u>S</u></button>
+        <button class="rte-btn" onclick="rteCmd('notes-editor','strikeThrough')"><s>B</s></button>
+        <button class="rte-btn" onclick="rteCmd('notes-editor','insertUnorderedList')">•—</button>
+        <button class="rte-btn" onclick="rteCmd('notes-editor','justifyLeft')">⬅</button>
+        <button class="rte-btn" onclick="rteCmd('notes-editor','justifyCenter')">↔</button>
+        <input type="color" class="rte-color" onchange="rteColor('notes-editor',this.value)" title="Couleur du texte">
+        <button class="rte-btn" onclick="rteInsertImage('notes-editor')">🖼</button>
+      </div>
+      <div class="notes-editor-content" id="notes-editor" contenteditable="true"></div>
+      <div style="display:flex;gap:10px;align-items:center;margin-top:14px;">
+        <button class="btn btn-gold" id="notes-save-btn" onclick="saveNote()">💾 Enregistrer</button>
+        <span id="notes-saved-badge" style="display:none;font-family:var(--font-mono);font-size:11px;color:#1a5c2e;">✓ Enregistré</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="ciu-footer">
+  <span>© L.S.P.D. — Criminal Investigation Union</span>
+  <span>Usage interne — San Andreas</span>
+</div>
+
+<!-- Image resize toolbar -->
+<div class="rte-img-toolbar" id="rte-img-toolbar">
+  <label style="font-size:9px;">L:</label><input type="number" id="rte-img-w">
+  <label style="font-size:9px;">H:</label><input type="number" id="rte-img-h">
+  <select id="rte-img-unit" style="font-size:9px;"><option value="px">px</option><option value="%">%</option></select>
+  <button onclick="rteApplyImgSize()">✓</button>
+  <button onclick="rteImgPreset(150)">S</button>
+  <button onclick="rteImgPreset(300)">M</button>
+  <button onclick="rteImgPreset(600)">L</button>
+  <button onclick="rteImgAutoSize()">↔</button>
+  <button onclick="rteDeleteImg()" style="background:#8b1a1a;color:#fff;">🗑</button>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="shared.js"></script>
+<script>
+let DB;
+let currentNoteKey=null;
+let rteSelectedImg=null;
+
+function noteKey(email){ return 'note_'+email.replace(/[^a-z0-9]/gi,'_'); }
+
+function buildNotesSidebar(){
+  const agentsList=document.getElementById('notes-agents-list');
+  if(CIU.isResp()){
+    agentsList.style.display='block';
+    const others = Object.entries(DB.users).filter(([e])=>e!==CIU.currentEmail).sort((a,b)=>a[1].name.localeCompare(b[1].name));
+    agentsList.innerHTML = `<div class="notes-sb-label" style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08);">Notes des agents</div>`
+      + others.map(([email,u])=>`<button class="notes-agent-btn" id="note-btn-${noteKey(email)}" onclick="selectNote('${email}')">• ${u.name}</button>`).join('');
+  } else {
+    agentsList.style.display='none';
+  }
+}
+
+async function selectNote(target){
+  document.querySelectorAll('.notes-my-note-btn,.notes-agent-btn').forEach(b=>b.classList.remove('active'));
+  const isMe = target==='me';
+  const email = isMe ? CIU.currentEmail : target;
+  currentNoteKey = noteKey(email);
+  const userName = isMe ? CIU.currentUser : (DB.users[email]?DB.users[email].name:email);
+  const canEdit = isMe;
+  if(isMe){ document.getElementById('notes-my-btn').classList.add('active'); }
+  else{ const b=document.getElementById('note-btn-'+currentNoteKey); if(b) b.classList.add('active'); }
+
+  const editor=document.getElementById('notes-editor');
+  const toolbar=document.getElementById('rte-notes-toolbar');
+  document.getElementById('notes-editor-title').textContent = isMe?'Ma note personnelle':'Note de '+userName;
+  document.getElementById('notes-editor-meta').textContent='Chargement...';
+  editor.innerHTML='<em style="color:#999">Chargement...</em>';
+
+  try{
+    const snap = await CIU.COL.notes.doc(currentNoteKey).get();
+    const nd = snap.exists ? snap.data() : {content:'',lastEdit:''};
+    editor.innerHTML = nd.content||'';
+    setTimeout(()=>rteBindImages('notes-editor'),100);
+    document.getElementById('notes-editor-meta').textContent = nd.lastEdit ? 'Dernière modification : '+nd.lastEdit : 'Aucune modification';
+  }catch(err){
+    editor.innerHTML='';
+    document.getElementById('notes-editor-meta').textContent='Erreur de chargement';
+  }
+
+  editor.contentEditable = canEdit ? 'true' : 'false';
+  editor.style.opacity = canEdit ? '1' : '.75';
+  toolbar.style.display = canEdit ? 'flex' : 'none';
+  document.getElementById('notes-readonly-badge').style.display = canEdit ? 'none' : 'inline-block';
+  document.getElementById('notes-save-btn').style.display = canEdit ? 'inline-flex' : 'none';
+  document.getElementById('notes-saved-badge').style.display='none';
+}
+
+async function saveNote(){
+  if(!currentNoteKey) return;
+  const editor=document.getElementById('notes-editor');
+  const content = editor ? editor.innerHTML : '';
+  const now = new Date().toLocaleString('fr-FR');
+  await CIU.fsSet('notes', currentNoteKey, {content, lastEdit:now, savedBy:CIU.currentUser});
+  document.getElementById('notes-editor-meta').textContent='Dernière modification : '+now;
+  const badge=document.getElementById('notes-saved-badge');
+  badge.style.display='inline';
+  setTimeout(()=>badge.style.display='none',2500);
+}
+
+// ── Rich text editor helpers ──
+function rteCmd(id,cmd,v){ document.getElementById(id).focus(); document.execCommand(cmd,false,v||null); }
+function rteColor(id,color){ document.getElementById(id).focus(); document.execCommand('foreColor',false,color); }
+function rteInsertImage(editorId){
+  const input=document.createElement('input'); input.type='file'; input.accept='image/png,image/jpeg,image/gif,image/webp';
+  input.onchange=function(){
+    const file=input.files[0]; if(!file) return;
+    if(file.size>5*1024*1024){ alert('Image trop grande (max 5 Mo).'); return; }
+    const reader=new FileReader();
+    reader.onload=function(ev){
+      const el=document.getElementById(editorId); el.focus();
+      const uid='rte'+Date.now();
+      document.execCommand('insertHTML',false,'<img src="'+ev.target.result+'" data-rte-img="1" data-rte-id="'+uid+'" style="width:300px;height:auto;cursor:pointer;vertical-align:middle;max-width:100%;">');
+      setTimeout(function(){ rteBindImages(editorId); },150);
+    };
+    reader.readAsDataURL(file);
+  };
+  input.click();
+}
+function rteBindImages(editorId){
+  const el=document.getElementById(editorId); if(!el) return;
+  el.querySelectorAll('img[data-rte-img]').forEach(function(img){
+    img.onclick=null;
+    img.addEventListener('click',function(e){ e.stopPropagation(); rteSelectImg(this); },false);
+    img.style.cursor='pointer';
+  });
+}
+function rteSelectImg(img){
+  document.querySelectorAll('img[data-rte-img]').forEach(function(i){ i.style.outline='none'; });
+  rteSelectedImg=img; img.style.outline='2px solid #f1a400';
+  const tb=document.getElementById('rte-img-toolbar'); if(!tb) return;
+  const rect=img.getBoundingClientRect();
+  const sy=window.scrollY||document.documentElement.scrollTop;
+  const sx=window.scrollX||document.documentElement.scrollLeft;
+  let top=rect.bottom+8+sy;
+  if(rect.bottom+60>window.innerHeight) top=rect.top-60+sy;
+  tb.style.top=Math.max(4,top)+'px'; tb.style.left=Math.max(4,Math.min(rect.left+sx,window.innerWidth-300))+'px';
+  document.getElementById('rte-img-w').value=Math.round(img.offsetWidth)||300;
+  document.getElementById('rte-img-h').value=Math.round(img.offsetHeight)||'';
+  tb.classList.add('show');
+}
+function rteApplyImgSize(){
+  if(!rteSelectedImg) return;
+  const wv=document.getElementById('rte-img-w').value, hv=document.getElementById('rte-img-h').value;
+  const unit=document.getElementById('rte-img-unit').value||'px';
+  if(wv){ rteSelectedImg.style.width=wv+unit; rteSelectedImg.style.maxWidth='none'; }
+  if(hv){ rteSelectedImg.style.height=hv+unit; } else { rteSelectedImg.style.height='auto'; }
+}
+function rteImgPreset(w){ if(!rteSelectedImg) return; document.getElementById('rte-img-unit').value='px'; document.getElementById('rte-img-w').value=w; document.getElementById('rte-img-h').value=''; rteApplyImgSize(); }
+function rteImgAutoSize(){ if(!rteSelectedImg) return; rteSelectedImg.style.width='100%'; rteSelectedImg.style.maxWidth='100%'; rteSelectedImg.style.height='auto'; }
+function rteDeleteImg(){ if(!rteSelectedImg) return; rteSelectedImg.remove(); document.getElementById('rte-img-toolbar').classList.remove('show'); rteSelectedImg=null; }
+document.addEventListener('click',function(e){
+  const tb=document.getElementById('rte-img-toolbar');
+  if(tb && !tb.contains(e.target) && !e.target.hasAttribute('data-rte-img')) tb.classList.remove('show');
+},{passive:true});
+
+(async function(){
+  const ok = await CIU.init({page:'notes.html'});
+  if(!ok) return;
+  if(CIU.isProcureur()){ alert('Accès aux notes non autorisé pour le Bureau du Procureur.'); window.location.href='accueil.html'; return; }
+  document.getElementById('app-loader').style.display='none';
+  DB = CIU.DB();
+  buildNotesSidebar();
+  await selectNote('me');
+})();
+</script>
+</body>
+</html>

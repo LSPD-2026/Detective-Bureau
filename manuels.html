@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manuels &amp; Documents — C.I.U.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div id="app-loader" style="position:fixed;inset:0;background:var(--cream);z-index:9999;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--gray);letter-spacing:.1em;">Chargement…</div>
+
+<div class="ciu-container">
+  <div class="page-head">
+    <div>
+      <span class="sec-num">§ 08</span>
+      <h1 class="page-title">Manuels &amp; Documents</h1>
+      <p class="page-sub">Procédures, guides et documentation officielle du Criminal Investigation Union.</p>
+    </div>
+    <button class="btn btn-outline btn-sm" id="man-edit-toggle" style="display:none;" onclick="toggleManEdit()">✏ Gérer les manuels</button>
+  </div>
+
+  <div class="manuel-grid" id="manuel-grid"></div>
+
+  <div id="man-edit-zone" style="display:none;margin-top:50px;">
+    <div class="page-head"><h2 class="page-title" style="font-size:22px;">Édition — Manuels</h2></div>
+    <div id="man-list-admin"></div>
+    <div class="add-panel" style="margin-top:18px;">
+      <div class="add-panel-title">+ Ajouter un manuel</div>
+      <div class="field-row">
+        <div class="field" style="max-width:90px;"><label>Emoji</label><input id="man-emoji" placeholder="📘"></div>
+        <div class="field"><label>Titre</label><input id="man-title" placeholder="Manuel Procédures..."></div>
+      </div>
+      <div class="field"><label>Sous-titre</label><input id="man-sub" placeholder="Formation — D.D."></div>
+      <div class="field"><label>Lien URL</label><input id="man-url" placeholder="https://docs.google.com/..."></div>
+      <label style="display:flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:10.5px;color:var(--gold-dim);cursor:pointer;margin-bottom:14px;">
+        <input type="checkbox" id="man-classified"> Confidentiel (bordure rouge)
+      </label>
+      <div id="man-msg"></div>
+      <button class="btn btn-gold" onclick="addManuel()">+ Ajouter le manuel</button>
+    </div>
+  </div>
+</div>
+
+<div id="ciu-footer">
+  <span>© L.S.P.D. — Criminal Investigation Union</span>
+  <span>Usage interne — San Andreas</span>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="shared.js"></script>
+<script>
+let DB;
+
+function renderManuels(){
+  const grid=document.getElementById('manuel-grid');
+  const manuels=DB.manuels||[];
+  if(!manuels.length){ grid.innerHTML='<p style="font-family:var(--font-mono);font-size:11px;color:var(--gray);grid-column:1/-1;">Aucun manuel disponible pour le moment.</p>'; return; }
+  grid.innerHTML = manuels.map(m=>`<a href="${m.url}" target="_blank" rel="noopener" class="manuel-link${m.classified?' classified':''}">
+    <span class="ico">${m.emoji||'📄'}</span>
+    <div><div class="ml-title">${m.title}</div><div class="ml-sub">${m.sub||''}</div></div>
+  </a>`).join('');
+}
+function renderManAdminList(){
+  const list=document.getElementById('man-list-admin');
+  const manuels=DB.manuels||[];
+  if(!manuels.length){ list.innerHTML='<p style="font-family:var(--font-mono);font-size:11px;color:var(--gray);">Aucun manuel.</p>'; return; }
+  list.innerHTML = manuels.map((m,i)=>`
+    <div class="admin-row">
+      <span style="font-size:18px;width:28px;text-align:center;">${m.emoji||'📄'}</span>
+      <div class="info"><div class="t">${m.title}</div><div class="s">${m.sub||''}${m.classified?' · 🔴 Confidentiel':''}</div></div>
+      <button class="ta-btn ta-edit" onclick="editManuel(${i})">✏</button>
+      <button class="ta-btn" style="color:#8b1a1a;" onclick="deleteManuel(${i})">🗑</button>
+    </div>`).join('');
+}
+function toggleManEdit(){
+  const z=document.getElementById('man-edit-zone');
+  z.style.display = z.style.display==='none' ? 'block' : 'none';
+  if(z.style.display==='block'){ renderManAdminList(); z.scrollIntoView({behavior:'smooth'}); }
+}
+async function addManuel(){
+  const emoji=document.getElementById('man-emoji').value.trim()||'📄';
+  const title=document.getElementById('man-title').value.trim();
+  const sub=document.getElementById('man-sub').value.trim();
+  const url=document.getElementById('man-url').value.trim();
+  const classified=document.getElementById('man-classified').checked;
+  const msg=document.getElementById('man-msg');
+  if(!title||!url){ msg.innerHTML='<div style="font-family:var(--font-mono);font-size:11px;color:#8b1a1a;margin-bottom:10px;">⚠ Titre et lien obligatoires.</div>'; return; }
+  if(!DB.manuels) DB.manuels=[];
+  DB.manuels.push({emoji,title,sub,url,classified});
+  await CIU.saveConfig();
+  ['man-emoji','man-title','man-sub','man-url'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('man-classified').checked=false;
+  msg.innerHTML='<div style="font-family:var(--font-mono);font-size:11px;color:#1a5c2e;margin-bottom:10px;">✓ Manuel ajouté.</div>';
+  setTimeout(()=>msg.innerHTML='',2000);
+  renderManAdminList(); renderManuels();
+}
+async function deleteManuel(i){
+  if(!confirm('Supprimer ce manuel ?')) return;
+  DB.manuels.splice(i,1);
+  await CIU.saveConfig();
+  renderManAdminList(); renderManuels();
+}
+async function editManuel(i){
+  const m=DB.manuels[i];
+  const newTitle=prompt('Nouveau titre :',m.title); if(newTitle===null) return;
+  const newSub=prompt('Nouveau sous-titre :',m.sub); if(newSub===null) return;
+  const newEmoji=prompt('Emoji :',m.emoji||'📄'); if(newEmoji===null) return;
+  DB.manuels[i]={...m, title:newTitle.trim()||m.title, sub:newSub.trim(), emoji:newEmoji.trim()||m.emoji};
+  await CIU.saveConfig();
+  renderManAdminList(); renderManuels();
+}
+
+(async function(){
+  const ok = await CIU.init({page:'manuels.html'});
+  if(!ok) return;
+  document.getElementById('app-loader').style.display='none';
+  DB = CIU.DB();
+  renderManuels();
+  if(CIU.isDirection()||CIU.isDev()) document.getElementById('man-edit-toggle').style.display='inline-flex';
+})();
+</script>
+</body>
+</html>

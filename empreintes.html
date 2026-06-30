@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module H — Empreintes Digitales — C.I.U.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div id="app-loader" style="position:fixed;inset:0;background:var(--cream);z-index:9999;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--gray);letter-spacing:.1em;">Chargement…</div>
+
+<div class="ciu-container">
+  <div class="page-head">
+    <div>
+      <span class="sec-num">Module H</span>
+      <h1 class="page-title">Empreintes Digitales — D.D. × D.O.J.</h1>
+      <p class="page-sub">Relevé et identification — Detective Division × Department of Justice.</p>
+    </div>
+    <button class="btn btn-outline btn-sm" id="fp-settings-toggle" onclick="document.getElementById('fp-settings-zone').scrollIntoView({behavior:'smooth'})">⚙ Paramètres</button>
+  </div>
+
+  <div class="fp-sheet">
+    <div class="fp-prints-row" id="fp-top-prints"></div>
+
+    <div class="field-row">
+      <div class="field"><label>Date</label><input id="fp-date" type="date"></div>
+      <div class="field"><label>N° affaire</label><input id="fp-affaire"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Nom</label><input id="fp-nom"></div>
+      <div class="field"><label>Prénom</label><input id="fp-prenom"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>N° enregistrement</label><input id="fp-num"></div>
+      <div class="field"><label>Agent traitant</label><input id="fp-agent"></div>
+    </div>
+    <div class="field"><label>Poste</label><select id="fp-poste"></select></div>
+
+    <div class="fp-checks" id="fp-checkboxes-dynamic"></div>
+
+    <div class="fp-prints-row" id="fp-bottom-prints"></div>
+
+    <div style="display:flex;gap:10px;margin-top:18px;">
+      <button class="btn btn-gold" onclick="generateFpReport()">📄 Générer le relevé</button>
+      <button class="btn btn-outline" onclick="clearFpForm()">↺ Réinitialiser</button>
+    </div>
+    <div class="fp-report-out" id="fp-report-out"></div>
+    <div id="fp-copy-row" style="display:none;margin-top:10px;"><button class="btn btn-outline btn-sm" onclick="copyFpReport()">📋 Copier le texte</button></div>
+  </div>
+
+  <!-- Paramètres -->
+  <div id="fp-settings-zone" style="margin-top:50px;">
+    <div class="page-head"><h2 class="page-title" style="font-size:22px;">Paramètres — Module H</h2></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+      <div>
+        <div class="add-panel-title" style="margin-bottom:10px;">Cases à cocher</div>
+        <div id="fp-chk-list-admin"></div>
+        <div class="field-row" style="margin-top:12px;">
+          <div class="field"><input id="fp-new-chk" placeholder="Nouvelle case..."></div>
+          <button class="btn btn-outline btn-sm" onclick="addFpCheckbox()">+ Ajouter</button>
+        </div>
+      </div>
+      <div>
+        <div class="add-panel-title" style="margin-bottom:10px;">Postes</div>
+        <div id="fp-postes-list-admin"></div>
+        <div class="field-row" style="margin-top:12px;">
+          <div class="field"><input id="fp-new-poste" placeholder="Nouveau poste..."></div>
+          <button class="btn btn-outline btn-sm" onclick="addFpPoste()">+ Ajouter</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="ciu-footer">
+  <span>© L.S.P.D. — Criminal Investigation Union</span>
+  <span>Usage interne — San Andreas</span>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="shared.js"></script>
+<script>
+let DB;
+const FP_SVG = `<svg viewBox="0 0 80 90" xmlns="http://www.w3.org/2000/svg" style="width:60px;height:68px;">
+  <g stroke="#0a1e29" stroke-width="1.1" fill="none" opacity=".75">
+    <path d="M40,12 C28,12 18,22 18,36 C18,50 28,62 40,64 C52,62 62,50 62,36 C62,22 52,12 40,12"/>
+    <path d="M40,17 C30,17 22,25 22,36 C22,47 30,57 40,59 C50,57 58,47 58,36 C58,25 50,17 40,17"/>
+    <path d="M40,22 C32,22 26,28 26,36 C26,44 32,52 40,54 C48,52 54,44 54,36 C54,28 48,22 40,22"/>
+    <path d="M40,27 C34,27 30,31 30,36 C30,41 34,47 40,49 C46,47 50,41 50,36 C50,31 46,27 40,27"/>
+  </g>
+</svg>`;
+
+function getDefaultFpConfig(){return{
+  checkboxes:['Victime / Plaignant','LSMS','Témoin','LSPD','Suspect','Marshal'],
+  postes:['Vinewood','IAA','Paleto Bay'],
+  prints:{top:['Pouce','Index','Medius','Annulaire','Auriculaire'],bottom:['Pouce','Index','Medius','Annulaire','Auriculaire']}
+};}
+
+function buildFpPrints(containerId, labels){
+  const cont=document.getElementById(containerId); if(!cont) return;
+  cont.innerHTML = labels.map(lbl=>`<div class="fp-print-cell">${FP_SVG}<div class="fp-lbl">${lbl}</div></div>`).join('');
+}
+function buildFpCheckboxesDynamic(){
+  const cfg=DB.fpConfig||getDefaultFpConfig();
+  const container=document.getElementById('fp-checkboxes-dynamic'); if(!container) return;
+  container.innerHTML = cfg.checkboxes.map(lbl=>{
+    const id='fp-chk-'+lbl.replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'');
+    return `<label><input type="checkbox" id="${id}"> ${lbl}</label>`;
+  }).join('');
+}
+function buildFpPosteSelectDynamic(){
+  const cfg=DB.fpConfig||getDefaultFpConfig();
+  const sel=document.getElementById('fp-poste'); if(!sel) return;
+  sel.innerHTML = cfg.postes.map(p=>`<option>${p}</option>`).join('');
+}
+function generateFpReport(){
+  const date=document.getElementById('fp-date').value ? new Date(document.getElementById('fp-date').value).toLocaleDateString('fr-FR') : new Date().toLocaleDateString('fr-FR');
+  const affaire=document.getElementById('fp-affaire').value.trim()||'—';
+  const nom=document.getElementById('fp-nom').value.trim().toUpperCase()||'—';
+  const prenom=document.getElementById('fp-prenom').value.trim()||'—';
+  const num=document.getElementById('fp-num').value.trim()||'—';
+  const agent=document.getElementById('fp-agent').value.trim()||CIU.currentUser||'—';
+  const poste=document.getElementById('fp-poste').value||'—';
+  const container=document.getElementById('fp-checkboxes-dynamic');
+  const checkedBoxes = container ? Array.from(container.querySelectorAll('input[type=checkbox]:checked')).map(cb=>cb.parentElement.textContent.trim()).join(', ')||'Aucun' : 'Aucun';
+  const txt = `:fingerprint: **Relevé d'Empreintes Digitales — D.D. × D.O.J.**\n\n📅 **Date :** ${date}\n🗂 **Affaire :** ${affaire}\n\n👤 **Individu :**\n   — Nom : ${nom}\n   — Prénom : ${prenom}\n   — N° enregistrement : ${num}\n\n✅ **Qualité / Statut :** ${checkedBoxes}\n🏢 **Poste :** ${poste}\n\n🔏 **Agent traitant :** ${agent}`;
+  const out=document.getElementById('fp-report-out');
+  out.textContent=txt; out.style.display='block';
+  document.getElementById('fp-copy-row').style.display='block';
+}
+function clearFpForm(){
+  ['fp-date','fp-affaire','fp-nom','fp-prenom','fp-num','fp-agent'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  const container=document.getElementById('fp-checkboxes-dynamic');
+  if(container) container.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.checked=false);
+  if(CIU.currentUser) document.getElementById('fp-agent').value=CIU.currentUser;
+  document.getElementById('fp-report-out').style.display='none';
+  document.getElementById('fp-copy-row').style.display='none';
+}
+function copyFpReport(){
+  const txt=document.getElementById('fp-report-out').textContent;
+  navigator.clipboard.writeText(txt).then(()=>{
+    const b=document.querySelector('#fp-copy-row button');
+    if(b){ const o=b.textContent; b.textContent='✅ Copié !'; setTimeout(()=>b.textContent=o,2000); }
+  });
+}
+
+function renderFpChkAdmin(){
+  const cfg=DB.fpConfig||getDefaultFpConfig();
+  document.getElementById('fp-chk-list-admin').innerHTML = cfg.checkboxes.map((lbl,i)=>`
+    <div class="admin-row"><span class="info t" style="font-family:var(--font-mono);font-size:11px;">${lbl}</span>
+      <button class="ta-btn ta-edit" onclick="editFpChk(${i})">✏</button>
+      <button class="ta-btn" style="color:#8b1a1a;" onclick="deleteFpChk(${i})">🗑</button>
+    </div>`).join('');
+}
+function renderFpPosteAdmin(){
+  const cfg=DB.fpConfig||getDefaultFpConfig();
+  document.getElementById('fp-postes-list-admin').innerHTML = cfg.postes.map((p,i)=>`
+    <div class="admin-row"><span class="info t" style="font-family:var(--font-mono);font-size:11px;">${p}</span>
+      <button class="ta-btn ta-edit" onclick="editFpPoste(${i})">✏</button>
+      <button class="ta-btn" style="color:#8b1a1a;" onclick="deleteFpPoste(${i})">🗑</button>
+    </div>`).join('');
+}
+async function addFpCheckbox(){
+  const val=document.getElementById('fp-new-chk').value.trim(); if(!val) return;
+  const cfg=DB.fpConfig||getDefaultFpConfig(); cfg.checkboxes.push(val);
+  DB.fpConfig=cfg; await CIU.saveConfig(); document.getElementById('fp-new-chk').value=''; renderFpChkAdmin(); buildFpCheckboxesDynamic();
+}
+async function deleteFpChk(i){
+  const cfg=DB.fpConfig||getDefaultFpConfig(); cfg.checkboxes.splice(i,1);
+  DB.fpConfig=cfg; await CIU.saveConfig(); renderFpChkAdmin(); buildFpCheckboxesDynamic();
+}
+async function editFpChk(i){
+  const cfg=DB.fpConfig||getDefaultFpConfig();
+  const v=prompt('Modifier :',cfg.checkboxes[i]); if(v===null) return;
+  cfg.checkboxes[i]=v.trim(); DB.fpConfig=cfg; await CIU.saveConfig(); renderFpChkAdmin(); buildFpCheckboxesDynamic();
+}
+async function addFpPoste(){
+  const val=document.getElementById('fp-new-poste').value.trim(); if(!val) return;
+  const cfg=DB.fpConfig||getDefaultFpConfig(); cfg.postes.push(val);
+  DB.fpConfig=cfg; await CIU.saveConfig(); document.getElementById('fp-new-poste').value=''; renderFpPosteAdmin(); buildFpPosteSelectDynamic();
+}
+async function deleteFpPoste(i){
+  const cfg=DB.fpConfig||getDefaultFpConfig(); cfg.postes.splice(i,1);
+  DB.fpConfig=cfg; await CIU.saveConfig(); renderFpPosteAdmin(); buildFpPosteSelectDynamic();
+}
+async function editFpPoste(i){
+  const cfg=DB.fpConfig||getDefaultFpConfig();
+  const v=prompt('Modifier :',cfg.postes[i]); if(v===null) return;
+  cfg.postes[i]=v.trim(); DB.fpConfig=cfg; await CIU.saveConfig(); renderFpPosteAdmin(); buildFpPosteSelectDynamic();
+}
+
+(async function(){
+  const ok = await CIU.init({page:'empreintes.html'});
+  if(!ok) return;
+  document.getElementById('app-loader').style.display='none';
+  DB = CIU.DB();
+  const cfg=DB.fpConfig||getDefaultFpConfig();
+  buildFpPrints('fp-top-prints', cfg.prints.top);
+  buildFpPrints('fp-bottom-prints', cfg.prints.bottom);
+  buildFpCheckboxesDynamic();
+  buildFpPosteSelectDynamic();
+  if(CIU.currentUser) document.getElementById('fp-agent').value=CIU.currentUser;
+  renderFpChkAdmin();
+  renderFpPosteAdmin();
+})();
+</script>
+</body>
+</html>

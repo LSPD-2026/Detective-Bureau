@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paramètres du Compte — C.I.U.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div id="app-loader" style="position:fixed;inset:0;background:var(--cream);z-index:9999;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--gray);letter-spacing:.1em;">Chargement…</div>
+
+<div class="ciu-container narrow">
+  <div class="page-head">
+    <div>
+      <span class="sec-num">⚙ Paramètres</span>
+      <h1 class="page-title">Paramètres du Compte</h1>
+      <p class="page-sub">Informations de session et sécurité de votre accès.</p>
+    </div>
+  </div>
+
+  <div class="ciu-card" style="margin-bottom:24px;">
+    <div class="ciu-card-head"><span>👤 Identité</span></div>
+    <div class="ciu-card-body">
+      <div class="field-row">
+        <div class="field"><label>Agent</label><div id="pf-name" style="font-family:var(--font-display);font-size:16px;">—</div></div>
+        <div class="field"><label>Rôle</label><div id="pf-role" style="font-family:var(--font-mono);font-size:12px;color:var(--gold-dim);">—</div></div>
+      </div>
+      <div class="field"><label>E-mail institutionnel</label><div id="pf-email" style="font-family:var(--font-mono);font-size:12px;color:var(--gray);">—</div></div>
+    </div>
+  </div>
+
+  <div class="ciu-card" id="mdp" style="scroll-margin-top:80px;">
+    <div class="ciu-card-head"><span>🔑 Changer mon mot de passe</span></div>
+    <div class="ciu-card-body">
+      <div class="field"><label>Mot de passe actuel</label><input id="pw-cur" type="password"></div>
+      <div class="field-row">
+        <div class="field"><label>Nouveau mot de passe</label><input id="pw-new" type="password"></div>
+        <div class="field"><label>Confirmer</label><input id="pw-conf" type="password"></div>
+      </div>
+      <div id="pw-msg"></div>
+      <button class="btn btn-gold" onclick="changePassword()">💾 Mettre à jour le mot de passe</button>
+    </div>
+  </div>
+</div>
+
+<div id="ciu-footer">
+  <span>© L.S.P.D. — Criminal Investigation Union</span>
+  <span>Usage interne — San Andreas</span>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="shared.js"></script>
+<script>
+let DB;
+function showMsg(id,txt,ok){
+  const el=document.getElementById(id); if(!el) return;
+  el.innerHTML=`<div style="font-family:var(--font-mono);font-size:11px;padding:8px 12px;margin-bottom:10px;background:${ok?'rgba(26,92,46,0.08)':'rgba(139,26,26,0.08)'};color:${ok?'#1a5c2e':'#8b1a1a'};border-left:3px solid ${ok?'#1a5c2e':'#8b1a1a'};">${txt}</div>`;
+  setTimeout(()=>{ if(el) el.innerHTML=''; },3000);
+}
+
+async function changePassword(){
+  const c=document.getElementById('pw-cur').value;
+  const n=document.getElementById('pw-new').value;
+  const cf=document.getElementById('pw-conf').value;
+  if(!c||!n||!cf){ showMsg('pw-msg','Remplissez tous les champs.',false); return; }
+  if(n!==cf){ showMsg('pw-msg','Les mots de passe ne correspondent pas.',false); return; }
+  if(n.length<6){ showMsg('pw-msg','Minimum 6 caractères.',false); return; }
+
+  // Si connecté via Firebase Auth, essayer ce chemin en priorité
+  if(CIU.fauth && CIU.fauth.currentUser){
+    try{
+      const cred = firebase.auth.EmailAuthProvider.credential(CIU.currentEmail, c);
+      await CIU.fauth.currentUser.reauthenticateWithCredential(cred);
+      await CIU.fauth.currentUser.updatePassword(n);
+      showMsg('pw-msg','Mot de passe modifié ✓',true);
+      ['pw-cur','pw-new','pw-conf'].forEach(id=>document.getElementById(id).value='');
+      return;
+    }catch(err){
+      // Si le mot de passe actuel est incorrect côté Firebase Auth, tomber sur le système local
+      if(err.code!=='auth/wrong-password'){ showMsg('pw-msg','Erreur : '+err.message,false); return; }
+    }
+  }
+
+  // Fallback système local
+  const u=DB.users[CIU.currentEmail];
+  if(!u){ showMsg('pw-msg','Compte introuvable.',false); return; }
+  const ok = await CIU.verifyPw(c, u.pw);
+  if(!ok){ showMsg('pw-msg','Mot de passe actuel incorrect.',false); return; }
+  DB.users[CIU.currentEmail].pw = await CIU.hashPw(n);
+  await CIU.saveConfig();
+  ['pw-cur','pw-new','pw-conf'].forEach(id=>document.getElementById(id).value='');
+  showMsg('pw-msg','Mot de passe modifié ✓',true);
+}
+
+(async function(){
+  const ok = await CIU.init({page:'parametres.html'});
+  if(!ok) return;
+  document.getElementById('app-loader').style.display='none';
+  DB = CIU.DB();
+  document.getElementById('pf-name').textContent = CIU.currentUser;
+  document.getElementById('pf-role').textContent = CIU.roleName(CIU.userRole);
+  document.getElementById('pf-email').textContent = CIU.currentEmail;
+
+  if(window.location.hash==='#mdp'){
+    setTimeout(()=>document.getElementById('mdp').scrollIntoView({behavior:'smooth'}),200);
+  }
+})();
+</script>
+</body>
+</html>

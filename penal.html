@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Code Pénal — D.D. × D.O.J. — C.I.U.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div id="app-loader" style="position:fixed;inset:0;background:var(--cream);z-index:9999;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--gray);letter-spacing:.1em;">Chargement…</div>
+
+<div class="ciu-container">
+  <div class="page-head">
+    <div>
+      <span class="sec-num">§ 04</span>
+      <h1 class="page-title">[D.D. × D.O.J.] Code Pénal</h1>
+      <p class="page-sub">Classification interne des niveaux de risque — Source : Spreadsheet officiel D.D. × D.O.J.</p>
+    </div>
+    <button class="btn btn-outline btn-sm" id="penal-edit-toggle" style="display:none;" onclick="togglePenalEdit()">✏ Mode édition</button>
+  </div>
+
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px;">
+    <span class="risk r0">Aucun risque</span>
+    <span class="risk r1">Risque faible</span>
+    <span class="risk r2">Risque moyen</span>
+    <span class="risk r3">Risque élevé</span>
+    <span class="risk r4">Risque très élevé</span>
+  </div>
+
+  <div class="penal-grid" id="penal-grid"></div>
+
+  <!-- Panneau édition (Direction uniquement) -->
+  <div id="penal-edit-zone" style="display:none;margin-top:40px;">
+    <div class="page-head" style="margin-bottom:18px;">
+      <h2 class="page-title" style="font-size:22px;">Édition — Code Pénal</h2>
+      <button class="btn btn-gold btn-sm" onclick="addPenalChapter()">+ Nouveau chapitre</button>
+    </div>
+    <div style="display:flex;gap:20px;flex-wrap:wrap;">
+      <div style="width:260px;flex-shrink:0;" id="penal-chap-list"></div>
+      <div style="flex:1;min-width:280px;" id="penal-edit-panel">
+        <p style="font-family:var(--font-mono);font-size:11px;color:var(--gray);">← Sélectionnez un chapitre pour l'éditer</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="ciu-footer">
+  <span>© L.S.P.D. — Criminal Investigation Union</span>
+  <span>Usage interne — San Andreas</span>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="shared.js"></script>
+<script>
+let DB;
+const RISK_LABELS={r0:'Aucun',r1:'Faible',r2:'Moyen',r3:'Élevé',r4:'Très élevé'};
+let penalCurrentChap=null;
+let editMode=false;
+
+function renderPenalGrid(){
+  const grid=document.getElementById('penal-grid');
+  const chapters=DB.penalCode||[];
+  if(!chapters.length){ grid.innerHTML='<p style="font-family:var(--font-mono);font-size:11px;color:var(--gray);grid-column:1/-1;">— Aucun article enregistré —</p>'; return; }
+  grid.innerHTML=chapters.map(ch=>`<div class="pchap">
+    <div class="pchap-title">${ch.title}</div>
+    ${(ch.articles||[]).map(a=>`<div class="prow"><span class="part">${a.text}</span><span class="risk ${a.risk}">${RISK_LABELS[a.risk]||a.risk}</span></div>`).join('')||'<p style="font-family:var(--font-mono);font-size:10px;color:var(--gray);">Aucun article.</p>'}
+  </div>`).join('');
+}
+
+function togglePenalEdit(){
+  editMode=!editMode;
+  document.getElementById('penal-edit-zone').style.display = editMode?'block':'none';
+  if(editMode){ renderPenalSidebar(); }
+}
+
+function renderPenalSidebar(){
+  const chapters=DB.penalCode||[];
+  document.getElementById('penal-chap-list').innerHTML = chapters.map((ch,i)=>`
+    <button onclick="selectPenalChap(${i})" style="display:block;width:100%;text-align:left;background:${penalCurrentChap===i?'rgba(241,164,0,0.1)':'none'};border:none;border-left:3px solid ${penalCurrentChap===i?'var(--gold)':'transparent'};color:${penalCurrentChap===i?'var(--gold-dim)':'var(--ink-soft)'};font-family:var(--font-mono);font-size:10.5px;padding:9px 12px;cursor:pointer;line-height:1.5;border-bottom:1px solid var(--divider);">
+      ${ch.title}<br><span style="color:var(--gray);font-size:9px;">${(ch.articles||[]).length} article(s)</span>
+    </button>`).join('');
+}
+
+function selectPenalChap(i){ penalCurrentChap=i; renderPenalSidebar(); renderPenalChapEditor(i); }
+
+function renderPenalChapEditor(i){
+  const ch=DB.penalCode[i];
+  const panel=document.getElementById('penal-edit-panel');
+  const riskOpts=['r0','r1','r2','r3','r4'].map(r=>`<option value="${r}">${RISK_LABELS[r]}</option>`).join('');
+  panel.innerHTML=`
+    <div style="margin-bottom:16px;padding-bottom:14px;border-bottom:2px solid var(--divider);">
+      <label style="font-family:var(--font-mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-dim);display:block;margin-bottom:6px;">Titre du chapitre</label>
+      <div style="display:flex;gap:8px;">
+        <input id="pchap-title-input" value="${(ch.title||'').replace(/"/g,'&quot;')}" style="flex:1;background:var(--cream-dim);border:1px solid var(--divider);border-bottom:2px solid var(--gold-dim);padding:8px 10px;font-family:var(--font-mono);font-size:11px;outline:none;">
+        <button class="btn btn-gold btn-sm" onclick="savePenalChapTitle(${i})">✓</button>
+        <button class="btn btn-danger btn-sm" onclick="deletePenalChap(${i})">🗑</button>
+      </div>
+    </div>
+    <div style="margin-bottom:14px;">
+      <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-dim);margin-bottom:8px;">Articles (${(ch.articles||[]).length})</div>
+      <div id="penal-articles-list">
+        ${(ch.articles||[]).map((a,ai)=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px dotted var(--divider);">
+          <input value="${(a.text||'').replace(/"/g,'&quot;')}" id="part-text-${i}-${ai}" style="flex:1;background:var(--cream-dim);border:1px solid var(--divider);padding:6px 9px;font-family:var(--font-mono);font-size:10.5px;outline:none;">
+          <select id="part-risk-${i}-${ai}" style="background:var(--cream-dim);border:1px solid var(--divider);padding:6px;font-family:var(--font-mono);font-size:10.5px;">${['r0','r1','r2','r3','r4'].map(r=>`<option value="${r}"${a.risk===r?' selected':''}>${RISK_LABELS[r]}</option>`).join('')}</select>
+          <button onclick="savePenalArticle(${i},${ai})" style="background:#1a5c2e;color:#fff;border:none;font-family:var(--font-mono);font-size:9px;padding:6px 9px;cursor:pointer;">✓</button>
+          <button onclick="deletePenalArticle(${i},${ai})" style="background:none;border:1px solid rgba(139,26,26,0.4);color:#8b1a1a;font-size:12px;width:26px;height:26px;cursor:pointer;">×</button>
+        </div>`).join('')}
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <input id="new-article-text" placeholder="Art. XXX — Nouvel article..." style="flex:1;background:var(--cream-dim);border:1px solid var(--divider);border-bottom:2px solid var(--gold-dim);padding:8px 10px;font-family:var(--font-mono);font-size:10.5px;outline:none;">
+      <select id="new-article-risk" style="background:var(--cream-dim);border:1px solid var(--divider);border-bottom:2px solid var(--gold-dim);padding:8px;font-family:var(--font-mono);font-size:10.5px;">${riskOpts}</select>
+      <button class="btn btn-outline btn-sm" onclick="addPenalArticle(${i})">+ Ajouter</button>
+    </div>`;
+}
+
+async function savePenalChapTitle(i){ DB.penalCode[i].title=document.getElementById('pchap-title-input').value.trim()||DB.penalCode[i].title; await CIU.saveConfig(); renderPenalSidebar(); renderPenalGrid(); }
+async function deletePenalChap(i){
+  if(!confirm('Supprimer ce chapitre et tous ses articles ?')) return;
+  DB.penalCode.splice(i,1); await CIU.saveConfig(); penalCurrentChap=null; renderPenalSidebar(); renderPenalGrid();
+  document.getElementById('penal-edit-panel').innerHTML='<p style="font-family:var(--font-mono);font-size:11px;color:var(--gray);">← Sélectionnez un chapitre</p>';
+}
+async function savePenalArticle(ci,ai){
+  DB.penalCode[ci].articles[ai].text=document.getElementById(`part-text-${ci}-${ai}`).value.trim()||DB.penalCode[ci].articles[ai].text;
+  DB.penalCode[ci].articles[ai].risk=document.getElementById(`part-risk-${ci}-${ai}`).value;
+  await CIU.saveConfig(); renderPenalChapEditor(ci); renderPenalSidebar(); renderPenalGrid();
+}
+async function deletePenalArticle(ci,ai){
+  if(!confirm('Supprimer cet article ?')) return;
+  DB.penalCode[ci].articles.splice(ai,1); await CIU.saveConfig(); renderPenalChapEditor(ci); renderPenalSidebar(); renderPenalGrid();
+}
+async function addPenalArticle(ci){
+  const text=document.getElementById('new-article-text').value.trim();
+  const risk=document.getElementById('new-article-risk').value;
+  if(!text){ alert("Le texte de l'article est obligatoire."); return; }
+  if(!DB.penalCode[ci].articles) DB.penalCode[ci].articles=[];
+  DB.penalCode[ci].articles.push({text,risk});
+  await CIU.saveConfig(); renderPenalChapEditor(ci); renderPenalSidebar(); renderPenalGrid();
+}
+async function addPenalChapter(){
+  const title=prompt('Titre du nouveau chapitre :','Titre — Nouveau Chapitre'); if(!title) return;
+  if(!DB.penalCode) DB.penalCode=[];
+  DB.penalCode.push({title:title.trim(),articles:[]});
+  await CIU.saveConfig();
+  const newIdx=DB.penalCode.length-1;
+  penalCurrentChap=newIdx;
+  renderPenalSidebar(); renderPenalChapEditor(newIdx); renderPenalGrid();
+}
+
+(async function(){
+  const ok = await CIU.init({page:'penal.html'});
+  if(!ok) return;
+  document.getElementById('app-loader').style.display='none';
+  DB = CIU.DB();
+  renderPenalGrid();
+  if(CIU.isDirection()||CIU.isDev()) document.getElementById('penal-edit-toggle').style.display='inline-flex';
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registre du Personnel — C.I.U.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div id="app-loader" style="position:fixed;inset:0;background:var(--cream);z-index:9999;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--gray);letter-spacing:.1em;">Chargement…</div>
+
+<div class="ciu-container">
+  <div class="page-head">
+    <div>
+      <span class="sec-num">§ 02</span>
+      <h1 class="page-title">Registre du Personnel</h1>
+      <p class="page-sub">Effectif complet du Criminal Investigation Union, par unité et par grade.</p>
+    </div>
+    <button class="btn btn-outline btn-sm" id="infobox-edit-btn" style="display:none;" onclick="document.getElementById('infobox-modal').classList.add('open')">✏ Modifier l'intitulé</button>
+  </div>
+
+  <div class="info-box" id="effectif-infobox-wrap">
+    <p id="effectif-infobox-text">Registre officiel des agents affectés au Criminal Investigation Union. La hiérarchie au sein du C.I.U. est la suivante : <strong>Directeur → Directeur Adjoint → Responsable → Inspecteur / Officier Principal → Inspecteur / Agent de P.B. → Enquêteur / Recrue</strong>. À grade égal, l'ancienneté prime. Document interne — ne pas divulguer.</p>
+  </div>
+
+  <div id="effectif-container"></div>
+</div>
+
+<div id="ciu-footer">
+  <span>© L.S.P.D. — Criminal Investigation Union</span>
+  <span>Usage interne — San Andreas</span>
+</div>
+
+<!-- Modal : éditer infobox -->
+<div class="ciu-modal-overlay" id="infobox-modal">
+  <div class="ciu-modal">
+    <div class="ciu-modal-head"><span>✏ Intitulé du registre</span><button class="ciu-modal-close" onclick="document.getElementById('infobox-modal').classList.remove('open')">✕</button></div>
+    <div class="ciu-modal-body">
+      <div class="field"><label>Texte de l'intitulé (HTML simple autorisé)</label><textarea id="infobox-textarea" style="min-height:140px;"></textarea></div>
+      <button class="btn btn-gold" onclick="saveInfobox()">💾 Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal : éditer un membre -->
+<div class="ciu-modal-overlay" id="edit-member-modal">
+  <div class="ciu-modal">
+    <div class="ciu-modal-head"><span>✏ Modifier l'agent</span><button class="ciu-modal-close" onclick="document.getElementById('edit-member-modal').classList.remove('open')">✕</button></div>
+    <div class="ciu-modal-body">
+      <input type="hidden" id="em-idx">
+      <div class="field-row">
+        <div class="field"><label>Matricule</label><input id="em-mat"></div>
+        <div class="field"><label>ID</label><input id="em-id"></div>
+      </div>
+      <div class="field"><label>Nom complet</label><input id="em-nom" placeholder="Laisser vide pour [Poste vacant]"></div>
+      <div class="field"><label>Grade B.I.</label><input id="em-gbi"></div>
+      <div class="field"><label>Grade L.S.P.D.</label><input id="em-glspd"></div>
+      <div class="field">
+        <label>Unité</label>
+        <select id="em-unit">
+          <option value="Direction">Direction</option>
+          <option value="Det. Division">Det. Division</option>
+          <option value="S. Plaintes">S. Plaintes</option>
+          <option value="S.C.U.">S.C.U.</option>
+        </select>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Date de promotion</label><input id="em-date-promo" type="date"></div>
+        <div class="field"><label>Rang hiérarchique</label><input id="em-grade-hier" type="number" value="60"></div>
+      </div>
+      <div id="em-msg"></div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-gold" onclick="saveMember()">💾 Enregistrer</button>
+        <button class="btn btn-danger" onclick="deleteMember()">🗑 Supprimer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="shared.js"></script>
+<script>
+let DB;
+
+function getDefaultGrades(){return[
+  {label:'Directeur D.D.',hier:100,unit:'Direction',color:'#f1a400'},
+  {label:'Directeur Adjoint',hier:100,unit:'Direction',color:'#f1a400'},
+  {label:'Responsable D.D.',hier:90,unit:'Det. Division',color:'#b87e00'},
+  {label:'Responsable S.C.U.',hier:90,unit:'S.C.U.',color:'#b87e00'},
+  {label:'Inspecteur Principal',hier:80,unit:'Det. Division',color:'#5a7a30'},
+  {label:'Officier Principal',hier:80,unit:'S.C.U.',color:'#5a7a30'},
+  {label:'Inspecteur',hier:70,unit:'Det. Division',color:'#4a7050'},
+  {label:'Inspectrice',hier:70,unit:'Det. Division',color:'#4a7050'},
+  {label:'Enquêteur',hier:60,unit:'Det. Division',color:'#0a1e29'},
+  {label:'Enquêtrice',hier:60,unit:'Det. Division',color:'#0a1e29'},
+  {label:'Agent de P.B.',hier:55,unit:'S.C.U.',color:'#4a4a7a'},
+  {label:'Recrue',hier:50,unit:'S.C.U.',color:'#6a6a6a'},
+  {label:'Bureau du Procureur',hier:30,unit:'',color:'#1a2a4a'},
+];}
+function getGradeOrder(m){
+  const grades=DB.grades&&DB.grades.length?DB.grades:getDefaultGrades();
+  const g=grades.find(gr=>gr.label===m.gradeBI);
+  return g?g.hier:(m.gradeHier||50);
+}
+function getGradeColor(m){
+  const grades=DB.grades&&DB.grades.length?DB.grades:getDefaultGrades();
+  const g=grades.find(gr=>gr.label===m.gradeBI);
+  return (g&&g.color)?g.color:null;
+}
+function sortGroup(members){
+  return members.slice().sort((a,b)=>{
+    if(a.isVacant&&!b.isVacant)return -1; if(!a.isVacant&&b.isVacant)return 1; if(a.isVacant&&b.isVacant)return 0;
+    const ga=getGradeOrder(a),gb=getGradeOrder(b); if(ga!==gb)return gb-ga;
+    const da=a.datePromo||'9999',db=b.datePromo||'9999'; return da<db?-1:da>db?1:0;
+  });
+}
+
+function renderEffectif(){
+  const ef=DB.effectif||[];
+  const direction=sortGroup(ef.filter(m=>m.unit==='Direction'));
+  const dd=sortGroup(ef.filter(m=>m.unit==='Det. Division'||m.unit==='S. Plaintes'));
+  const scu=sortGroup(ef.filter(m=>m.unit==='S.C.U.'));
+  function card(m){
+    const gi=ef.indexOf(m); const vc=m.isVacant?' vacant':'';
+    const isChefDir=(!m.isVacant&&m.isChef&&m.unit==='Direction');
+    const isChefOther=(!m.isVacant&&m.isChef&&m.unit!=='Direction');
+    const cc=isChefDir?' chef-direction':isChefOther?' chef':'';
+    const gradeCol=getGradeColor(m);
+    const barColor=m.isVacant?'#8b1a1a':gradeCol?gradeCol:(isChefDir||isChefOther?'#f1a400':'#cdb996');
+    return`<div class="agent-card${cc}${vc}" style="border-left-color:${barColor};">
+      <div class="agent-mat">${m.mat||''}</div>
+      <div><div class="agent-name">${m.nom}</div><div class="agent-gbi">${m.gradeBI||''}</div><div class="agent-glspd">${m.gradeLspd||''}</div></div>
+      <div class="agent-meta">${m.id?`<span class="agent-id">ID ${m.id}</span>`:''}<span class="agent-unit">${m.unit}</span></div>
+      ${CIU.canEditEffectif()?`<button class="admin-edit-btn" onclick="openEditMember(${gi})">✏</button>`:''}
+    </div>`;
+  }
+  document.getElementById('effectif-container').innerHTML=`
+    <div><div class="sub-label">Direction du Criminal Investigation Union</div><div class="effectif-grid">${direction.map(card).join('')||'<p style="font-family:var(--font-mono);font-size:11px;color:var(--gray);">Aucun agent.</p>'}</div></div>
+    <div><div class="sub-label">Detective Division (D.D.) — Inspecteurs &amp; Enquêteurs</div><div class="effectif-grid">${dd.map(card).join('')||'<p style="font-family:var(--font-mono);font-size:11px;color:var(--gray);">Aucun agent.</p>'}</div></div>
+    <div><div class="sub-label">Street Crimes Unit (S.C.U.) — Agents de Proximité Banalisée</div><div class="effectif-grid">${scu.map(card).join('')||'<p style="font-family:var(--font-mono);font-size:11px;color:var(--gray);">Aucun agent.</p>'}</div></div>`;
+}
+
+function getDefaultEffectifInfobox(){
+  return `Registre officiel des agents affectés au Criminal Investigation Union. La hiérarchie au sein du C.I.U. est la suivante : <strong>Directeur → Directeur Adjoint → Responsable → Inspecteur / Officier Principal → Inspecteur / Agent de P.B. → Enquêteur / Recrue</strong>. À grade égal, l'ancienneté prime. Document interne — ne pas divulguer.`;
+}
+function renderEffectifInfobox(){
+  const txt=DB.effectifInfobox||getDefaultEffectifInfobox();
+  document.getElementById('effectif-infobox-text').innerHTML=txt;
+}
+function saveInfobox(){
+  DB.effectifInfobox = document.getElementById('infobox-textarea').innerHTML || document.getElementById('infobox-textarea').value;
+  CIU.saveConfig().then(()=>{ renderEffectifInfobox(); document.getElementById('infobox-modal').classList.remove('open'); });
+}
+
+function openEditMember(i){
+  const m=(DB.effectif||[])[i]; if(!m) return;
+  document.getElementById('em-idx').value=i;
+  document.getElementById('em-mat').value=m.mat||'';
+  document.getElementById('em-nom').value=m.nom||'';
+  document.getElementById('em-glspd').value=(m.gradeLspd||'').replace(' — L.S.P.D.','').replace(' — L.S.P.D','');
+  document.getElementById('em-gbi').value=m.gradeBI||'';
+  document.getElementById('em-unit').value=m.unit||'Det. Division';
+  document.getElementById('em-id').value=m.id||'';
+  document.getElementById('em-date-promo').value=m.datePromo||'';
+  document.getElementById('em-grade-hier').value=m.gradeHier||60;
+  document.getElementById('em-msg').innerHTML='';
+  document.getElementById('edit-member-modal').classList.add('open');
+}
+async function saveMember(){
+  const i=parseInt(document.getElementById('em-idx').value);
+  const nom=document.getElementById('em-nom').value.trim()||'[Poste vacant]';
+  const gl=document.getElementById('em-glspd').value.trim();
+  const gh=parseInt(document.getElementById('em-grade-hier').value)||60;
+  DB.effectif[i]={...DB.effectif[i],
+    mat:document.getElementById('em-mat').value.trim(), nom,
+    gradeLspd: gl?(gl.includes('L.S.P.D.')?gl:gl+' — L.S.P.D.'):'',
+    gradeBI:document.getElementById('em-gbi').value.trim(),
+    unit:document.getElementById('em-unit').value,
+    id:document.getElementById('em-id').value.trim(),
+    datePromo:document.getElementById('em-date-promo').value,
+    gradeHier:gh, isVacant:(nom==='[Poste vacant]')
+  };
+  await CIU.saveConfig();
+  renderEffectif();
+  document.getElementById('edit-member-modal').classList.remove('open');
+}
+async function deleteMember(){
+  const i=parseInt(document.getElementById('em-idx').value);
+  const m=DB.effectif[i]; if(!m) return;
+  if(!confirm('Supprimer '+m.nom+' du registre ? Cette action est irréversible.')) return;
+  DB.effectif.splice(i,1);
+  await CIU.saveConfig();
+  renderEffectif();
+  document.getElementById('edit-member-modal').classList.remove('open');
+}
+
+(async function(){
+  const ok = await CIU.init({page:'registre.html'});
+  if(!ok) return;
+  document.getElementById('app-loader').style.display='none';
+  DB = CIU.DB();
+  renderEffectifInfobox();
+  renderEffectif();
+  if(CIU.isDirection()||CIU.isDev()) document.getElementById('infobox-edit-btn').style.display='inline-flex';
+})();
+</script>
+</body>
+</html>

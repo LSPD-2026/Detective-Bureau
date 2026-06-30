@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calendrier Opérationnel — C.I.U.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div id="app-loader" style="position:fixed;inset:0;background:var(--cream);z-index:9999;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--gray);letter-spacing:.1em;">Chargement…</div>
+
+<div class="ciu-container">
+  <div class="page-head">
+    <div>
+      <span class="sec-num">§ 03</span>
+      <h1 class="page-title">Calendrier Opérationnel</h1>
+      <p class="page-sub">Réunions, interrogatoires, perquisitions et événements de l'unité.</p>
+    </div>
+    <button class="btn btn-gold" onclick="openEventModal(null)">+ Ajouter un événement</button>
+  </div>
+
+  <div class="cal-legend" id="cal-legend"></div>
+  <div id="cal-container"></div>
+</div>
+
+<div id="ciu-footer">
+  <span>© L.S.P.D. — Criminal Investigation Union</span>
+  <span>Usage interne — San Andreas</span>
+</div>
+
+<!-- Modal événement -->
+<div class="ciu-modal-overlay" id="event-modal">
+  <div class="ciu-modal">
+    <div class="ciu-modal-head"><span id="event-modal-title">📅 Événement</span><button class="ciu-modal-close" onclick="closeEventModal()">✕</button></div>
+    <div class="ciu-modal-body">
+      <div class="field-row">
+        <div class="field"><label>Date</label><input id="ev-date" type="date"></div>
+        <div class="field"><label>Type</label><select id="ev-type"></select></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Heure début</label><input id="ev-heure-debut" type="time"></div>
+        <div class="field"><label>Heure fin</label><input id="ev-heure-fin" type="time"></div>
+      </div>
+      <div class="field"><label>Titre</label><input id="ev-titre"></div>
+      <div class="field"><label>Lieu</label><input id="ev-lieu"></div>
+      <div class="field"><label>Description</label><textarea id="ev-desc"></textarea></div>
+      <div class="field"><label>Créé par</label><div id="ev-creator-display" style="font-family:var(--font-mono);font-size:12px;color:var(--gray);">—</div></div>
+      <div id="ev-msg"></div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-gold" onclick="saveEvent()">💾 Enregistrer</button>
+        <button class="btn btn-danger" id="ev-delete-btn" onclick="deleteEvent()" style="display:none;">🗑 Supprimer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="shared.js"></script>
+<script>
+let DB;
+let calCurrentDate = new Date();
+let editingEventId = null;
+
+function getDefaultCalCategories(){return[
+  {key:'interrogatoire',label:'Interrogatoire',color:'#1e40af'},
+  {key:'perquisition',label:'Perquisition',color:'#166534'},
+  {key:'psychologue',label:'Rendez-vous psychologue',color:'#6b21a8'},
+  {key:'ag',label:'Assemblée générale',color:'#991b1b'},
+  {key:'autre',label:'Autre',color:'#57534e'},
+];}
+function getCalCategories(){ return (DB.calCategories&&DB.calCategories.length)?DB.calCategories:getDefaultCalCategories(); }
+function getEvColor(type){ const c=getCalCategories().find(x=>x.key===type); return c?c.color:'#57534e'; }
+function getEvLabel(type){ const c=getCalCategories().find(x=>x.key===type); return c?c.label:type; }
+
+function buildEvTypeOptions(){
+  const sel=document.getElementById('ev-type');
+  sel.innerHTML = getCalCategories().map(c=>`<option value="${c.key}">${c.label}</option>`).join('');
+}
+function renderCalLegend(){
+  document.getElementById('cal-legend').innerHTML = getCalCategories().map(c=>
+    `<span class="cal-legend-item"><span class="cal-legend-dot" style="background:${c.color}"></span>${c.label}</span>`
+  ).join('');
+}
+
+function todayStr(){ const t=new Date(); return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`; }
+
+function buildCalHTML(){
+  const y=calCurrentDate.getFullYear(), m=calCurrentDate.getMonth();
+  const monthNames=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+  const firstDay=new Date(y,m,1).getDay();
+  const daysInMonth=new Date(y,m+1,0).getDate();
+  const startOffset = firstDay===0?6:firstDay-1;
+  const nowStr = todayStr();
+  const today = new Date();
+
+  let html = `<div class="cal-header"><div class="cal-nav">
+    <button class="cal-nav-btn" onclick="calPrev()">‹</button>
+    <div class="cal-month">${monthNames[m]} ${y}</div>
+    <button class="cal-nav-btn" onclick="calNext()">›</button>
+  </div></div>
+  <div class="cal-grid">
+  <div class="cal-dow">Lun</div><div class="cal-dow">Mar</div><div class="cal-dow">Mer</div><div class="cal-dow">Jeu</div><div class="cal-dow">Ven</div><div class="cal-dow">Sam</div><div class="cal-dow">Dim</div>`;
+
+  for(let i=0;i<startOffset;i++) html += `<div class="cal-day other-month"></div>`;
+
+  for(let d=1; d<=daysInMonth; d++){
+    const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday = today.getFullYear()===y && today.getMonth()===m && today.getDate()===d;
+    const isPastDay = dateStr < nowStr;
+    const dayEvents = (DB.events||[]).filter(ev=>ev.date===dateStr).sort((a,b)=>(a.heureDebut||'').localeCompare(b.heureDebut||''));
+    const evHtml = dayEvents.map(ev=>{
+      const timeStr = ev.heureDebut ? ev.heureDebut+(ev.heureFin?'→'+ev.heureFin:'') : '';
+      const col = isPastDay ? '#b0aa9e' : getEvColor(ev.type);
+      return `<div style="background:${col};${isPastDay?'opacity:.6;':''}border-radius:2px;padding:1px 5px;font-size:9.5px;cursor:pointer;color:#fff;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--font-mono);" onclick="openEventModal('${ev._id}',event)" title="${ev.titre}">${timeStr?timeStr+' ':''}${ev.titre}</div>`;
+    }).join('');
+    html += `<div class="cal-day${isToday?' today':''}${isPastDay?' past-day':''}" onclick="openEventModal(null,event,'${dateStr}')">
+      <div class="cal-day-num" style="${isPastDay?'color:var(--gray-light);opacity:.6;':''}">${d}</div>${evHtml}</div>`;
+  }
+  html += '</div>';
+
+  const monthEvents = (DB.events||[]).filter(ev=>{
+    const d=new Date(ev.date+'T00:00:00'); return d.getFullYear()===y && d.getMonth()===m;
+  }).sort((a,b)=>a.date.localeCompare(b.date)||(a.heureDebut||'').localeCompare(b.heureDebut||''));
+
+  if(monthEvents.length){
+    html += `<div class="cal-agenda"><div class="cal-agenda-title">Événements du mois — ${monthNames[m]} ${y}</div>
+    <table class="cal-agenda-table"><thead><tr><th>Date</th><th>Type</th><th>Titre</th><th>Horaire</th><th>Lieu</th><th>Créé par</th></tr></thead><tbody>
+    ${monthEvents.map(ev=>{
+      const isPast = ev.date < nowStr;
+      const col = isPast ? '#b0aa9e' : getEvColor(ev.type);
+      const d2=new Date(ev.date+'T00:00:00');
+      const dd = d2.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
+      const hor = ev.heureDebut ? (ev.heureDebut+(ev.heureFin?' → '+ev.heureFin:'')) : '—';
+      return `<tr onclick="openEventModal('${ev._id}',event)" style="${isPast?'opacity:.5;':''}">
+        <td style="white-space:nowrap;">${dd}${isPast?' <span style="color:#b0aa9e;">(passé)</span>':''}</td>
+        <td><span class="cal-event-badge" style="background:${col};">${getEvLabel(ev.type)}</span></td>
+        <td style="font-family:var(--font-body);font-weight:600;${isPast?'text-decoration:line-through;color:#888;':''}">${ev.titre}</td>
+        <td>${hor}</td><td>${ev.lieu||'—'}</td><td>${ev.authorName||'—'}</td>
+      </tr>`;
+    }).join('')}
+    </tbody></table></div>`;
+  }
+  return html;
+}
+
+function renderCal(){ document.getElementById('cal-container').innerHTML = buildCalHTML(); }
+function calPrev(){ calCurrentDate=new Date(calCurrentDate.getFullYear(),calCurrentDate.getMonth()-1,1); renderCal(); }
+function calNext(){ calCurrentDate=new Date(calCurrentDate.getFullYear(),calCurrentDate.getMonth()+1,1); renderCal(); }
+
+function openEventModal(id,e,prefDate){
+  if(e) e.stopPropagation();
+  editingEventId=id;
+  const delBtn=document.getElementById('ev-delete-btn');
+  const creator=document.getElementById('ev-creator-display');
+  const saveBtn=document.querySelector('#event-modal .btn-gold');
+  if(id!==null && id!==undefined){
+    const ev=DB.events.find(x=>x._id===id); if(!ev) return;
+    document.getElementById('event-modal-title').textContent='📅 Événement';
+    document.getElementById('ev-date').value=ev.date;
+    document.getElementById('ev-heure-debut').value=ev.heureDebut||'';
+    document.getElementById('ev-heure-fin').value=ev.heureFin||'';
+    document.getElementById('ev-type').value=ev.type;
+    document.getElementById('ev-titre').value=ev.titre;
+    document.getElementById('ev-lieu').value=ev.lieu||'';
+    document.getElementById('ev-desc').value=ev.desc||'';
+    creator.textContent=ev.authorName||'—';
+    const canEdit = CIU.isResp() || (ev.author===CIU.currentEmail);
+    delBtn.style.display = canEdit?'inline-flex':'none';
+    ['ev-date','ev-heure-debut','ev-heure-fin','ev-type','ev-titre','ev-lieu','ev-desc'].forEach(id2=>{const el=document.getElementById(id2); if(el) el.disabled=!canEdit;});
+    if(saveBtn) saveBtn.style.display = canEdit?'inline-flex':'none';
+  } else {
+    document.getElementById('event-modal-title').textContent='📅 Ajouter un événement';
+    document.getElementById('ev-date').value=prefDate||'';
+    document.getElementById('ev-heure-debut').value='';
+    document.getElementById('ev-heure-fin').value='';
+    document.getElementById('ev-type').value='interrogatoire';
+    document.getElementById('ev-titre').value='';
+    document.getElementById('ev-lieu').value='';
+    document.getElementById('ev-desc').value='';
+    creator.textContent=CIU.currentUser||'—';
+    delBtn.style.display='none';
+    ['ev-date','ev-heure-debut','ev-heure-fin','ev-type','ev-titre','ev-lieu','ev-desc'].forEach(id2=>{const el=document.getElementById(id2); if(el) el.disabled=false;});
+    if(saveBtn) saveBtn.style.display='inline-flex';
+  }
+  document.getElementById('ev-msg').innerHTML='';
+  document.getElementById('event-modal').classList.add('open');
+}
+function closeEventModal(){ document.getElementById('event-modal').classList.remove('open'); editingEventId=null; }
+
+function showMsg(id,txt,ok){
+  const el=document.getElementById(id); if(!el) return;
+  el.innerHTML=`<div style="font-family:var(--font-mono);font-size:11px;padding:8px 12px;margin-bottom:10px;background:${ok?'rgba(26,92,46,0.08)':'rgba(139,26,26,0.08)'};color:${ok?'#1a5c2e':'#8b1a1a'};border-left:3px solid ${ok?'#1a5c2e':'#8b1a1a'};">${txt}</div>`;
+  setTimeout(()=>{ if(el) el.innerHTML=''; },3000);
+}
+
+async function saveEvent(){
+  const date=document.getElementById('ev-date').value, titre=document.getElementById('ev-titre').value.trim();
+  if(!date||!titre){ showMsg('ev-msg','La date et le titre sont obligatoires.',false); return; }
+  if(editingEventId!==null && editingEventId!==undefined){
+    const existing=DB.events.find(x=>x._id===editingEventId);
+    const canEdit = CIU.isResp() || (existing && existing.author===CIU.currentEmail);
+    if(!canEdit){ showMsg('ev-msg','Vous ne pouvez pas modifier cet événement.',false); return; }
+    await CIU.fsUpdate('events',editingEventId,{
+      date, heureDebut:document.getElementById('ev-heure-debut').value, heureFin:document.getElementById('ev-heure-fin').value,
+      type:document.getElementById('ev-type').value, titre,
+      lieu:document.getElementById('ev-lieu').value.trim(), desc:document.getElementById('ev-desc').value.trim(),
+      lastEditBy:CIU.currentUser, lastEditDate:new Date().toLocaleString('fr-FR')
+    });
+    Object.assign(existing,{date,heureDebut:document.getElementById('ev-heure-debut').value,heureFin:document.getElementById('ev-heure-fin').value,type:document.getElementById('ev-type').value,titre,lieu:document.getElementById('ev-lieu').value.trim(),desc:document.getElementById('ev-desc').value.trim()});
+  } else {
+    const docRef = await CIU.fsAdd('events',{
+      date, heureDebut:document.getElementById('ev-heure-debut').value, heureFin:document.getElementById('ev-heure-fin').value,
+      type:document.getElementById('ev-type').value, titre,
+      lieu:document.getElementById('ev-lieu').value.trim(), desc:document.getElementById('ev-desc').value.trim(),
+      author:CIU.currentEmail, authorName:CIU.currentUser, createdAt:new Date().toLocaleString('fr-FR'), ts:Date.now()
+    });
+    DB.events.push({_id:docRef.id, date, heureDebut:document.getElementById('ev-heure-debut').value, heureFin:document.getElementById('ev-heure-fin').value, type:document.getElementById('ev-type').value, titre, lieu:document.getElementById('ev-lieu').value.trim(), desc:document.getElementById('ev-desc').value.trim(), author:CIU.currentEmail, authorName:CIU.currentUser});
+  }
+  closeEventModal();
+  renderCal();
+}
+async function deleteEvent(){
+  if(!editingEventId) return;
+  const ev=DB.events.find(x=>x._id===editingEventId);
+  if(!CIU.isResp() && ev && ev.author!==CIU.currentEmail){ showMsg('ev-msg','Vous ne pouvez pas supprimer cet événement.',false); return; }
+  if(!confirm('Supprimer cet événement ?')) return;
+  await CIU.fsDelete('events',editingEventId);
+  DB.events = DB.events.filter(x=>x._id!==editingEventId);
+  closeEventModal();
+  renderCal();
+}
+
+(async function(){
+  const ok = await CIU.init({page:'calendrier.html'});
+  if(!ok) return;
+  document.getElementById('app-loader').style.display='none';
+  DB = CIU.DB();
+  buildEvTypeOptions();
+  renderCalLegend();
+  renderCal();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bracelets Électroniques — C.I.U.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div id="app-loader" style="position:fixed;inset:0;background:var(--cream);z-index:9999;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--gray);letter-spacing:.1em;">Chargement…</div>
+
+<div class="ciu-container">
+  <div class="page-head">
+    <div>
+      <span class="sec-num">§ 07</span>
+      <h1 class="page-title">Bracelets Électroniques</h1>
+      <p class="page-sub" id="brac-count">— bracelet(s) actif(s)</p>
+    </div>
+  </div>
+
+  <div class="add-panel" id="brac-add-form" style="display:none;">
+    <div class="add-panel-title">+ Poser un nouveau bracelet</div>
+    <div class="field-row">
+      <div class="field"><label>N° dossier</label><input id="b-id"></div>
+      <div class="field"><label>Type</label><select id="b-type"><option>Surveillance</option><option>Protection</option></select></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Nom</label><input id="b-nom" placeholder="NOM"></div>
+      <div class="field"><label>Prénom</label><input id="b-prenom"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Référent</label><input id="b-referent"></div>
+      <div class="field"><label>Date de pose</label><input id="b-date-pose" placeholder="JJ/MM/AAAA"></div>
+    </div>
+    <div class="field">
+      <label>Statut</label>
+      <select id="b-statut"><option>À pointer</option><option>À convoquer</option><option>À retirer</option><option>Brisé</option></select>
+    </div>
+    <div class="field"><label>Commentaire</label><input id="b-comment"></div>
+    <button class="btn btn-gold" onclick="addBracelet()">+ Enregistrer le bracelet</button>
+  </div>
+  <div class="add-panel" id="brac-readonly" style="display:none;">
+    <p style="font-family:var(--font-mono);font-size:11px;color:var(--gray);">Lecture seule — accès Responsable / Direction requis.</p>
+  </div>
+
+  <div class="tbl-wrap">
+    <table class="ciu-table">
+      <thead><tr><th>N°</th><th>Nom</th><th>Prénom</th><th>Type</th><th>Référent</th><th>Date pose</th><th>Dernier pointage</th><th>Pointé par</th><th>Statut</th><th>Pointage</th><th>Commentaire</th><th>Actions</th></tr></thead>
+      <tbody id="brac-tbody"></tbody>
+    </table>
+  </div>
+  <div class="empty-state" id="brac-nodata" style="display:none;">Aucun bracelet actif actuellement.</div>
+</div>
+
+<div id="ciu-footer">
+  <span>© L.S.P.D. — Criminal Investigation Union</span>
+  <span>Usage interne — San Andreas</span>
+</div>
+
+<!-- Modal édition -->
+<div class="ciu-modal-overlay" id="edit-brac-modal">
+  <div class="ciu-modal" style="max-width:640px;">
+    <div class="ciu-modal-head"><span>✏ Modifier le bracelet</span><button class="ciu-modal-close" onclick="document.getElementById('edit-brac-modal').classList.remove('open')">✕</button></div>
+    <div class="ciu-modal-body">
+      <input type="hidden" id="eb-idx">
+      <div class="field-row">
+        <div class="field"><label>N° dossier</label><input id="eb-id"></div>
+        <div class="field"><label>Type</label><select id="eb-type"><option>Surveillance</option><option>Protection</option></select></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Nom</label><input id="eb-nom"></div>
+        <div class="field"><label>Prénom</label><input id="eb-prenom"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Référent</label><input id="eb-referent"></div>
+        <div class="field"><label>Date de pose</label><input id="eb-date-pose"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Dernier pointage</label><input id="eb-last-pointer"></div>
+        <div class="field"><label>Pointé par</label><input id="eb-pointed-by"></div>
+      </div>
+      <div class="field"><label>Statut pointage</label><input id="eb-statut-pointage"></div>
+      <div class="field"><label>Statut</label><select id="eb-statut"><option>À pointer</option><option>À convoquer</option><option>À retirer</option><option>Brisé</option></select></div>
+      <div class="field"><label>Commentaire</label><input id="eb-comment"></div>
+      <div class="field-row">
+        <div class="field"><label>Nom dossier lié</label><input id="eb-dossier"></div>
+        <div class="field"><label>URL dossier</label><input id="eb-dossier-url"></div>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-outline" onclick="pointerBracelet()">📍 Pointer aujourd'hui</button>
+        <button class="btn btn-gold" onclick="saveEditBrac()">💾 Enregistrer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="shared.js"></script>
+<script>
+let DB;
+const getStCls=s=>{ if(!s) return ''; if(s==='Brisé') return 'st-brise'; if(s==='À convoquer') return 'st-conv'; if(s==='À pointer') return 'st-point'; if(s==='À retirer') return 'st-ret'; return ''; };
+const getPtCls=s=>{ if(!s) return ''; if(s.includes('EN RETARD')) return 'sp-retard'; if(s.includes('EN COURS')) return 'sp-cours'; return ''; };
+
+function renderBracelets(){
+  const tbody=document.getElementById('brac-tbody'), nodata=document.getElementById('brac-nodata');
+  const canEdit=CIU.isResp();
+  document.getElementById('brac-add-form').style.display=canEdit?'block':'none';
+  document.getElementById('brac-readonly').style.display=canEdit?'none':'block';
+  const actifs=(DB.bracelets||[]).filter(b=>b.status!=='Clôturé');
+  document.getElementById('brac-count').textContent=actifs.length+' bracelet(s) actif(s)';
+  if(!actifs.length){ tbody.innerHTML=''; nodata.style.display='block'; return; }
+  nodata.style.display='none';
+  tbody.innerHTML=actifs.map(b=>{
+    const tc=b.type==='Protection'?'tb-prot':'tb-surv';
+    const sc=getStCls(b.statut), pc=getPtCls(b.statutPointage);
+    const acts=canEdit
+      ? `<button class="ta-btn ta-edit" onclick="openEditBrac('${b._id}')">✏</button><button class="ta-btn ta-close" onclick="closeBraceletFS('${b._id}')">✓ Clôt.</button>`
+      : '<span class="w-na">Lecture</span>';
+    return`<tr>
+      <td>${b.wid||'—'}</td><td>${b.nom}</td><td>${b.prenom||'—'}</td>
+      <td><span class="tbadge ${tc}">${b.type}</span></td><td>${b.referent||'—'}</td><td>${b.datePose||'—'}</td>
+      <td>${b.dernierPointage||'—'}</td><td>${b.pointePar||'—'}</td>
+      <td>${b.statut?`<span class="st-badge ${sc}">${b.statut}</span>`:'—'}</td>
+      <td>${b.statutPointage?`<span class="sp-badge ${pc}">${b.statutPointage}</span>`:'—'}</td>
+      <td>${b.commentaire||'—'}</td>
+      <td><div class="ta-actions">${acts}</div></td>
+    </tr>`;
+  }).join('');
+}
+
+async function addBracelet(){
+  if(!CIU.isResp()){ alert('Accès Responsable / Direction requis.'); return; }
+  const nom=document.getElementById('b-nom').value.trim().toUpperCase();
+  if(!nom){ alert('Le NOM est obligatoire.'); return; }
+  const data={
+    wid:document.getElementById('b-id').value.trim(), nom,
+    prenom:document.getElementById('b-prenom').value.trim(),
+    type:document.getElementById('b-type').value,
+    referent:document.getElementById('b-referent').value.trim(),
+    datePose:document.getElementById('b-date-pose').value.trim(),
+    statut:document.getElementById('b-statut').value,
+    commentaire:document.getElementById('b-comment').value.trim(),
+    status:'Actif', ts:Date.now()
+  };
+  const ref = await CIU.fsAdd('bracelets',data);
+  DB.bracelets.push({_id:ref.id, ...data});
+  ['b-id','b-nom','b-prenom','b-referent','b-date-pose','b-comment'].forEach(id=>document.getElementById(id).value='');
+  renderBracelets();
+}
+async function closeBraceletFS(id){
+  if(!CIU.isResp()) return;
+  if(!confirm('Clôturer ce bracelet ?')) return;
+  await CIU.fsUpdate('bracelets',id,{status:'Clôturé',closedBy:CIU.currentUser,closedDate:new Date().toLocaleDateString('fr-FR')});
+  DB.bracelets = DB.bracelets.filter(b=>b._id!==id);
+  renderBracelets();
+}
+function openEditBrac(id){
+  const b=DB.bracelets.find(x=>x._id===id); if(!b) return;
+  document.getElementById('eb-idx').value=id;
+  document.getElementById('eb-id').value=b.wid||'';
+  document.getElementById('eb-nom').value=b.nom;
+  document.getElementById('eb-prenom').value=b.prenom||'';
+  document.getElementById('eb-type').value=b.type||'Surveillance';
+  document.getElementById('eb-referent').value=b.referent||'';
+  document.getElementById('eb-date-pose').value=b.datePose||'';
+  document.getElementById('eb-last-pointer').value=b.dernierPointage||'';
+  document.getElementById('eb-pointed-by').value=b.pointePar||'';
+  document.getElementById('eb-statut-pointage').value=b.statutPointage||'';
+  document.getElementById('eb-statut').value=b.statut||'À pointer';
+  document.getElementById('eb-comment').value=b.commentaire||'';
+  document.getElementById('eb-dossier').value=b.dossierNom||'';
+  document.getElementById('eb-dossier-url').value=b.dossierUrl||'';
+  document.getElementById('edit-brac-modal').classList.add('open');
+}
+async function saveEditBrac(){
+  const id=document.getElementById('eb-idx').value;
+  const data={
+    wid:document.getElementById('eb-id').value.trim(), nom:document.getElementById('eb-nom').value.trim().toUpperCase(),
+    prenom:document.getElementById('eb-prenom').value.trim(), type:document.getElementById('eb-type').value,
+    referent:document.getElementById('eb-referent').value.trim(), datePose:document.getElementById('eb-date-pose').value,
+    dernierPointage:document.getElementById('eb-last-pointer').value, pointePar:document.getElementById('eb-pointed-by').value.trim(),
+    statutPointage:document.getElementById('eb-statut-pointage').value.trim(), statut:document.getElementById('eb-statut').value,
+    commentaire:document.getElementById('eb-comment').value.trim(),
+    dossierNom:document.getElementById('eb-dossier').value.trim(),
+    dossierUrl:document.getElementById('eb-dossier-url').value.trim()
+  };
+  await CIU.fsUpdate('bracelets',id,data);
+  const b=DB.bracelets.find(x=>x._id===id); if(b) Object.assign(b,data);
+  document.getElementById('edit-brac-modal').classList.remove('open');
+  renderBracelets();
+}
+function pointerBracelet(){
+  const today=new Date().toLocaleDateString('fr-FR');
+  document.getElementById('eb-last-pointer').value=today;
+  document.getElementById('eb-pointed-by').value=CIU.currentUser;
+  const next=new Date(); next.setDate(next.getDate()+14);
+  document.getElementById('eb-statut-pointage').value='EN COURS — Échéance le '+next.toLocaleDateString('fr-FR');
+  document.getElementById('eb-statut').value='À pointer';
+}
+
+(async function(){
+  const ok = await CIU.init({page:'bracelets.html'});
+  if(!ok) return;
+  document.getElementById('app-loader').style.display='none';
+  DB = CIU.DB();
+  renderBracelets();
+  CIU.COL.bracelets.onSnapshot(snap=>{
+    DB.bracelets = snap.docs.map(d=>({_id:d.id,...d.data()}));
+    renderBracelets();
+  });
+})();
+</script>
+</body>
+</html>

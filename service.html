@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Temps de Service — C.I.U.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div id="app-loader" style="position:fixed;inset:0;background:var(--cream);z-index:9999;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--gray);letter-spacing:.1em;">Chargement…</div>
+
+<div class="ciu-container">
+  <div class="page-head">
+    <div>
+      <span class="sec-num">§ 10</span>
+      <h1 class="page-title">Temps de Service</h1>
+      <p class="page-sub">Enregistrement et statistiques des heures de service par agent.</p>
+    </div>
+  </div>
+
+  <div class="add-panel">
+    <div class="add-panel-title">+ Enregistrer un temps de service</div>
+    <div class="field-row">
+      <div class="field"><label>Agent</label><select id="svc-agent"></select></div>
+      <div class="field"><label>Date</label><input id="svc-date" type="date"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Durée (ex: 2h31)</label><input id="svc-duree" placeholder="2h31"></div>
+      <div class="field"><label>Note</label><input id="svc-note"></div>
+    </div>
+    <div id="svc-msg"></div>
+    <button class="btn btn-gold" onclick="addService()">+ Enregistrer</button>
+  </div>
+
+  <div class="add-panel">
+    <div class="add-panel-title">🔍 Rechercher un agent — Statistiques</div>
+    <div class="field-row">
+      <div class="field"><label>Nom ou matricule</label><input id="svc-search" onkeydown="if(event.key==='Enter')searchService()"></div>
+      <div style="align-self:flex-end;"><button class="btn btn-outline" onclick="searchService()">Rechercher</button></div>
+    </div>
+    <div id="svc-result-name" style="display:none;font-family:var(--font-display);font-size:18px;color:var(--ink);margin:14px 0 6px;"></div>
+    <div class="empty-state" id="svc-nodata" style="display:none;">Aucune entrée trouvée pour cet agent.</div>
+
+    <div class="svc-stats-grid" id="svc-stats" style="display:none;">
+      <div class="svc-stat-card"><div class="svc-stat-val" id="svc-total-h">0h00</div><div class="svc-stat-lbl" id="svc-total-lbl">Total mois</div></div>
+      <div class="svc-stat-card"><div class="svc-stat-val" id="svc-sessions">0</div><div class="svc-stat-lbl">Sessions</div></div>
+      <div class="svc-stat-card"><div class="svc-stat-val" id="svc-avg">0h00</div><div class="svc-stat-lbl">Moyenne / session</div></div>
+    </div>
+    <div class="chart-controls" id="chart-controls" style="display:none;">
+      <button class="chart-btn" id="chart-btn-week" onclick="switchChart('week',this)">Semaine</button>
+      <button class="chart-btn active" id="chart-btn-month" onclick="switchChart('month',this)">Mois</button>
+      <button class="chart-btn" id="chart-btn-year" onclick="switchChart('year',this)">Année</button>
+    </div>
+    <div class="chart-wrap" id="chart-wrap" style="display:none;"><canvas id="svc-chart" height="90"></canvas></div>
+  </div>
+
+  <div class="page-head" style="margin-top:20px;"><h2 class="page-title" style="font-size:20px;">Historique <span id="svc-history-count" style="font-family:var(--font-mono);font-size:12px;color:var(--gray);">(0)</span></h2></div>
+  <div id="svc-recent-list"></div>
+</div>
+
+<div id="ciu-footer">
+  <span>© L.S.P.D. — Criminal Investigation Union</span>
+  <span>Usage interne — San Andreas</span>
+</div>
+
+<!-- Modal édition -->
+<div class="ciu-modal-overlay" id="edit-svc-modal">
+  <div class="ciu-modal">
+    <div class="ciu-modal-head"><span>✏ Modifier l'entrée</span><button class="ciu-modal-close" onclick="document.getElementById('edit-svc-modal').classList.remove('open')">✕</button></div>
+    <div class="ciu-modal-body">
+      <input type="hidden" id="esvc-idx">
+      <div class="field"><label>Agent</label><input id="esvc-agent" disabled></div>
+      <div class="field-row">
+        <div class="field"><label>Date</label><input id="esvc-date" type="date"></div>
+        <div class="field"><label>Durée</label><input id="esvc-duree" placeholder="2h31"></div>
+      </div>
+      <div class="field"><label>Note</label><input id="esvc-note"></div>
+      <button class="btn btn-gold" onclick="saveEditSvc()">💾 Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="shared.js"></script>
+<script>
+let DB;
+let svcChartInst=null, svcChartMode='month', svcCurrentAgentId=null;
+
+function populateSvcAgents(){
+  const sel=document.getElementById('svc-agent'); sel.innerHTML='';
+  (DB.effectif||[]).filter(m=>!m.isVacant).forEach(m=>{
+    const o=document.createElement('option'); o.value=m.id||m.nom; o.textContent=`#${m.mat} — ${m.nom} (${m.gradeBI})`; sel.appendChild(o);
+  });
+}
+function parseDuree(str){
+  if(!str) return null;
+  str=str.trim().toLowerCase().replace(',','.');
+  const mh=str.match(/^(\d+)h(\d{0,2})$/); if(mh){ const h=parseInt(mh[1]); const m=mh[2]?parseInt(mh[2]):0; if(m>59) return null; return h+(m/60); }
+  const mc=str.match(/^(\d+):(\d{2})$/); if(mc){ const h=parseInt(mc[1]); const m=parseInt(mc[2]); if(m>59) return null; return h+(m/60); }
+  const mf=parseFloat(str); if(!isNaN(mf)&&mf>0) return mf;
+  return null;
+}
+function formatDuree(decimal){
+  if(!decimal && decimal!==0) return '—';
+  const h=Math.floor(decimal); const m=Math.round((decimal-h)*60);
+  return m===0 ? `${h}h00` : `${h}h${String(m).padStart(2,'0')}`;
+}
+function showMsg(id,txt,ok){
+  const el=document.getElementById(id); if(!el) return;
+  el.innerHTML=`<div style="font-family:var(--font-mono);font-size:11px;padding:8px 12px;margin-bottom:10px;background:${ok?'rgba(26,92,46,0.08)':'rgba(139,26,26,0.08)'};color:${ok?'#1a5c2e':'#8b1a1a'};border-left:3px solid ${ok?'#1a5c2e':'#8b1a1a'};">${txt}</div>`;
+  setTimeout(()=>{ if(el) el.innerHTML=''; },3000);
+}
+
+function renderRecentService(){
+  const all=(DB.service||[]).slice();
+  const cnt=document.getElementById('svc-history-count'); if(cnt) cnt.textContent='('+all.length+' entrée'+(all.length>1?'s':'')+')';
+  const el=document.getElementById('svc-recent-list');
+  if(!all.length){ el.innerHTML='<p style="font-family:var(--font-mono);font-size:11px;color:var(--gray);">Aucune entrée enregistrée.</p>'; return; }
+  el.innerHTML = `<table class="ciu-table"><thead><tr><th>Agent</th><th>Date</th><th>Durée</th><th>Note</th><th>Par</th><th>Actions</th></tr></thead><tbody>
+    ${all.map(s=>`<tr>
+      <td>${s.agentName} <span style="font-size:9px;color:var(--gray);">#${s.mat||'—'}</span></td>
+      <td>${s.date||'—'}</td>
+      <td style="color:var(--gold-dim);font-weight:600;">${formatDuree(parseFloat(s.duree))}</td>
+      <td>${s.note||'—'}</td>
+      <td style="color:var(--gray);font-size:10px;">${s.addedBy||'—'}</td>
+      <td><div class="ta-actions"><button class="ta-btn ta-edit" onclick="openEditSvc('${s._id}')">✏</button><button class="ta-btn" style="color:#8b1a1a;" onclick="deleteSvc('${s._id}')">✕</button></div></td>
+    </tr>`).join('')}
+  </tbody></table>`;
+}
+
+async function addService(){
+  const agentVal=document.getElementById('svc-agent').value;
+  const date=document.getElementById('svc-date').value;
+  const dureeRaw=document.getElementById('svc-duree').value.trim();
+  const note=document.getElementById('svc-note').value.trim();
+  const duree=parseDuree(dureeRaw);
+  if(!agentVal||!date||!duree){ showMsg('svc-msg','Remplissez agent, date et durée (ex: 2h31).',false); return; }
+  if(duree<=0||duree>24){ showMsg('svc-msg','Durée invalide (max 24h).',false); return; }
+  const agent=(DB.effectif||[]).find(m=>(m.id&&m.id===agentVal)||m.nom===agentVal);
+  const data={agentId:agentVal, agentName:agent?agent.nom:agentVal, mat:agent?agent.mat:'', date, duree, note, addedBy:CIU.currentUser, ts:Date.now()};
+  const ref = await CIU.fsAdd('service',data);
+  DB.service.unshift({_id:ref.id, ...data});
+  document.getElementById('svc-date').value=''; document.getElementById('svc-duree').value=''; document.getElementById('svc-note').value='';
+  showMsg('svc-msg','Service enregistré : '+formatDuree(duree)+' pour '+(agent?agent.nom:agentVal)+'.',true);
+  renderRecentService();
+}
+function openEditSvc(id){
+  const s=DB.service.find(x=>x._id===id); if(!s) return;
+  document.getElementById('esvc-idx').value=id;
+  document.getElementById('esvc-agent').value=s.agentName+(s.mat?' (#'+s.mat+')':'');
+  document.getElementById('esvc-date').value=s.date||'';
+  document.getElementById('esvc-duree').value=s.duree?formatDuree(parseFloat(s.duree)):'';
+  document.getElementById('esvc-note').value=s.note||'';
+  document.getElementById('edit-svc-modal').classList.add('open');
+}
+async function saveEditSvc(){
+  const id=document.getElementById('esvc-idx').value;
+  const date=document.getElementById('esvc-date').value;
+  const dureeRaw=document.getElementById('esvc-duree').value.trim();
+  const note=document.getElementById('esvc-note').value.trim();
+  const duree=parseDuree(dureeRaw);
+  if(!date||!duree||duree<=0){ alert('Date et durée obligatoires (format : 2h31).'); return; }
+  await CIU.fsUpdate('service',id,{date,duree,note,editedBy:CIU.currentUser,editedAt:new Date().toLocaleString('fr-FR')});
+  const s=DB.service.find(x=>x._id===id); if(s) Object.assign(s,{date,duree,note});
+  document.getElementById('edit-svc-modal').classList.remove('open');
+  renderRecentService();
+}
+async function deleteSvc(id){
+  const s=DB.service.find(x=>x._id===id); if(!s) return;
+  if(!confirm('Supprimer cette entrée ?\n'+s.agentName+' — '+s.date+' — '+formatDuree(parseFloat(s.duree)))) return;
+  await CIU.fsDelete('service',id);
+  DB.service = DB.service.filter(x=>x._id!==id);
+  renderRecentService();
+}
+function searchService(){
+  const q=document.getElementById('svc-search').value.trim().toLowerCase();
+  if(!q){ resetSvcDisplay(); return; }
+  const allSvc=DB.service||[];
+  const agentMap={};
+  allSvc.forEach(s=>{ const key=s.agentName+'||'+(s.mat||''); if(!agentMap[key]) agentMap[key]={agentName:s.agentName,mat:s.mat||''}; });
+  const matching=Object.values(agentMap).filter(a=>a.agentName.toLowerCase().includes(q)||(a.mat&&a.mat.toLowerCase().includes(q)));
+  if(!matching.length){ resetSvcDisplay(); document.getElementById('svc-nodata').style.display='block'; return; }
+  const best=matching[0]; svcCurrentAgentId=best.agentName;
+  const entries=allSvc.filter(s=>s.agentName===best.agentName);
+  if(!entries.length){ resetSvcDisplay(); document.getElementById('svc-nodata').style.display='block'; return; }
+  document.getElementById('svc-result-name').textContent=best.agentName+(best.mat&&best.mat!=='—'?' (#'+best.mat+')':'');
+  document.getElementById('svc-result-name').style.display='block';
+  document.getElementById('svc-stats').style.display='grid';
+  document.getElementById('chart-controls').style.display='flex';
+  document.getElementById('chart-wrap').style.display='block';
+  document.getElementById('svc-nodata').style.display='none';
+  document.querySelectorAll('.chart-btn').forEach(b=>b.classList.remove('active'));
+  const activeBtn=document.getElementById('chart-btn-'+svcChartMode); if(activeBtn) activeBtn.classList.add('active');
+  updateSvcStats(entries,svcChartMode); renderSvcChart(entries,svcChartMode);
+}
+function updateSvcStats(entries,mode){
+  const now=new Date(); let periodEntries=entries; let lbl='Total heures';
+  if(mode==='week'){ const ws=new Date(now.getFullYear(),now.getMonth(),now.getDate()-6); const wsStr=`${ws.getFullYear()}-${String(ws.getMonth()+1).padStart(2,'0')}-${String(ws.getDate()).padStart(2,'0')}`; periodEntries=entries.filter(e=>e.date>=wsStr); lbl='Total semaine'; }
+  else if(mode==='month'){ const mStr=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`; periodEntries=entries.filter(e=>e.date&&e.date.startsWith(mStr)); lbl='Total mois'; }
+  else if(mode==='year'){ const yStr=String(now.getFullYear()); periodEntries=entries.filter(e=>e.date&&e.date.startsWith(yStr)); lbl='Total année'; }
+  const total=periodEntries.reduce((a,b)=>a+(parseFloat(b.duree)||0),0); const sessions=periodEntries.length;
+  document.getElementById('svc-total-h').textContent=formatDuree(total);
+  document.getElementById('svc-sessions').textContent=sessions;
+  document.getElementById('svc-avg').textContent=sessions>0?formatDuree(total/sessions):'0h00';
+  document.getElementById('svc-total-lbl').textContent=lbl;
+}
+function resetSvcDisplay(){
+  ['svc-result-name','svc-stats','chart-controls','chart-wrap','svc-nodata'].forEach(id=>{ const e=document.getElementById(id); if(e) e.style.display='none'; });
+  svcCurrentAgentId=null;
+}
+function switchChart(mode,el){
+  svcChartMode=mode;
+  document.querySelectorAll('.chart-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  if(svcCurrentAgentId){ const entries=(DB.service||[]).filter(s=>s.agentName===svcCurrentAgentId); updateSvcStats(entries,mode); renderSvcChart(entries,mode); }
+}
+function renderSvcChart(entries,mode){
+  if(svcChartInst){ svcChartInst.destroy(); svcChartInst=null; }
+  const canvas=document.getElementById('svc-chart'); if(!canvas) return;
+  const parent=canvas.parentNode; const newCanvas=document.createElement('canvas'); newCanvas.id='svc-chart'; parent.replaceChild(newCanvas,canvas);
+  const ctx=newCanvas.getContext('2d'); const now=new Date(); let labels=[], data=[];
+  const toLocalDS=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const sumFor=ds=>entries.filter(e=>e.date===ds).reduce((a,b)=>a+(parseFloat(b.duree)||0),0);
+  if(mode==='week'){ for(let i=6;i>=0;i--){ const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()-i); const ds=toLocalDS(d); labels.push(d.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric'})); data.push(sumFor(ds)); } }
+  else if(mode==='month'){ const dim=new Date(now.getFullYear(),now.getMonth()+1,0).getDate(); for(let d=1;d<=dim;d++){ const ds=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`; labels.push(String(d)); data.push(sumFor(ds)); } }
+  else{ const months=['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc']; for(let mo=0;mo<12;mo++){ labels.push(months[mo]); const total=entries.filter(e=>{ if(!e.date) return false; const parts=e.date.split('-'); return parseInt(parts[0])===now.getFullYear() && parseInt(parts[1])-1===mo; }).reduce((a,b)=>a+(parseFloat(b.duree)||0),0); data.push(total); } }
+  try{
+    svcChartInst = new Chart(ctx, { type:'bar', data:{ labels, datasets:[{ label:'Heures de service', data, backgroundColor:'rgba(241,164,0,0.55)', borderColor:'rgba(184,126,0,1)', borderWidth:2, borderRadius:4 }] },
+      options:{ responsive:true, plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:c=>formatDuree(c.parsed.y) } } },
+        scales:{ y:{ beginAtZero:true, ticks:{ callback:v=>formatDuree(v) } }, x:{ ticks:{ maxRotation:45 } } } } });
+  }catch(err){ console.error('Chart error:',err); }
+}
+
+(async function(){
+  const ok = await CIU.init({page:'service.html'});
+  if(!ok) return;
+  if(!CIU.isResp() || CIU.isProcureur()){ alert('Accès Responsable / Direction requis.'); window.location.href='accueil.html'; return; }
+  document.getElementById('app-loader').style.display='none';
+  DB = CIU.DB();
+  populateSvcAgents();
+  renderRecentService();
+})();
+</script>
+</body>
+</html>

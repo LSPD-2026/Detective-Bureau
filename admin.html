@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panneau Direction — C.I.U.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div id="app-loader" style="position:fixed;inset:0;background:var(--cream);z-index:9999;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--gray);letter-spacing:.1em;">Chargement…</div>
+
+<div class="ciu-container">
+  <div class="page-head">
+    <div>
+      <span class="sec-num">🛡 Réservé Direction</span>
+      <h1 class="page-title">Panneau Direction</h1>
+      <p class="page-sub">Gestion des comptes, de l'effectif et des paramètres du Criminal Investigation Union.</p>
+    </div>
+  </div>
+
+  <div class="admin-tabs">
+    <button class="admin-tab active" data-tab="t-online" onclick="switchAdminTab('t-online',this)">En ligne</button>
+    <button class="admin-tab" data-tab="t-accounts" onclick="switchAdminTab('t-accounts',this)">Comptes</button>
+    <button class="admin-tab" data-tab="t-effectif" onclick="switchAdminTab('t-effectif',this)">Effectif</button>
+    <button class="admin-tab" data-tab="t-grades" onclick="switchAdminTab('t-grades',this)">Grades</button>
+    <button class="admin-tab" data-tab="t-rolenames" onclick="switchAdminTab('t-rolenames',this)">Noms de rôles</button>
+  </div>
+
+  <!-- EN LIGNE -->
+  <div class="admin-tab-content active" id="t-online">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <span style="font-family:var(--font-mono);font-size:10px;color:var(--gray);">Dernière mise à jour : <span id="online-time">—</span></span>
+      <button class="btn btn-outline btn-sm" onclick="refreshOnline()">↻ Rafraîchir</button>
+    </div>
+    <div id="online-list"></div>
+  </div>
+
+  <!-- COMPTES -->
+  <div class="admin-tab-content" id="t-accounts">
+    <div id="accounts-list"></div>
+    <div class="add-panel" style="margin-top:24px;">
+      <div class="add-panel-title">+ Créer un compte</div>
+      <div class="field-row">
+        <div class="field"><label>Nom complet</label><input id="nu-name"></div>
+        <div class="field"><label>Email</label><input id="nu-email" type="email"></div>
+      </div>
+      <div class="field">
+        <label>Rôle</label>
+        <select id="nu-role">
+          <option value="agent">Agent</option>
+          <option value="responsable">Responsable</option>
+          <option value="direction">Direction</option>
+          <option value="procureur">Bureau du Procureur</option>
+        </select>
+      </div>
+      <div id="acc-msg"></div>
+      <button class="btn btn-gold" onclick="addAccount()">+ Créer le compte</button>
+    </div>
+  </div>
+
+  <!-- EFFECTIF -->
+  <div class="admin-tab-content" id="t-effectif">
+    <div id="admin-ef-list"></div>
+    <div class="add-panel" style="margin-top:24px;">
+      <div class="add-panel-title">+ Ajouter un agent au registre</div>
+      <div class="field-row">
+        <div class="field"><label>Matricule</label><input id="ef-mat"></div>
+        <div class="field"><label>ID</label><input id="ef-id"></div>
+      </div>
+      <div class="field"><label>Nom complet</label><input id="ef-nom"></div>
+      <div class="field-row">
+        <div class="field"><label>Grade B.I.</label><input id="ef-gbi"></div>
+        <div class="field"><label>Grade L.S.P.D.</label><input id="ef-glspd"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Unité</label>
+          <select id="ef-unit"><option value="Direction">Direction</option><option value="Det. Division">Det. Division</option><option value="S.C.U.">S.C.U.</option></select>
+        </div>
+        <div class="field"><label>Date promo</label><input id="ef-date-promo" type="date"></div>
+      </div>
+      <div class="field"><label>Rang hiérarchique</label><input id="ef-grade-hier" type="number" value="60"></div>
+      <div id="ef-msg"></div>
+      <button class="btn btn-gold" onclick="addMember()">+ Ajouter</button>
+    </div>
+  </div>
+
+  <!-- GRADES -->
+  <div class="admin-tab-content" id="t-grades">
+    <div id="grades-list-admin"></div>
+    <div class="add-panel" style="margin-top:24px;">
+      <div class="add-panel-title">+ Ajouter un grade</div>
+      <div class="field-row">
+        <div class="field"><label>Libellé</label><input id="ng-label"></div>
+        <div class="field"><label>Rang</label><input id="ng-hier" type="number" value="60"></div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Unité</label>
+          <select id="ng-unit"><option value="Direction">Direction</option><option value="Det. Division">D.D.</option><option value="S.C.U.">S.C.U.</option><option value="">Toutes</option></select>
+        </div>
+        <div class="field"><label>Couleur barrette</label><input id="ng-color" type="color" value="#f1a400" style="height:42px;cursor:pointer;"></div>
+      </div>
+      <div id="grades-msg"></div>
+      <button class="btn btn-gold" onclick="addGrade()">+ Ajouter le grade</button>
+    </div>
+  </div>
+
+  <!-- NOMS DE RÔLES -->
+  <div class="admin-tab-content" id="t-rolenames">
+    <div class="add-panel">
+      <div class="add-panel-title">Personnaliser les noms de rôles affichés</div>
+      <div class="field"><label>Direction</label><input id="rn-direction" placeholder="Direction"></div>
+      <div class="field"><label>Responsable</label><input id="rn-responsable" placeholder="Responsable"></div>
+      <div class="field"><label>Agent</label><input id="rn-agent" placeholder="Agent"></div>
+      <div class="field"><label>Bureau du Procureur</label><input id="rn-procureur" placeholder="Bureau du Procureur"></div>
+      <div id="rolenames-msg"></div>
+      <button class="btn btn-gold" onclick="saveRoleNames()">💾 Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div id="ciu-footer">
+  <span>© L.S.P.D. — Criminal Investigation Union</span>
+  <span>Usage interne — San Andreas</span>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="shared.js"></script>
+<script>
+let DB;
+function getDefaultGrades(){return[
+  {label:'Directeur D.D.',hier:100,unit:'Direction',color:'#f1a400'},
+  {label:'Directeur Adjoint',hier:100,unit:'Direction',color:'#f1a400'},
+  {label:'Responsable D.D.',hier:90,unit:'Det. Division',color:'#b87e00'},
+  {label:'Responsable S.C.U.',hier:90,unit:'S.C.U.',color:'#b87e00'},
+  {label:'Inspecteur',hier:70,unit:'Det. Division',color:'#4a7050'},
+  {label:'Enquêteur',hier:60,unit:'Det. Division',color:'#0a1e29'},
+  {label:'Agent de P.B.',hier:55,unit:'S.C.U.',color:'#4a4a7a'},
+  {label:'Recrue',hier:50,unit:'S.C.U.',color:'#6a6a6a'},
+];}
+
+function switchAdminTab(id,el){
+  document.querySelectorAll('.admin-tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(id).classList.add('active'); el.classList.add('active');
+  if(id==='t-online') refreshOnline();
+  if(id==='t-accounts') renderAccounts();
+  if(id==='t-effectif') renderAdminEf();
+  if(id==='t-grades') renderGradesAdmin();
+  if(id==='t-rolenames') loadRoleNamesForm();
+}
+function showMsg(id,txt,ok){
+  const el=document.getElementById(id); if(!el) return;
+  el.innerHTML=`<div style="font-family:var(--font-mono);font-size:11px;padding:8px 12px;margin-bottom:10px;background:${ok?'rgba(26,92,46,0.08)':'rgba(139,26,26,0.08)'};color:${ok?'#1a5c2e':'#8b1a1a'};border-left:3px solid ${ok?'#1a5c2e':'#8b1a1a'};">${txt}</div>`;
+  setTimeout(()=>{ if(el) el.innerHTML=''; },3000);
+}
+
+// ── EN LIGNE ──
+const ONLINE_TTL = 20*60*1000;
+async function purgeStaleOnline(){
+  const now=Date.now(); let changed=false;
+  Object.entries(DB.online||{}).forEach(([e,i])=>{
+    if(!i.since){ delete DB.online[e]; changed=true; return; }
+    if(now - new Date(i.since).getTime() > ONLINE_TTL){ delete DB.online[e]; changed=true; }
+  });
+  if(changed) await CIU.saveConfig();
+}
+async function refreshOnline(){
+  await purgeStaleOnline();
+  const now=new Date();
+  document.getElementById('online-time').textContent=now.toLocaleTimeString('fr-FR');
+  const entries=Object.entries(DB.online||{});
+  const el=document.getElementById('online-list');
+  if(!entries.length){ el.innerHTML='<p style="font-family:var(--font-mono);font-size:11px;color:var(--gray);">Aucune session active.</p>'; return; }
+  el.innerHTML=`<table class="ciu-table"><thead><tr><th>Agent</th><th>E-mail</th><th>Depuis</th><th>Statut</th></tr></thead><tbody>
+    ${entries.map(([e,i])=>{ const s=new Date(i.since); const diff=Math.floor((now-s)/60000);
+      return `<tr><td><span class="odot odot-on"></span>${i.name}</td><td style="font-size:10px;">${e}</td><td style="font-size:10px;">${s.toLocaleTimeString('fr-FR')} (${diff<60?diff+'min':Math.floor(diff/60)+'h'+diff%60+'min'})</td><td><span class="badge-on">● En ligne</span></td></tr>`;
+    }).join('')}</tbody></table>`;
+}
+
+// ── COMPTES ──
+function renderAccounts(){
+  const canManage=CIU.isDirection()||CIU.isDev();
+  const el=document.getElementById('accounts-list'); if(!el) return;
+  const entries=Object.entries(DB.users||{});
+  el.innerHTML=`<table class="ciu-table"><thead><tr><th>Nom</th><th>Email</th><th>Rôle</th><th>Réinitialiser MDP</th><th>Action</th></tr></thead><tbody>
+    ${entries.map(([e,u])=>`<tr>
+      <td style="font-family:var(--font-display);">${u.name||'—'}</td>
+      <td style="font-family:var(--font-mono);font-size:10px;color:var(--gray);">${e}</td>
+      <td><select onchange="updateRole('${e}',this.value)" ${CIU.isProtected(e)&&!canManage?'disabled':''} style="font-family:var(--font-mono);font-size:10px;padding:4px 6px;">
+        <option value="agent" ${u.role==='agent'?'selected':''}>Agent</option>
+        <option value="responsable" ${u.role==='responsable'?'selected':''}>Responsable</option>
+        <option value="direction" ${u.role==='direction'?'selected':''}>Direction</option>
+        <option value="procureur" ${u.role==='procureur'?'selected':''}>Bureau du Procureur</option>
+      </select></td>
+      <td><button class="btn btn-outline btn-sm" onclick="adminSendReset('${e}')" ${!canManage?'disabled':''}>📧 Email reset</button></td>
+      <td>${!CIU.isProtected(e) ? `<button class="btn btn-danger btn-sm" onclick="removeAccount('${e}')">✕</button>` : '<span style="font-size:9px;color:var(--gray);">🔒 Protégé</span>'}</td>
+    </tr>`).join('')}
+  </tbody></table>`;
+}
+async function adminSendReset(email){
+  if(!CIU.fauth){ showMsg('acc-msg','Firebase Auth non disponible.',false); return; }
+  try{
+    await CIU.fauth.sendPasswordResetEmail(email);
+    showMsg('acc-msg','✓ Email de réinitialisation envoyé à '+email,true);
+  }catch(err){
+    let msg='Erreur : '+err.message;
+    if(err.code==='auth/user-not-found') msg='Aucun compte Firebase Auth pour '+email+'.';
+    showMsg('acc-msg',msg,false);
+  }
+}
+async function updateRole(e,v){
+  if(!DB.users[e]) return;
+  DB.users[e].role=v; await CIU.saveConfig();
+  showMsg('acc-msg','Rôle mis à jour : '+v,true);
+}
+async function addAccount(){
+  const n=document.getElementById('nu-name').value.trim();
+  const e=document.getElementById('nu-email').value.trim().toLowerCase();
+  const r=document.getElementById('nu-role').value;
+  if(!n||!e){ showMsg('acc-msg','Nom et e-mail obligatoires.',false); return; }
+  if(DB.users[e]){ showMsg('acc-msg','Ce compte existe déjà.',false); return; }
+  DB.users[e]={name:n, pw:await CIU.hashPw(CIU.DEF_PW), role:r};
+  await CIU.saveConfig();
+  document.getElementById('nu-name').value=''; document.getElementById('nu-email').value='';
+  renderAccounts(); showMsg('acc-msg','Compte créé : '+n,true);
+}
+async function removeAccount(e){
+  if(CIU.isProtected(e)){ alert('Ce compte est protégé et ne peut pas être supprimé.'); return; }
+  if(!confirm('Supprimer le compte de '+DB.users[e].name+' ?')) return;
+  delete DB.users[e]; if(DB.online && DB.online[e]) delete DB.online[e];
+  await CIU.saveConfig(); renderAccounts();
+}
+
+// ── EFFECTIF ──
+function renderAdminEf(){
+  document.getElementById('admin-ef-list').innerHTML=`<table class="ciu-table"><thead><tr><th>Mat.</th><th>Nom</th><th>Grade B.I.</th><th>Unité</th><th>Rang</th><th>Promo</th><th></th></tr></thead><tbody>
+    ${(DB.effectif||[]).map((m,i)=>`<tr><td>${m.mat||''}</td><td>${m.nom}</td><td style="font-size:10px;">${m.gradeBI||''}</td><td><span class="agent-unit" style="font-size:9px;">${m.unit}</span></td><td style="font-size:10px;">${m.gradeHier||'—'}</td><td style="font-size:10px;">${m.datePromo||'—'}</td><td><button class="ta-btn ta-edit" onclick="openEfFromAdmin(${i})">✏</button></td></tr>`).join('')}
+  </tbody></table>`;
+}
+async function addMember(){
+  const nom=document.getElementById('ef-nom').value.trim();
+  if(!nom){ showMsg('ef-msg','Nom obligatoire.',false); return; }
+  const gl=document.getElementById('ef-glspd').value.trim();
+  const gh=parseInt(document.getElementById('ef-grade-hier').value)||60;
+  DB.effectif.push({
+    mat:document.getElementById('ef-mat').value.trim(), nom,
+    gradeLspd: gl?(gl.includes('L.S.P.D.')?gl:gl+' — L.S.P.D.'):'',
+    gradeBI:document.getElementById('ef-gbi').value.trim(),
+    unit:document.getElementById('ef-unit').value,
+    id:document.getElementById('ef-id').value.trim(),
+    datePromo:document.getElementById('ef-date-promo').value,
+    gradeHier:gh, isVacant:false, isChef:false
+  });
+  await CIU.saveConfig();
+  ['ef-mat','ef-nom','ef-glspd','ef-gbi','ef-id'].forEach(id=>document.getElementById(id).value='');
+  renderAdminEf(); showMsg('ef-msg',nom+' ajouté.',true);
+}
+function openEfFromAdmin(i){ window.location.href='registre.html'; }
+
+// ── GRADES ──
+function renderGradesAdmin(){
+  const list=document.getElementById('grades-list-admin');
+  const grades=DB.grades&&DB.grades.length?DB.grades:getDefaultGrades();
+  if(!grades.length){ list.innerHTML='<p style="font-family:var(--font-mono);font-size:11px;color:var(--gray);">Aucun grade.</p>'; return; }
+  list.innerHTML=`<table class="ciu-table"><thead><tr><th>Grade</th><th>Rang</th><th>Unité</th><th>Couleur</th><th>Actions</th></tr></thead><tbody>
+    ${grades.map((g,i)=>`<tr>
+      <td><input value="${(g.label||'').replace(/"/g,'&quot;')}" id="gr-lbl-${i}" style="font-family:var(--font-mono);font-size:11px;padding:4px 7px;width:150px;border:1px solid var(--divider);"></td>
+      <td><input type="number" value="${g.hier||60}" id="gr-hier-${i}" min="0" max="100" style="width:55px;padding:4px;border:1px solid var(--divider);font-family:var(--font-mono);font-size:10px;"></td>
+      <td><select id="gr-unit-${i}" style="font-family:var(--font-mono);font-size:10px;padding:4px;">
+        <option value="Direction" ${g.unit==='Direction'?'selected':''}>Direction</option>
+        <option value="Det. Division" ${g.unit==='Det. Division'?'selected':''}>D.D.</option>
+        <option value="S.C.U." ${g.unit==='S.C.U.'?'selected':''}>S.C.U.</option>
+        <option value="" ${!g.unit?'selected':''}>Toutes</option>
+      </select></td>
+      <td><input type="color" value="${g.color||'#f1a400'}" id="gr-col-${i}" style="width:40px;height:30px;cursor:pointer;"></td>
+      <td><div style="display:flex;gap:4px;">
+        <button class="ta-btn" style="color:#1a5c2e;" onclick="saveGrade(${i})">✓</button>
+        <button class="ta-btn" style="color:#8b1a1a;" onclick="deleteGrade(${i})">🗑</button>
+      </div></td>
+    </tr>`).join('')}
+  </tbody></table>`;
+}
+async function saveGrade(i){
+  if(!DB.grades||!DB.grades.length) DB.grades=getDefaultGrades();
+  const g=DB.grades[i];
+  g.label=document.getElementById(`gr-lbl-${i}`).value.trim()||g.label;
+  g.hier=parseInt(document.getElementById(`gr-hier-${i}`).value)||g.hier;
+  g.unit=document.getElementById(`gr-unit-${i}`).value;
+  g.color=document.getElementById(`gr-col-${i}`).value;
+  await CIU.saveConfig();
+  renderGradesAdmin();
+  showMsg('grades-msg','Grade "'+g.label+'" mis à jour.',true);
+}
+async function addGrade(){
+  const label=document.getElementById('ng-label').value.trim();
+  const hier=parseInt(document.getElementById('ng-hier').value)||60;
+  const unit=document.getElementById('ng-unit').value;
+  const color=document.getElementById('ng-color').value;
+  if(!label){ showMsg('grades-msg','Libellé obligatoire.',false); return; }
+  if(!DB.grades) DB.grades=getDefaultGrades();
+  DB.grades.push({label,hier,unit,color});
+  await CIU.saveConfig();
+  document.getElementById('ng-label').value=''; document.getElementById('ng-hier').value='';
+  showMsg('grades-msg','Grade ajouté : '+label,true);
+  renderGradesAdmin();
+}
+async function deleteGrade(i){
+  if(!confirm('Supprimer ce grade ?')) return;
+  if(!DB.grades) DB.grades=getDefaultGrades();
+  DB.grades.splice(i,1);
+  await CIU.saveConfig();
+  renderGradesAdmin();
+}
+
+// ── NOMS DE RÔLES ──
+function loadRoleNamesForm(){
+  const rn=DB.roleNames||{};
+  ['direction','responsable','agent','procureur'].forEach(r=>{
+    const el=document.getElementById('rn-'+r); if(el) el.value=rn[r]||'';
+  });
+}
+async function saveRoleNames(){
+  const rn={};
+  ['direction','responsable','agent','procureur'].forEach(r=>{
+    const v=document.getElementById('rn-'+r);
+    if(v && v.value.trim()) rn[r]=v.value.trim();
+  });
+  DB.roleNames=rn;
+  await CIU.saveConfig();
+  showMsg('rolenames-msg','Noms de rôles mis à jour et appliqués ✓',true);
+}
+
+(async function(){
+  const ok = await CIU.init({page:'admin.html'});
+  if(!ok) return;
+  if(!CIU.isDirection() && !CIU.isDev()){ alert('Accès Direction requis.'); window.location.href='accueil.html'; return; }
+  document.getElementById('app-loader').style.display='none';
+  DB = CIU.DB();
+  refreshOnline();
+})();
+</script>
+</body>
+</html>

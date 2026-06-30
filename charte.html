@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Charte du C.I.U. — L.S.P.D.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div id="app-loader" style="position:fixed;inset:0;background:var(--cream);z-index:9999;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--gray);letter-spacing:.1em;">Chargement…</div>
+
+<div class="charte-hero">
+  <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:var(--gold);">§ 05</span>
+  <h1>Charte du Criminal Investigation Union</h1>
+  <p>Principes fondateurs régissant la conduite de tout agent affecté au C.I.U.</p>
+</div>
+
+<div class="ciu-container">
+  <div class="page-head" style="border:none;">
+    <div></div>
+    <button class="btn btn-outline btn-sm" id="charte-edit-btn" style="display:none;" onclick="document.getElementById('charte-edit-zone').scrollIntoView({behavior:'smooth'})">✏ Gérer la charte</button>
+  </div>
+  <div class="charte-grid" id="charte-grid"></div>
+
+  <div id="charte-edit-zone" style="display:none;margin-top:50px;">
+    <div class="page-head"><h2 class="page-title" style="font-size:22px;">Édition — Articles de la Charte</h2></div>
+    <div id="charte-items-admin"></div>
+    <div class="add-panel" style="margin-top:18px;">
+      <div class="add-panel-title">+ Ajouter un article</div>
+      <div class="field-row">
+        <div class="field" style="max-width:90px;"><label>Emoji</label><input id="charte-new-icon" placeholder="📌"></div>
+        <div class="field"><label>Titre</label><input id="charte-new-title"></div>
+      </div>
+      <div class="field"><label>Texte</label><textarea id="charte-new-text"></textarea></div>
+      <div id="charte-msg"></div>
+      <button class="btn btn-gold" onclick="addCharteItem()">+ Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<div id="ciu-footer">
+  <span>© L.S.P.D. — Criminal Investigation Union</span>
+  <span>Usage interne — San Andreas</span>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="shared.js"></script>
+<script>
+let DB;
+function getDefaultCharte(){return[
+  {icon:'⚖',title:'Intégrité & Impartialité',text:'Chaque agent conduit ses enquêtes sans préjugé. Toute compromission doit être signalée immédiatement.'},
+  {icon:'🔒',title:'Confidentialité absolue',text:'Les informations relatives aux dossiers et opérations de surveillance sont strictement confidentielles.'},
+  {icon:'📋',title:'Rigueur procédurale',text:"Chaque acte d'enquête doit être documenté avec précision. Un dossier mal instruit est un dossier perdu."},
+  {icon:'🤝',title:'Coordination inter-services',text:'Le C.I.U. opère en liaison permanente avec les patrouilles générales, le S.W.A.T. et le D.O.J.'},
+  {icon:'⚡',title:'Discrétion opérationnelle',text:"La couverture Echo implique l'absence de tout marquage susceptible de trahir l'identité des agents."},
+  {icon:'🎯',title:'Proportionnalité de la force',text:"L'usage de la force est soumis au principe de stricte proportionnalité. Rapport écrit sous 24h."},
+];}
+
+function renderCharte(){
+  const items=DB.charte&&DB.charte.length?DB.charte:getDefaultCharte();
+  document.getElementById('charte-grid').innerHTML = items.map(c=>`<div class="charte-card"><div class="charte-icon">${c.icon}</div><div class="charte-title">${c.title}</div><p class="charte-text">${c.text}</p></div>`).join('');
+}
+function renderCharteAdminList(){
+  const items=DB.charte&&DB.charte.length?DB.charte:getDefaultCharte();
+  document.getElementById('charte-items-admin').innerHTML = items.map((c,i)=>`
+    <div class="admin-row">
+      <span style="font-size:20px;width:30px;text-align:center;">${c.icon}</span>
+      <div class="info"><div class="t">${c.title}</div><div class="s" style="color:var(--gray);font-family:var(--font-body);font-size:11px;">${c.text}</div></div>
+      <button class="ta-btn ta-edit" onclick="editCharteItem(${i})">✏</button>
+      <button class="ta-btn" style="color:#8b1a1a;" onclick="deleteCharteItem(${i})">🗑</button>
+    </div>`).join('');
+}
+function showMsg(id,txt,ok){
+  const el=document.getElementById(id); if(!el) return;
+  el.innerHTML=`<div style="font-family:var(--font-mono);font-size:11px;padding:8px 12px;margin:10px 0;background:${ok?'rgba(26,92,46,0.08)':'rgba(139,26,26,0.08)'};color:${ok?'#1a5c2e':'#8b1a1a'};border-left:3px solid ${ok?'#1a5c2e':'#8b1a1a'};">${txt}</div>`;
+  setTimeout(()=>{ if(el) el.innerHTML=''; },2500);
+}
+async function addCharteItem(){
+  const icon=document.getElementById('charte-new-icon').value.trim()||'📌';
+  const title=document.getElementById('charte-new-title').value.trim();
+  const text=document.getElementById('charte-new-text').value.trim();
+  if(!title||!text){ showMsg('charte-msg','Titre et texte obligatoires.',false); return; }
+  if(!DB.charte||!DB.charte.length) DB.charte=getDefaultCharte();
+  DB.charte.push({icon,title,text});
+  await CIU.saveConfig();
+  renderCharteAdminList(); renderCharte();
+  document.getElementById('charte-new-icon').value='';
+  document.getElementById('charte-new-title').value='';
+  document.getElementById('charte-new-text').value='';
+  showMsg('charte-msg','Article ajouté.',true);
+}
+async function deleteCharteItem(i){
+  if(!confirm('Supprimer cet article de la charte ?')) return;
+  if(!DB.charte||!DB.charte.length) DB.charte=getDefaultCharte();
+  DB.charte.splice(i,1);
+  await CIU.saveConfig();
+  renderCharteAdminList(); renderCharte();
+}
+async function editCharteItem(i){
+  if(!DB.charte||!DB.charte.length) DB.charte=getDefaultCharte();
+  const c=DB.charte[i];
+  const nIcon=prompt('Emoji :',c.icon); if(nIcon===null) return;
+  const nTitle=prompt('Titre :',c.title); if(nTitle===null) return;
+  const nText=prompt('Texte :',c.text); if(nText===null) return;
+  DB.charte[i]={icon:nIcon.trim()||c.icon, title:nTitle.trim()||c.title, text:nText.trim()||c.text};
+  await CIU.saveConfig();
+  renderCharteAdminList(); renderCharte();
+}
+
+(async function(){
+  const ok = await CIU.init({page:'charte.html'});
+  if(!ok) return;
+  document.getElementById('app-loader').style.display='none';
+  DB = CIU.DB();
+  renderCharte();
+  if(CIU.isDirection()||CIU.isDev()){
+    document.getElementById('charte-edit-btn').style.display='inline-flex';
+    document.getElementById('charte-edit-zone').style.display='block';
+    renderCharteAdminList();
+  }
+})();
+</script>
+</body>
+</html>

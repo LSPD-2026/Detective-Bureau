@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Avis de Recherche — C.I.U.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<div id="app-loader" style="position:fixed;inset:0;background:var(--cream);z-index:9999;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--gray);letter-spacing:.1em;">Chargement…</div>
+
+<div class="ciu-container">
+  <div class="page-head">
+    <div>
+      <span class="sec-num">§ 06</span>
+      <h1 class="page-title">Avis de Recherche</h1>
+      <p class="page-sub" id="warrants-count">— avis actif(s)</p>
+    </div>
+  </div>
+
+  <div class="add-panel" id="w-add-form" style="display:none;">
+    <div class="add-panel-title">+ Émettre un nouvel avis de recherche</div>
+    <div class="field-row">
+      <div class="field"><label>N° dossier</label><input id="w-id" placeholder="Auto si vide"></div>
+      <div class="field"><label>Niveau de risque</label>
+        <select id="w-danger">
+          <option>Risque Faible</option><option>Risque Moyen</option>
+          <option>Risque élevé</option><option>Risque très élevé</option>
+        </select>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Nom</label><input id="w-nom" placeholder="NOM"></div>
+      <div class="field"><label>Prénom</label><input id="w-prenom" placeholder="Prénom"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Lien casier (Trello)</label><input id="w-trello" placeholder="https://..."></div>
+      <div class="field"><label>Lien Discord</label><input id="w-discord" placeholder="https://..."></div>
+    </div>
+    <button class="btn btn-gold" onclick="addWarrant()">+ Émettre l'avis</button>
+  </div>
+  <div class="add-panel" id="w-readonly" style="display:none;">
+    <p style="font-family:var(--font-mono);font-size:11px;color:var(--gray);">Lecture seule — accès Responsable / Direction requis pour émettre ou modifier un avis.</p>
+  </div>
+
+  <div class="tbl-wrap">
+    <table class="ciu-table">
+      <thead><tr><th>N° dossier</th><th>Nom</th><th>Prénom</th><th>Risque</th><th>Casier</th><th>Discord</th><th>Maj Trello</th><th>Maj Tél.</th><th>Actions</th></tr></thead>
+      <tbody id="warrants-tbody"></tbody>
+    </table>
+  </div>
+  <div class="empty-state" id="warrants-nodata" style="display:none;">Aucun avis de recherche actif actuellement.</div>
+</div>
+
+<div id="ciu-footer">
+  <span>© L.S.P.D. — Criminal Investigation Union</span>
+  <span>Usage interne — San Andreas</span>
+</div>
+
+<!-- Modal édition -->
+<div class="ciu-modal-overlay" id="edit-warrant-modal">
+  <div class="ciu-modal">
+    <div class="ciu-modal-head"><span>✏ Modifier l'avis</span><button class="ciu-modal-close" onclick="document.getElementById('edit-warrant-modal').classList.remove('open')">✕</button></div>
+    <div class="ciu-modal-body">
+      <input type="hidden" id="ew-idx">
+      <div class="field-row">
+        <div class="field"><label>N° dossier</label><input id="ew-id"></div>
+        <div class="field"><label>Risque</label>
+          <select id="ew-danger"><option>Risque Faible</option><option>Risque Moyen</option><option>Risque élevé</option><option>Risque très élevé</option></select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Nom</label><input id="ew-nom"></div>
+        <div class="field"><label>Prénom</label><input id="ew-prenom"></div>
+      </div>
+      <div class="field"><label>Lien casier</label><input id="ew-trello"></div>
+      <div class="field"><label>Lien Discord</label><input id="ew-discord"></div>
+      <button class="btn btn-gold" onclick="saveEditWarrant()">💾 Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="shared.js"></script>
+<script>
+let DB;
+const badgeMapW={'Risque très élevé':'wb-vhigh','Risque élevé':'wb-high','Risque Moyen':'wb-mid','Risque Faible':'wb-low'};
+
+function renderWarrants(){
+  const tbody=document.getElementById('warrants-tbody'), nodata=document.getElementById('warrants-nodata');
+  const canEdit=CIU.isResp();
+  document.getElementById('w-add-form').style.display=canEdit?'block':'none';
+  document.getElementById('w-readonly').style.display=canEdit?'none':'block';
+  const actifs=(DB.warrants||[]).filter(w=>w.status==='Actif');
+  document.getElementById('warrants-count').textContent=actifs.length+' avis actif(s)';
+  if(!actifs.length){ tbody.innerHTML=''; nodata.style.display='block'; return; }
+  nodata.style.display='none';
+  tbody.innerHTML=actifs.map(w=>{
+    const bc=badgeMapW[w.danger]||'wb-mid';
+    const tr=w.trello?`<a href="${w.trello}" target="_blank" class="w-link">🔗 Casier</a>`:'<span class="w-na">N/A</span>';
+    const dc=w.discord?`<a href="${w.discord}" target="_blank" class="w-link">🔗 Discord</a>`:'<span class="w-na">N/A</span>';
+    const dis=canEdit?'':'style="pointer-events:none;opacity:.5;"';
+    const acts=canEdit
+      ? `<button class="ta-btn ta-edit" onclick="openEditWarrant('${w._id}')">✏</button><button class="ta-btn ta-close" onclick="closeWarrantFS('${w._id}')">✓ Clôt.</button>`
+      : '<span class="w-na">Lecture</span>';
+    return`<tr>
+      <td>${w.wid||'—'}</td><td>${w.nom}</td><td>${w.prenom||'—'}</td>
+      <td><span class="wbadge ${bc}">${w.danger}</span></td>
+      <td>${tr}</td><td>${dc}</td>
+      <td><label class="w-toggle" onclick="toggleW(event,'${w._id}','majTrello')" ${dis}><input type="checkbox" ${w.majTrello?'checked':''} readonly><div class="wt-track"></div><span class="wt-lbl">${w.majTrello?'✓':'—'}</span></label></td>
+      <td><label class="w-toggle" onclick="toggleW(event,'${w._id}','majTel')" ${dis}><input type="checkbox" ${w.majTel?'checked':''} readonly><div class="wt-track"></div><span class="wt-lbl">${w.majTel?'✓':'—'}</span></label></td>
+      <td><div class="ta-actions">${acts}</div></td>
+    </tr>`;
+  }).join('');
+}
+
+async function toggleW(e,id,f){
+  e.preventDefault();
+  if(!CIU.isResp()) return;
+  const w=DB.warrants.find(x=>x._id===id); if(!w) return;
+  w[f]=!w[f];
+  await CIU.fsUpdate('warrants',id,{[f]:w[f]});
+  renderWarrants();
+}
+async function addWarrant(){
+  if(!CIU.isResp()){ alert('Accès Responsable / Direction requis.'); return; }
+  const nom=document.getElementById('w-nom').value.trim().toUpperCase();
+  if(!nom){ alert('Le NOM est obligatoire.'); return; }
+  const data={
+    wid:document.getElementById('w-id').value.trim()||String(Date.now()).slice(-5),
+    nom, prenom:document.getElementById('w-prenom').value.trim(),
+    danger:document.getElementById('w-danger').value,
+    trello:document.getElementById('w-trello').value.trim(),
+    discord:document.getElementById('w-discord').value.trim(),
+    date:new Date().toLocaleDateString('fr-FR'), emis:CIU.currentUser,
+    status:'Actif', majTrello:false, majTel:false, ts:Date.now()
+  };
+  const ref = await CIU.fsAdd('warrants',data);
+  DB.warrants.push({_id:ref.id, ...data});
+  ['w-id','w-nom','w-prenom','w-trello','w-discord'].forEach(id=>document.getElementById(id).value='');
+  renderWarrants();
+}
+async function closeWarrantFS(id){
+  if(!CIU.isResp()) return;
+  if(!confirm('Clôturer cet avis de recherche ?')) return;
+  await CIU.fsUpdate('warrants',id,{status:'Clôturé',closedBy:CIU.currentUser,closedDate:new Date().toLocaleDateString('fr-FR')});
+  DB.warrants = DB.warrants.filter(w=>w._id!==id);
+  renderWarrants();
+}
+function openEditWarrant(id){
+  const w=DB.warrants.find(x=>x._id===id); if(!w) return;
+  document.getElementById('ew-idx').value=id;
+  document.getElementById('ew-id').value=w.wid||'';
+  document.getElementById('ew-nom').value=w.nom;
+  document.getElementById('ew-prenom').value=w.prenom||'';
+  document.getElementById('ew-danger').value=w.danger;
+  document.getElementById('ew-trello').value=w.trello||'';
+  document.getElementById('ew-discord').value=w.discord||'';
+  document.getElementById('edit-warrant-modal').classList.add('open');
+}
+async function saveEditWarrant(){
+  const id=document.getElementById('ew-idx').value;
+  const data={
+    wid:document.getElementById('ew-id').value.trim(),
+    nom:document.getElementById('ew-nom').value.trim().toUpperCase(),
+    prenom:document.getElementById('ew-prenom').value.trim(),
+    danger:document.getElementById('ew-danger').value,
+    trello:document.getElementById('ew-trello').value.trim(),
+    discord:document.getElementById('ew-discord').value.trim()
+  };
+  await CIU.fsUpdate('warrants',id,data);
+  const w=DB.warrants.find(x=>x._id===id); if(w) Object.assign(w,data);
+  document.getElementById('edit-warrant-modal').classList.remove('open');
+  renderWarrants();
+}
+
+(async function(){
+  const ok = await CIU.init({page:'mandats.html'});
+  if(!ok) return;
+  document.getElementById('app-loader').style.display='none';
+  DB = CIU.DB();
+  renderWarrants();
+  // Live updates
+  CIU.COL.warrants.onSnapshot(snap=>{
+    DB.warrants = snap.docs.map(d=>({_id:d.id,...d.data()}));
+    renderWarrants();
+  });
+})();
+</script>
+</body>
+</html>
